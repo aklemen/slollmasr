@@ -2,7 +2,6 @@
 NEMO_REPOSITORY_PATH="/NeMo"
 NEMO_SPEECHLLM_EXAMPLES_PATH="$NEMO_REPOSITORY_PATH/examples/multimodal/speech_llm"
 
-# slollmasr
 SLOLLMASR_REPOSITORY_PATH="/slollmasr"
 
 # models

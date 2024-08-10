@@ -5,7 +5,7 @@ NEMO_PATH="/shared/home/anton.klemen/NeMo"
 
 CONTAINER_IMAGE="nvcr.io/nvidia/nemo:24.07"
 CONTAINER_NAME="nemo-container"
-CONTAINER_MOUNTS="$DATASETS_PATH:/dataset:ro,$MODELS_PATH:/models:ro,$SLOLLMASR_PATH:/slollmasr:ro,$NEMO_PATH:/NeMo"
+CONTAINER_MOUNTS="$DATASETS_PATH:/dataset:ro,$MODELS_PATH:/models:ro,$SLOLLMASR_PATH:/slollmasr:ro,$NEMO_PATH:/NeMo:ro"
 
 srun -p dev -w ana --gres=gpu \
   --container-image="$CONTAINER_IMAGE" \
