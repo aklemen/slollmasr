@@ -1,3 +1,13 @@
+#!/bin/bash
+#SBATCH --job-name=train-speechllm-conformer-ctc-llama
+#SBATCH --partition=frida
+#SBATCH --time=??? #TODO
+#SBATCH --gres=gpu:A100_80GB:2
+#SBATCH --tasks=2
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=64G
+#SBATCH --output=%x_%j.out
+
 # NeMo
 NEMO_REPOSITORY_PATH="/NeMo"
 NEMO_SPEECHLLM_EXAMPLES_PATH="$NEMO_REPOSITORY_PATH/examples/multimodal/speech_llm"
