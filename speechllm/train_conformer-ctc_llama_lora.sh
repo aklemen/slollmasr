@@ -6,6 +6,7 @@ SLOLLMASR_REPOSITORY_PATH="/slollmasr"
 
 # models
 LLM_PATH="/models/llm/llama3_1_8b.nemo"
+#LLM_PATH="/models/llm/llama3_1_8b_instruct.nemo"
 ASR_MODEL_PATH="/models/asr/sl-SI_GEN_nemo-2.0/conformer_ctc_bpe.nemo"
 
 # dataset
