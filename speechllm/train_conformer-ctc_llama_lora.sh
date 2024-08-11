@@ -23,6 +23,7 @@ CONTEXT_FILE_PATH="$SLOLLMASR_REPOSITORY_PATH/speechllm/context_list"
 # training
 # global_batch_size = micro_batch_size(=2) * num_gpus_per_node(=???) * num_nodes(=1) * accumulate_grad_batches(=1)
 # micro_batch_size = batch_size_per_gpu
+# TODO - set batch sizes, depending on GPUs usage
 cd "$NEMO_SPEECHLLM_EXAMPLES_PATH" || exit
 python modular_audio_gpt_train.py --config-path="$CONFIGS_PATH" --config-name "$CONFIG_NAME" \
     name="speechllm_conformer-ctc_llama31_8b_lora" \
