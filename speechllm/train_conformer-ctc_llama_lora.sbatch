@@ -49,7 +49,7 @@ python modular_audio_gpt_train.py --config-path="$CONFIGS_PATH" --config-name "$
     model.data.train_ds.manifest_filepath="$TRAIN_MANIFESTS" \
     model.data.validation_ds.manifest_filepath="$VAL_MANIFESTS" \
     ++model.data.validation_ds.names="$VAL_NAMES" \
-    ++model.data.train_ds.context_file"$CONTEXT_FILE_PATH" \
+    ++model.data.train_ds.context_file="$CONTEXT_FILE_PATH" \
     ++model.data.train_ds.context_key="input_text" \
     ++model.data.train_ds.answer_key="text" \
     ++model.data.train_ds.prompt_template="'Q: {input_text}\nA: {text}'"
