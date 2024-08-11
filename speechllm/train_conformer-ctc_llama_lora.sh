@@ -21,9 +21,11 @@ CONFIG_NAME="modular_audio_gpt_config_peft"
 CONTEXT_FILE_PATH="$SLOLLMASR_REPOSITORY_PATH/speechllm/context_list"
 
 # training
-TRAINING_SCRIPT="modular_audio_gpt_train.py"
+# global_batch_size = micro_batch_size(=2) * num_gpus_per_node(=???) * num_nodes(=1) * accumulate_grad_batches(=1)
+# micro_batch_size = batch_size_per_gpu
 cd "$NEMO_SPEECHLLM_EXAMPLES_PATH" || exit
-python "$TRAINING_SCRIPT" --config-path="$CONFIGS_PATH" --config-name "$CONFIG_NAME" \
+python modular_audio_gpt_train.py --config-path="$CONFIGS_PATH" --config-name "$CONFIG_NAME" \
+    name="speechllm_conformer-ctc_llama31_8b_lora" \
     trainer.devices=-1 \
     model.freeze_audio_encoder=True \
     model.freeze_modality_adapter=False \
@@ -34,5 +36,8 @@ python "$TRAINING_SCRIPT" --config-path="$CONFIGS_PATH" --config-name "$CONFIG_N
     model.restore_from_path=$LLM_PATH \
     model.data.train_ds.manifest_filepath="$TRAIN_MANIFESTS" \
     model.data.validation_ds.manifest_filepath="$VAL_MANIFESTS" \
-    model.data.validation_ds.names="$VAL_NAMES" \
-    model.data.train_ds.context_file"$CONTEXT_FILE_PATH"
+    ++model.data.validation_ds.names="$VAL_NAMES" \
+    ++model.data.train_ds.context_file"$CONTEXT_FILE_PATH" \
+    ++model.data.train_ds.context_key="input_text" \
+    ++model.data.train_ds.answer_key="text" \
+    ++model.data.train_ds.prompt_template="'Q: {input_text}\nA: {text}'"
