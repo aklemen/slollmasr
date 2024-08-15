@@ -84,9 +84,13 @@ echo "Replacing data_utils.py to fix type errors.."
 curl -o /opt/NeMo/nemo/collections/multimodal/speech_llm/parts/utils/data_utils.py https://raw.githubusercontent.com/aklemen/NeMo/text-processing/nemo/collections/multimodal/speech_llm/parts/utils/data_utils.py
 
 # train
-# LLM_PATH="/models/llm/llama3_1_8b_instruct.nemo"
-LLM_PATH="/models/llm/llama2-7b-bf16.nemo"
-ASR_MODEL_PATH="/models/asr/sl-SI_GEN_nemo-2.0/conformer_ctc_bpe.nemo"
+
+LLM_FILE_NAME=llama2-7b-bf16
+# LLM_FILE_NAME=llama3_1_8b_instruct
+LLM_PATH="/models/llm/\${LLM_FILE_NAME}.nemo"
+ASR_MODEL_FILE_NAME=conformer_ctc_bpe
+ASR_MODEL_PATH="/models/asr/sl-SI_GEN_nemo-2.0/\${ASR_MODEL_FILE_NAME}.nemo"
+
 ARTUR_MANIFESTS_PATH=/manifests/artur/kaj-je-transkript-tega-avdio-posnetka
 TRAIN_MANIFEST="\${ARTUR_MANIFESTS_PATH}/clean/train.nemo"
 VAL_MANIFEST="\${ARTUR_MANIFESTS_PATH}/clean/val.nemo"
@@ -107,9 +111,11 @@ echo "Global batch size__\${GLOBAL_BATCH_SIZE}"
 echo "Max steps__________\${MAX_STEPS}"
 echo "================================================================"
 
+MODEL_NAME=speechllm-\${ASR_MODEL_FILE_NAME}-\${LLM_FILE_NAME}-lora
+
 cd "/NeMo/examples/multimodal/speech_llm" || exit
 python modular_audio_gpt_train.py --config-path="./conf" --config-name "modular_audio_gpt_config_peft" \
-    name="speechllm_conformer-ctc_llama2_7b_lora" \
+    name=\${MODEL_NAME} \
     trainer.devices=-1 \
     trainer.max_steps=\${MAX_STEPS} \
     trainer.val_check_interval=500 \
