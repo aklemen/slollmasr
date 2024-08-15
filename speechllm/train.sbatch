@@ -10,7 +10,8 @@
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error_%x_%j.txt
 
-EXPERIMENT_NAME=speechllm-H100-16-workers
+NUM_GPUS=8
+EXPERIMENT_NAME=speechllm
 
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
@@ -83,38 +84,47 @@ echo "Replacing data_utils.py to fix type errors.."
 curl -o /opt/NeMo/nemo/collections/multimodal/speech_llm/parts/utils/data_utils.py https://raw.githubusercontent.com/aklemen/NeMo/text-processing/nemo/collections/multimodal/speech_llm/parts/utils/data_utils.py
 
 # train
-LLM_PATH="/models/llm/llama3_1_8b_instruct.nemo"
+# LLM_PATH="/models/llm/llama3_1_8b_instruct.nemo"
+LLM_PATH="/models/llm/llama2-7b-bf16.nemo"
 ASR_MODEL_PATH="/models/asr/sl-SI_GEN_nemo-2.0/conformer_ctc_bpe.nemo"
-TRAIN_MANIFESTS="[/manifests/artur/clean/train.nemo]"
-VAL_MANIFESTS="[/manifests/artur/clean/val.nemo]"
-VAL_NAMES="[artur-clean-val]"
+ARTUR_MANIFESTS_PATH=/manifests/artur/kaj-je-transkript-tega-avdio-posnetka
+TRAIN_MANIFEST="\${ARTUR_MANIFESTS_PATH}/clean/train.nemo"
+VAL_MANIFEST="\${ARTUR_MANIFESTS_PATH}/clean/val.nemo"
+VAL_NAME="artur-clean-val"
 
-NUM_GPUS=8
-MICRO_BATCH_SIZE=4
-GLOBAL_BATCH_SIZE=\$((\${NUM_GPUS}*\${MICRO_BATCH_SIZE}))
+MICRO_BATCH_SIZE=8
+GLOBAL_BATCH_SIZE=\$(($NUM_GPUS * \${MICRO_BATCH_SIZE}))
 
-# 453293 (~samples in clean/train.nemo) / 32 (global batch size) = ~15000 (steps for 1 epoch)
-# max steps = 2 (epochs) x 15000
-MAX_STEPS=30000
+NUM_TRAINING_SAMPLES=\$(wc -l < \${TRAIN_MANIFEST})
+NUM_EPOCHS=2
+STEPS_PER_EPOCH=\$((\${NUM_TRAINING_SAMPLES} / \${GLOBAL_BATCH_SIZE}))
+ROUNDED_STEPS_PER_EPOCH=\$((((\${STEPS_PER_EPOCH} + 999) / 1000) * 1000))
+MAX_STEPS=\$((\${ROUNDED_STEPS_PER_EPOCH} * \${NUM_EPOCHS}))
+
+echo "================================================================"
+echo "Micro batch size___\${MICRO_BATCH_SIZE}"
+echo "Global batch size__\${GLOBAL_BATCH_SIZE}"
+echo "Max steps__________\${MAX_STEPS}"
+echo "================================================================"
 
 cd "/NeMo/examples/multimodal/speech_llm" || exit
 python modular_audio_gpt_train.py --config-path="./conf" --config-name "modular_audio_gpt_config_peft" \
-    name="speechllm_conformer-ctc_llama31_8b_lora" \
+    name="speechllm_conformer-ctc_llama2_7b_lora" \
     trainer.devices=-1 \
     trainer.max_steps=\${MAX_STEPS} \
+    trainer.val_check_interval=500 \
     exp_manager.exp_dir="/exp" \
-    model.freeze_audio_encoder=True \
+    model.freeze_audio_encoder=False \
     model.freeze_modality_adapter=False \
     model.freeze_llm=True \
     model.global_batch_size=\${GLOBAL_BATCH_SIZE} \
     model.micro_batch_size=\${MICRO_BATCH_SIZE} \
     model.pretrained_audio_model=\${ASR_MODEL_PATH} \
     model.restore_from_path=\${LLM_PATH} \
-    model.data.train_ds.manifest_filepath=\${TRAIN_MANIFESTS} \
-    model.data.train_ds.num_workers=16 \
-    model.data.validation_ds.manifest_filepath=\${VAL_MANIFESTS} \
-    model.data.validation_ds.num_workers=16 \
-    ++model.data.validation_ds.names=\${VAL_NAMES}
+    model.data.train_ds.manifest_filepath=[\${TRAIN_MANIFEST}] \
+    model.data.validation_ds.manifest_filepath=[\${VAL_MANIFEST}] \
+    ++model.data.validation_ds.names=[\${VAL_NAME}] \
+    model.optim.sched.warmup_steps=2000
 cd -
 
 echo -e \"\"\"
