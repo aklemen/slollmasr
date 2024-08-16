@@ -142,7 +142,7 @@ DATASETS_PATH="/shared/workspace/lpt-llm/datasets"
 EXP_PATH=${EXPERIMENT_DIR}/${EXPERIMENT_NAME}/${version}
 
 CONTAINER_IMAGE="nvcr.io/nvidia/nemo:24.07"
-CONTAINER_MOUNTS="$DATASETS_PATH:/dataset:ro,${HOME}/manifests:/manifests:ro,$EXP_PATH:/exp,${HOME}/models:/models:ro,${HOME}/slollmasr:/slollmasr:ro,${HOME}/NeMo:/NeMo:ro"
+CONTAINER_MOUNTS="$DATASETS_PATH:/dataset:ro,$EXP_PATH:/exp,${HOME}/manifests:/manifests:ro,${HOME}/models:/models:ro"
 
 srun \
   --container-image="$CONTAINER_IMAGE" \
