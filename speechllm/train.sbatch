@@ -85,8 +85,8 @@ curl -o /opt/NeMo/nemo/collections/multimodal/speech_llm/parts/utils/data_utils.
 
 # train
 
-LLM_FILE_NAME=llama2-7b-bf16
-# LLM_FILE_NAME=llama3_1_8b_instruct
+# LLM_FILE_NAME=llama2-7b-bf16
+LLM_FILE_NAME=llama3_1_8b_instruct
 LLM_PATH="/models/llm/\${LLM_FILE_NAME}.nemo"
 ASR_MODEL_FILE_NAME=conformer_ctc_bpe
 ASR_MODEL_PATH="/models/asr/sl-SI_GEN_nemo-2.0/\${ASR_MODEL_FILE_NAME}.nemo"
