@@ -113,7 +113,7 @@ echo "================================================================"
 
 MODEL_NAME=speechllm-\${ASR_MODEL_FILE_NAME}-\${LLM_FILE_NAME}-lora
 
-cd "/NeMo/examples/multimodal/speech_llm" || exit
+cd "/opt/NeMo/examples/multimodal/speech_llm" || exit
 python modular_audio_gpt_train.py --config-path="./conf" --config-name "modular_audio_gpt_config_peft" \
     name=\${MODEL_NAME} \
     trainer.devices=-1 \
