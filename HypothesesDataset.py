@@ -5,7 +5,7 @@ import json
 import warnings
 
 
-class BeamScoresDataset(torch.utils.data.Dataset):
+class HypothesesDataset(torch.utils.data.Dataset):
     def __init__(self, hypotheses_file_path, manifest_file_path, tokenizer, beam_size, max_seq_length):
         self.hypotheses = pd.read_csv(hypotheses_file_path, delimiter="\t", header=None)
         self.ground_truths = self._read_manifest(manifest_file_path)
