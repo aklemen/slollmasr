@@ -2,11 +2,19 @@ import torch
 import pandas as pd
 import numpy as np
 import logging
-from transformers import AutoTokenizer
+from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
+from typing import Union
 
 
 class HypothesesDataset(torch.utils.data.Dataset):
-    def __init__(self, hypotheses: pd.DataFrame, ground_truths: list[str], tokenizer: AutoTokenizer, beam_size: int, max_seq_length: int):
+    def __init__(
+            self,
+            hypotheses: pd.DataFrame,
+            ground_truths: list[str],
+            tokenizer: Union[PreTrainedTokenizer, PreTrainedTokenizerFast],
+            beam_size: int,
+            max_seq_length: int
+    ):
         self.hypotheses = hypotheses
         self.ground_truths = ground_truths
         self.tokenizer = tokenizer
@@ -14,6 +22,8 @@ class HypothesesDataset(torch.utils.data.Dataset):
         self.max_seq_length = max_seq_length
 
         self.pad_id = self._get_pad_id(tokenizer)
+        self.bos_id = self._get_bos_id(tokenizer)
+        self.eos_id = self._get_eos_id(tokenizer)
 
     def __len__(self):
         return len(self.hypotheses)
@@ -36,20 +46,31 @@ class HypothesesDataset(torch.utils.data.Dataset):
     def _convert_text_to_ids(self, hypothesis_text):
         tokens = self.tokenizer.tokenize(hypothesis_text)
         hypothesis_ids = self.tokenizer.convert_tokens_to_ids(tokens)
-        if hasattr(self.tokenizer, "bos_id") and self.tokenizer.bos_id is not None:
-            hypothesis_ids = [self.tokenizer.bos_id] + hypothesis_ids
-        if hasattr(self.tokenizer, "eos_id") and self.tokenizer.eos_id is not None:
-            hypothesis_ids = hypothesis_ids + [self.tokenizer.eos_id]
+        if self.bos_id is not None:
+            hypothesis_ids = [self.bos_id] + hypothesis_ids
+        if self.eos_id is not None:
+            hypothesis_ids = hypothesis_ids + [self.eos_id]
         return hypothesis_ids
 
     def _get_pad_id(self, tokenizer):
-        if hasattr(tokenizer, "pad_id") and tokenizer.pad_id is not None:
-            return tokenizer.pad_id
-        elif hasattr(tokenizer, "eos_id") and tokenizer.eos_id is not None:
-            return tokenizer.eos_id
+        if hasattr(tokenizer, "pad_token") and tokenizer.pad_token is not None:
+            return tokenizer.convert_tokens_to_ids([tokenizer.pad_token])[0]
+        elif hasattr(tokenizer, "eos_token") and tokenizer.eos_token is not None:
+            logging.info(f"Using eos_id as pad_id as the tokenizer has no pad_token.")
+            return tokenizer.convert_tokens_to_ids([tokenizer.eos_token])[0]
         else:
-            logging.info(f"Using 0 as pad_id as the tokenizer has no pad_id or eos_id.")
+            logging.info(f"Using 0 as pad_id as the tokenizer has no pad_token or eos_token.")
             return 0
+
+    def _get_bos_id(self, tokenizer):
+        if getattr(tokenizer, 'bos_token') is None:
+            return None
+        return tokenizer.convert_tokens_to_ids([tokenizer.bos_token])[0]
+
+    def _get_eos_id(self, tokenizer):
+        if getattr(tokenizer, 'eos_token') is None:
+            return None
+        return tokenizer.convert_tokens_to_ids([tokenizer.eos_token])[0]
 
     def _get_input_ids(self, hypothesis_ids):
         input_ids = [self.pad_id] * self.max_seq_length
