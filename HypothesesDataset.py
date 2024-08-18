@@ -2,7 +2,7 @@ import torch
 import pandas as pd
 import numpy as np
 import json
-import warnings
+import logging
 
 
 class HypothesesDataset(torch.utils.data.Dataset):
@@ -28,13 +28,17 @@ class HypothesesDataset(torch.utils.data.Dataset):
         input_mask = self._get_input_mask(hypothesis_ids)
         return ground_truth, hypothesis, asr_score, input_ids, input_mask
 
+    def get_beam_size(self):
+        return self.beam_size
+
     def _convert_text_to_ids(self, hypothesis_text):
-        hypothesis_tokens = self.tokenizer.text_to_ids(hypothesis_text)
-        if self.tokenizer.bos_id is not None:
-            hypothesis_tokens = [self.tokenizer.bos_id] + hypothesis_tokens
-        if self.tokenizer.eos_id is not None:
-            hypothesis_tokens = hypothesis_tokens + [self.tokenizer.eos_id]
-        return hypothesis_tokens
+        tokens = self.tokenizer.tokenize(hypothesis_text)
+        hypothesis_ids = self.tokenizer.convert_tokens_to_ids(tokens)
+        if hasattr(self.tokenizer, "bos_id") and self.tokenizer.bos_id is not None:
+            hypothesis_ids = [self.tokenizer.bos_id] + hypothesis_ids
+        if hasattr(self.tokenizer, "eos_id") and self.tokenizer.eos_id is not None:
+            hypothesis_ids = hypothesis_ids + [self.tokenizer.eos_id]
+        return hypothesis_ids
 
     def _read_manifest(self, manifest_file_path):
         ground_truths = []
@@ -46,12 +50,12 @@ class HypothesesDataset(torch.utils.data.Dataset):
         return ground_truths
 
     def _get_pad_id(self, tokenizer):
-        if tokenizer.pad_id is not None:
+        if hasattr(tokenizer, "pad_id") and tokenizer.pad_id is not None:
             return tokenizer.pad_id
-        elif tokenizer.eos_id is not None:
+        elif hasattr(tokenizer, "eos_id") and tokenizer.eos_id is not None:
             return tokenizer.eos_id
         else:
-            warnings.warn(f"Using 0 as pad_id as the tokenizer has no pad_id or eos_id.")
+            logging.info(f"Using 0 as pad_id as the tokenizer has no pad_id or eos_id.")
             return 0
 
     def _get_input_ids(self, hypothesis_ids):
