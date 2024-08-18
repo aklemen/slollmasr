@@ -1,9 +1,11 @@
-import json
+import logging
+import time
+import pandas as pd
 
-from HypothesesDataset import HypothesesDataset
-from methods.ReEvaluator import ReEvaluator
-from Transcript import Transcript
 from methods.ReScorer import ReScorer
+from HypothesesDataset import HypothesesDataset
+from Manifest import Manifest
+from llms.LargeLanguageModel import LargeLanguageModel
 
 
 # def read_transcripts(json_file_path: str) -> list[Transcript]:
@@ -27,10 +29,26 @@ from methods.ReScorer import ReScorer
     
 
 if __name__ == '__main__':
-    # llm = Gpt2LargeLanguageModel()
-    # method = GerReEvaluator(llm)
-    # run_reevaluation(method)
-    rescorer = ReScorer("openai-community/gpt2")
-    dataset = HypothesesDataset("./nemo_hypotheses_beam_size_5.tsv", "./nemo_manifest.nemo", rescorer.tokenizer, 5, 256)
+    logging.getLogger().setLevel(logging.INFO)
+    start_time = time.time()
+    
+    hypotheses = pd.read_csv("./nemo_hypotheses_beam_size_5.tsv", delimiter="\t", header=None, names=["text", "score"])
+    manifest = Manifest("./nemo_manifest.nemo")
+    ground_truths = manifest.get_transcripts()
+    
+    hf_llms = [
+        "openai-community/gpt2",
+        "meta-llama/Meta-Llama-3.1-8B",
+        "google-bert/bert-base-uncased",
+        "FacebookAI/xlm-roberta-base"
+    ]
+    llm = LargeLanguageModel(hf_llms[0])
+    rescorer = ReScorer(llm)
+
+    dataset = HypothesesDataset(hypotheses, ground_truths, llm.tokenizer, 5, 256)
+    
     new_scores = rescorer.re_score(dataset)
-    print(new_scores)
+    
+    print(f"Scores length: {len(new_scores)}")
+    print(f"First score: {new_scores[0]}")
+    print(f"Execution time: {time.time() - start_time} seconds")

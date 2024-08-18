@@ -4,19 +4,23 @@ import torch
 from tqdm import tqdm
 
 from HypothesesDataset import HypothesesDataset
-from methods.ReEvaluator import ReEvaluator
+from llms.LargeLanguageModel import LargeLanguageModel
 
 
-class ReScorer(ReEvaluator):
+class ReScorer:
+    def __init__(self, llm: LargeLanguageModel):
+        self.llm = llm
+        
+    
     def re_score(self, dataset: HypothesesDataset, alpha_weight: int = 0.5) -> list[float]:
         beam_size = dataset.get_beam_size()
-        data_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=2) # TODO - increase batch size
+        data_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=256) # TODO - increase batch size
 
-        if "attention_mask" in inspect.getfullargspec(self.llm.forward).args:
-            logging.info(f'Attention mask is supported by "{self.llm_name}" and will be used.')
+        if "attention_mask" in inspect.getfullargspec(self.llm.model.forward).args:
+            logging.info(f'Attention mask is supported by "{self.llm.name}" and will be used.')
             support_attention_mask = True
         else:
-            logging.info(f'Attention mask NOT supported by "{self.llm_name}" and will NOT be used.')
+            logging.info(f'Attention mask NOT supported by "{self.llm.name}" and will NOT be used.')
             support_attention_mask = False
 
         with torch.cuda.amp.autocast():
@@ -27,15 +31,15 @@ class ReScorer(ReEvaluator):
 
                     max_len_in_batch = input_mask.sum(dim=0).argmin().item()
                     input_ids, input_mask = input_ids[:, :max_len_in_batch], input_mask[:, :max_len_in_batch]
-                    input_ids, input_mask = input_ids.to(self.device), input_mask.to(self.device)
-                    asr_score = asr_score.to(self.device)
+                    input_ids, input_mask = input_ids.to(self.llm.device), input_mask.to(self.llm.device)
+                    asr_score = asr_score.to(self.llm.device)
 
                     if support_attention_mask:
-                        log_probs = self.llm(input_ids=input_ids, attention_mask=input_mask)
+                        output = self.llm.model(input_ids=input_ids, attention_mask=input_mask)
                     else:
-                        log_probs = self.llm(input_ids=input_ids)
+                        output = self.llm.model(input_ids=input_ids)
 
-                    log_probs = torch.nn.functional.log_softmax(log_probs.logits, dim=-1)
+                    log_probs = torch.nn.functional.log_softmax(output.logits, dim=-1)
 
                     target_log_probs = log_probs[:, :-1].gather(2, input_ids[:, 1:].unsqueeze(2)).squeeze(2)
                     llm_score = torch.sum(target_log_probs * input_mask[:, 1:], dim=-1)
