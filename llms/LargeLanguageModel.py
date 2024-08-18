@@ -1,7 +1,8 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+
 class LargeLanguageModel:
-    def __init__(self, name: str, device = "cuda"):
+    def __init__(self, name: str, device="cuda"):
         self.name = name
         self.device = device
         self.model = (

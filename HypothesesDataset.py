@@ -29,7 +29,7 @@ class HypothesesDataset(torch.utils.data.Dataset):
 
     def get_beam_size(self):
         return self.beam_size
-    
+
     def get_ground_truth_for_hypothesis_at(self, idx: int) -> str:
         return self.ground_truths[idx // self.beam_size]
 

@@ -10,11 +10,10 @@ from llms.LargeLanguageModel import LargeLanguageModel
 class ReScorer:
     def __init__(self, llm: LargeLanguageModel):
         self.llm = llm
-        
-    
+
     def re_score(self, dataset: HypothesesDataset, alpha_weight: int = 0.5) -> list[float]:
         beam_size = dataset.get_beam_size()
-        data_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=256) # TODO - increase batch size
+        data_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=256)  # TODO - increase batch size
 
         if "attention_mask" in inspect.getfullargspec(self.llm.model.forward).args:
             logging.info(f'Attention mask is supported by "{self.llm.name}" and will be used.')
