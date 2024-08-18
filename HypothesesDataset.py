@@ -37,6 +37,12 @@ class HypothesesDataset(torch.utils.data.Dataset):
         input_mask = self._get_input_mask(hypothesis_ids)
         return ground_truth, hypothesis, asr_score, input_ids, input_mask
 
+    def get_hypotheses_texts(self) -> list[str]:
+        return self.hypotheses["text"].tolist()
+
+    def get_hypotheses_scores(self) -> list[float]:
+        return self.hypotheses["score"].tolist()
+
     def get_beam_size(self):
         return self.beam_size
 
