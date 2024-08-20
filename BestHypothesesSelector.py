@@ -19,7 +19,9 @@ class BestHypothesesSelector:
 
         beam_size = dataset.get_beam_size()
         best_hypotheses = []
-        for i in range(len(hypotheses) / beam_size):
+        print(len(hypotheses))
+        print(beam_size)
+        for i in range(int(len(hypotheses) / beam_size)):
             hypotheses_for_sample = hypotheses[i*5:i*5 + 5]
             scores_for_sample = scores[i*5:i*5 + 5]
             max_value = max(scores_for_sample)
