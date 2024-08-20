@@ -7,7 +7,7 @@ from HypothesesDataset import HypothesesDataset
 from llms.LargeLanguageModel import LargeLanguageModel
 
 
-class ReScorer:
+class CausalReScorer:
     def __init__(self, llm: LargeLanguageModel):
         self.llm = llm
         self.device_to_map_to = "cuda"
@@ -40,10 +40,19 @@ class ReScorer:
                     else:
                         output = self.llm.model(input_ids=input_ids)
 
-                    log_probs = torch.nn.functional.log_softmax(output.logits, dim=-1)
+                    log_probs = torch.nn.functional.log_softmax(output.logits, dim=-1)  # [batch_size, sequence_length, vocab_size]
 
-                    target_log_probs = log_probs[:, :-1].gather(2, input_ids[:, 1:].unsqueeze(2)).squeeze(2)
-                    llm_score = torch.sum(target_log_probs * input_mask[:, 1:], dim=-1)
+                    # We don't care about the last probabilities, because they are for the next token (outside our sequence)
+                    log_probs_without_last = log_probs[:, :-1]  # [batch_size, sequence_length - 1, vocab_size]
+
+                    # We shift the IDs to align them with log probabilities (so probabilities at position 0 are for token at position 0)
+                    shifted_input_ids = input_ids[:, 1:]  # [batch_size, sequence_length - 1]
+
+                    # We need to only get the probabilities of our input tokens (not across the whole vocabulary)
+                    target_log_probs = log_probs_without_last.gather(2, shifted_input_ids.unsqueeze(2)).squeeze(2)
+
+                    shifted_input_mask = input_mask[:, 1:]
+                    llm_score = torch.sum(target_log_probs * shifted_input_mask, dim=-1)
 
                     ground_truths.append(ground_truth)
                     hypotheses.append(hypothesis)

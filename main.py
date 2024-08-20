@@ -2,7 +2,7 @@ import logging
 import time
 import pandas as pd
 
-from methods.ReScorer import ReScorer
+from methods.CausalReScorer import CausalReScorer
 from HypothesesDataset import HypothesesDataset
 from Manifest import Manifest
 from llms.LargeLanguageModel import LargeLanguageModel
@@ -22,7 +22,7 @@ if __name__ == '__main__':
         "FacebookAI/xlm-roberta-base"
     ]
     llm = LargeLanguageModel(hf_llms[0])
-    rescorer = ReScorer(llm)
+    rescorer = CausalReScorer(llm)
 
     dataset = HypothesesDataset(hypotheses, ground_truths, llm.tokenizer, 5, 256)
 
