@@ -18,10 +18,13 @@ class BestHypothesesSelector:
             raise Exception('Scores should have the same length as the number of hypotheses')
 
         beam_size = dataset.get_beam_size()
+        num_samples = dataset.get_number_of_samples()
         best_hypotheses = []
-        for i in range(int(len(hypotheses) / beam_size)):
-            hypotheses_for_sample = hypotheses[i*5:i*5 + 5]
-            scores_for_sample = scores[i*5:i*5 + 5]
+        for i in range(num_samples):
+            start_idx = i * beam_size
+            end_idx = (i + 1) * beam_size
+            hypotheses_for_sample = hypotheses[start_idx:end_idx]
+            scores_for_sample = scores[start_idx:end_idx]
             max_value = max(scores_for_sample)
             max_index = scores_for_sample.index(max_value)
             best_hypotheses.append(hypotheses_for_sample[max_index])
