@@ -10,10 +10,12 @@ from llms.LargeLanguageModel import LargeLanguageModel
 class ReScorer:
     def __init__(self, llm: LargeLanguageModel):
         self.llm = llm
+        self.device_to_map_to = "cuda"
+        self.batch_size = 128
 
     def re_score(self, dataset: HypothesesDataset, alpha_weight: int = 0.5) -> list[float]:
         beam_size = dataset.get_beam_size()
-        data_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=256)  # TODO - increase batch size
+        data_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=self.batch_size)
 
         if "attention_mask" in inspect.getfullargspec(self.llm.model.forward).args:
             logging.info(f'Attention mask is supported by "{self.llm.name}" and will be used.')
@@ -30,8 +32,8 @@ class ReScorer:
 
                     max_len_in_batch = input_mask.sum(dim=0).argmin().item()
                     input_ids, input_mask = input_ids[:, :max_len_in_batch], input_mask[:, :max_len_in_batch]
-                    input_ids, input_mask = input_ids.to(self.llm.device), input_mask.to(self.llm.device)
-                    asr_score = asr_score.to(self.llm.device)
+                    input_ids, input_mask = input_ids.to(self.device_to_map_to), input_mask.to(self.device_to_map_to)
+                    asr_score = asr_score.to(self.device_to_map_to)
 
                     if support_attention_mask:
                         output = self.llm.model(input_ids=input_ids, attention_mask=input_mask)
