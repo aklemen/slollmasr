@@ -6,10 +6,10 @@ class MetricsCalculator:
         self.wer = load("wer")
 
     def calculate_wer(self, predictions: list[str], references: list[str]) -> float:
-        return self.wer.compute(predictions, references)
+        return self.wer.compute(predictions=predictions, references=references)
 
     def calculate_cer(self, predictions: list[str], references: list[str]) -> float:
-        return self.cer.compute(predictions, references)
+        return self.cer.compute(predictions=predictions, references=references)
 
     def calculate_wer_and_cer(self, predictions: list[str], references: list[str]) -> tuple[float, float]:
         w = self.calculate_wer(predictions, references)
