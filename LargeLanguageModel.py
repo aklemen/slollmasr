@@ -1,4 +1,4 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM
 
 
 class LargeLanguageModel:
@@ -8,11 +8,7 @@ class LargeLanguageModel:
             AutoModelForCausalLM.from_pretrained(
                 pretrained_model_name_or_path=name,
                 is_decoder=True,
-                device_map="auto"   
+                device_map="auto"
             )
             .eval()
-        )
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            pretrained_model_name_or_path=name,
-            use_fast=True,
         )

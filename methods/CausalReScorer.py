@@ -4,7 +4,7 @@ import torch
 from tqdm import tqdm
 
 from HypothesesDataset import HypothesesDataset
-from llms.LargeLanguageModel import LargeLanguageModel
+from LargeLanguageModel import LargeLanguageModel
 
 
 class CausalReScorer:
