@@ -1,6 +1,6 @@
 import logging
 
-from HypothesesDataset import HypothesesDataset
+from datasets.HypothesesDataset import HypothesesDataset
 
 
 class BestHypothesesSelector:

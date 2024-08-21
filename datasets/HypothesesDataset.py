@@ -1,11 +1,12 @@
 import torch
 import pandas as pd
 import numpy as np
+from torch.utils.data import Dataset
 
 from Tokenizer import Tokenizer
 
 
-class HypothesesDataset(torch.utils.data.Dataset):
+class HypothesesDataset(Dataset):
     def __init__(self, hypotheses: pd.DataFrame, tokenizer: Tokenizer, beam_size: int, max_seq_length: int = 1024):
         self.hypotheses = hypotheses
         self.tokenizer = tokenizer

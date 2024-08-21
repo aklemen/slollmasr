@@ -7,8 +7,8 @@ import pandas as pd
 from MetricsCalculator import MetricsCalculator
 from Tokenizer import Tokenizer
 from methods.CausalReScorer import CausalReScorer
-from HypothesesDataset import HypothesesDataset
-from Manifest import Manifest
+from datasets.HypothesesDataset import HypothesesDataset
+from datasets.ManifestDataset import ManifestDataset
 from LargeLanguageModel import LargeLanguageModel
 from BestHypothesesSelector import BestHypothesesSelector
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     start_time = time.time()
 
     hypotheses = pd.read_csv(args.beams_file_path, delimiter="\t", header=None, names=["text", "score"])
-    manifest = Manifest(args.manifest_file_path)
+    manifest = ManifestDataset(args.manifest_file_path)
     ground_truths = manifest.get_transcripts()
 
     tokenizer = Tokenizer(args.tokenizer_name)
