@@ -26,9 +26,9 @@ class CausalReScorer:
 
         with torch.cuda.amp.autocast():
             with torch.no_grad():
-                ground_truths, hypotheses, asr_scores, llm_scores = [], [], [], []
+                hypotheses, asr_scores, llm_scores = [], [], []
                 for batch in tqdm(data_loader):
-                    ground_truth, hypothesis, asr_score, input_ids, input_mask = batch
+                    hypothesis, asr_score, input_ids, input_mask = batch
 
                     max_len_in_batch = input_mask.sum(dim=0).argmin().item()
                     input_ids, input_mask = input_ids[:, :max_len_in_batch], input_mask[:, :max_len_in_batch]
@@ -54,7 +54,6 @@ class CausalReScorer:
                     shifted_input_mask = input_mask[:, 1:]
                     llm_score = torch.sum(target_log_probs * shifted_input_mask, dim=-1)
 
-                    ground_truths.append(ground_truth)
                     hypotheses.append(hypothesis)
                     asr_scores.append(asr_score)
                     llm_scores.append(llm_score)
