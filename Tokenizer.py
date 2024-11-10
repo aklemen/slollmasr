@@ -15,9 +15,14 @@ class Tokenizer:
         self.bos_id = self._get_bos_id()
         self.eos_id = self._get_eos_id()
 
+        # Update the hugging-face tokenizer with custom tokens
+        self.tokenizer.pad_token_id = self.pad_id
+        self.tokenizer.bos_token_id = self.bos_id
+        self.tokenizer.eos_token_id = self.eos_id
+
     def text_to_ids(self, text):
         tokens = self.tokenizer.tokenize(text)
-        ids = self.tokenizer.convert_tokens_to_ids(tokens)
+        ids = self._tokens_to_ids(tokens)
         if self.bos_id is not None:
             ids = [self.bos_id] + ids
         if self.eos_id is not None:
