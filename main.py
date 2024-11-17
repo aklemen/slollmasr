@@ -15,7 +15,7 @@ from BestHypothesesSelector import BestHypothesesSelector
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--llm_name', type=str, required=True)
-    parser.add_argument('--tokenizer_name', type=str, required=True)
+    parser.add_argument('--tokenizer_name', type=str, required=False)
     parser.add_argument('--beams_file_path', type=str, required=True)
     parser.add_argument('--manifest_file_path', type=str, required=True)
     parser.add_argument('--beam_size', type=int, required=True)
