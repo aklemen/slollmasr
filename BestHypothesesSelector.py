@@ -1,6 +1,6 @@
 import logging
 
-from datasets.HypothesesDataset import HypothesesDataset
+from torch_datasets.HypothesesDataset import HypothesesDataset
 
 
 class BestHypothesesSelector:

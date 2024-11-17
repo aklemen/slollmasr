@@ -3,7 +3,7 @@ import logging
 import torch
 from tqdm import tqdm
 
-from datasets.HypothesesDataset import HypothesesDataset
+from torch_datasets.HypothesesDataset import HypothesesDataset
 from LargeLanguageModel import LargeLanguageModel
 
 

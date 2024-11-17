@@ -7,8 +7,8 @@ import pandas as pd
 from MetricsCalculator import MetricsCalculator
 from Tokenizer import Tokenizer
 from methods.CausalReScorer import CausalReScorer
-from datasets.HypothesesDataset import HypothesesDataset
-from datasets.ManifestDataset import ManifestDataset
+from torch_datasets.HypothesesDataset import HypothesesDataset
+from torch_datasets.ManifestDataset import ManifestDataset
 from LargeLanguageModel import LargeLanguageModel
 from BestHypothesesSelector import BestHypothesesSelector
 
