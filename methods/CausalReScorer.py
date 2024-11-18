@@ -24,7 +24,7 @@ class CausalReScorer:
             logging.info(f'Attention mask NOT supported by "{self.llm.name}" and will NOT be used.')
             support_attention_mask = False
 
-        with torch.cuda.amp.autocast():
+        with torch.amp.autocast('cuda'):
             with torch.no_grad():
                 hypotheses, asr_scores, llm_scores = [], [], []
                 for batch in tqdm(data_loader):
