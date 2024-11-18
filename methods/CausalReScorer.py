@@ -58,10 +58,9 @@ class CausalReScorer:
                     asr_scores.append(asr_score)
                     llm_scores.append(llm_score)
 
-        asr_scores = torch.cat(asr_scores).view(-1, beam_size)
-        llm_scores = torch.cat(llm_scores).view(-1, beam_size)
+        asr_scores = torch.cat(asr_scores)
+        llm_scores = torch.cat(llm_scores)
 
         new_scores = asr_scores + alpha_weight * llm_scores
 
-        new_scores_flatten = new_scores.flatten()
-        return new_scores_flatten.tolist()
+        return new_scores.tolist()
