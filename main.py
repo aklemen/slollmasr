@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     tokenizer = Tokenizer(args.tokenizer_name)
     llm = LargeLanguageModel(args.llm_name)
-    dataset = HypothesesDataset(hypotheses, tokenizer, args.beam_size, 512)
+    dataset = HypothesesDataset(hypotheses, ground_truths, tokenizer, args.beam_size, 512)
     rescorer = CausalReScorer(llm)
 
     new_scores = rescorer.re_score(dataset)
