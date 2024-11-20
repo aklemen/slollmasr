@@ -1,5 +1,4 @@
 import inspect
-import logging
 
 import numpy as np
 import torch
@@ -22,10 +21,10 @@ class CausalReScorer:
         data_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=self.batch_size)
 
         if "attention_mask" in inspect.getfullargspec(self.llm.model.forward).args:
-            logging.info(f'Attention mask is supported by "{self.llm.name}" and will be used.')
+            print(f'Attention mask is supported by "{self.llm.name}" and will be used.')
             support_attention_mask = True
         else:
-            logging.info(f'Attention mask NOT supported by "{self.llm.name}" and will NOT be used.')
+            print(f'Attention mask NOT supported by "{self.llm.name}" and will NOT be used.')
             support_attention_mask = False
 
         with torch.amp.autocast('cuda'):
@@ -68,18 +67,18 @@ class CausalReScorer:
         char_lengths = torch.cat(char_lengths)
 
         if alpha_weight is None:
-            logging.info("Alpha weight was not provided. Executing linear search for it...")
+            print("Alpha weight was not provided. Executing linear search for it...")
             alpha_weight, best_wer = self._find_best_coefficient(dataset, asr_scores, llm_scores)
             alpha_weight = np.round(alpha_weight, 3)
-            logging.info(f"alpha_weight={alpha_weight} achieved the best WER ({best_wer}).")
+            print(f"alpha_weight={alpha_weight} achieved the best WER ({best_wer}).")
 
         scores_with_llm = asr_scores + alpha_weight * llm_scores
 
         if beta_weight is None:
-            logging.info("Beta weight was not provided. Executing linear search for it...")
+            print("Beta weight was not provided. Executing linear search for it...")
             beta_weight, best_wer = self._find_best_coefficient(dataset, scores_with_llm, char_lengths)
             beta_weight = np.round(beta_weight, 3)
-            logging.info(f"beta_weight={beta_weight} achieved the best WER ({best_wer}).")
+            print(f"beta_weight={beta_weight} achieved the best WER ({best_wer}).")
 
         new_scores = scores_with_llm + beta_weight * char_lengths
 
@@ -90,19 +89,20 @@ class CausalReScorer:
         best_coefficient = coefficients[0]
         best_wer = 10000
         for coefficient in coefficients:
+            print(f"Currently at coefficient: {coefficient}")
             new_scores = scores1 + coefficient * scores2
-            new_best_hypotheses = BestHypothesesSelector.select(dataset, new_scores.tolist())
+            new_best_hypotheses, _ = BestHypothesesSelector.select(dataset, new_scores.tolist())
             wer = self.calculator.calculate_wer(new_best_hypotheses, dataset.get_ground_truths())
             if wer < best_wer:
                 best_coefficient = coefficient
                 best_wer = wer
         return best_coefficient, best_wer
 
-    def _get_coefficients(self, asr_scores, llm_scores):
+    def _get_coefficients(self, scores1, scores2):
         coefficient_range = [0, 10]
         coefficient_steps = 10000
-        asr_scores_mean = asr_scores.mean().abs().item()
-        llm_scores_mean = llm_scores.mean().abs().item()
+        asr_scores_mean = scores1.mean().abs().item()
+        llm_scores_mean = scores2.mean().abs().item()
         normalization_scale = asr_scores_mean / llm_scores_mean
         start = coefficient_range[0] * normalization_scale
         stop = coefficient_range[1] * normalization_scale
