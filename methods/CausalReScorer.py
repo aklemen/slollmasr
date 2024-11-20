@@ -91,7 +91,7 @@ class CausalReScorer:
         best_wer = 10000
         for coefficient in coefficients:
             new_scores = scores1 + coefficient * scores2
-            new_best_hypotheses = BestHypothesesSelector.select(dataset, new_scores)
+            new_best_hypotheses = BestHypothesesSelector.select(dataset, new_scores.tolist())
             wer = self.calculator.calculate_wer(new_best_hypotheses, dataset.get_ground_truths())
             if wer < best_wer:
                 best_coefficient = coefficient
