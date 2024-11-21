@@ -5,7 +5,6 @@ import torch
 from tqdm import tqdm
 
 from BestHypothesesSelector import BestHypothesesSelector
-from MetricsCalculator import MetricsCalculator
 from torch_datasets.HypothesesDataset import HypothesesDataset
 from LargeLanguageModel import LargeLanguageModel
 
@@ -15,7 +14,6 @@ class CausalReScorer:
         self.llm = llm
         self.device_to_map_to = "cuda"
         self.batch_size = 128
-        self.calculator = MetricsCalculator()
 
     def re_score(self, dataset: HypothesesDataset, alpha_weight: int = None, beta_weight: int = None) -> list[float]:
         data_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=self.batch_size)
@@ -29,15 +27,16 @@ class CausalReScorer:
 
         with torch.amp.autocast('cuda'):
             with torch.no_grad():
-                hypotheses, asr_scores, llm_scores, char_lengths = [], [], [], []
+                hypotheses, asr_scores, llm_scores, char_lengths, distances = [], [], [], [], []
                 for batch in tqdm(data_loader):
-                    _, asr_score, input_ids, input_mask, char_length = batch
+                    _, asr_score, input_ids, input_mask, char_length, distance = batch
 
                     max_len_in_batch = input_mask.sum(dim=0).argmin().item()
                     input_ids, input_mask = input_ids[:, :max_len_in_batch], input_mask[:, :max_len_in_batch]
                     input_ids, input_mask = input_ids.to(self.device_to_map_to), input_mask.to(self.device_to_map_to)
                     asr_score = asr_score.to(self.device_to_map_to)
                     char_length = char_length.to(self.device_to_map_to)
+                    distance = distance.to(self.device_to_map_to)
 
                     if support_attention_mask:
                         output = self.llm.model(input_ids=input_ids, attention_mask=input_mask)
@@ -61,14 +60,16 @@ class CausalReScorer:
                     asr_scores.append(asr_score)
                     llm_scores.append(llm_score)
                     char_lengths.append(char_length)
+                    distances.append(distance)
 
         asr_scores = torch.cat(asr_scores)
         llm_scores = torch.cat(llm_scores)
         char_lengths = torch.cat(char_lengths).to(asr_scores.dtype)
+        distances = torch.cat(distances)
 
         if alpha_weight is None:
             print("Alpha weight was not provided. Executing linear search for it...")
-            alpha_weight, best_wer = self._find_best_coefficient(dataset, asr_scores, llm_scores)
+            alpha_weight, best_wer = self._find_best_coefficient(dataset, asr_scores, llm_scores, distances)
             alpha_weight = np.round(alpha_weight, 3)
             print(f"alpha_weight={alpha_weight} achieved the best WER ({best_wer}).")
 
@@ -76,7 +77,7 @@ class CausalReScorer:
 
         if beta_weight is None:
             print("Beta weight was not provided. Executing linear search for it...")
-            beta_weight, best_wer = self._find_best_coefficient(dataset, scores_with_llm, char_lengths)
+            beta_weight, best_wer = self._find_best_coefficient(dataset, scores_with_llm, char_lengths, distances)
             beta_weight = np.round(beta_weight, 3)
             print(f"beta_weight={beta_weight} achieved the best WER ({best_wer}).")
 
@@ -84,14 +85,16 @@ class CausalReScorer:
 
         return new_scores.tolist()
 
-    def _find_best_coefficient(self, dataset: HypothesesDataset, scores1, scores2):
+    def _find_best_coefficient(self, dataset: HypothesesDataset, scores1, scores2, distances):
+        ground_truths_char_lengths_sum = sum(len(ground_truth) for ground_truth in dataset.get_ground_truths())
         coefficients = self._get_coefficients(scores1, scores2)
         best_coefficient = coefficients[0]
         best_wer = 10000
         for coefficient in coefficients:
             new_scores = scores1 + coefficient * scores2
-            new_best_hypotheses, _ = BestHypothesesSelector.select(dataset, new_scores.tolist())
-            wer = self.calculator.calculate_wer(new_best_hypotheses, dataset.get_ground_truths())
+            new_best_hypotheses, _, new_best_indices = BestHypothesesSelector.select(dataset, new_scores.tolist())
+            best_hypothesis_distances = distances.gather(index=new_best_indices)
+            wer = self._calculate_wer(best_hypothesis_distances, ground_truths_char_lengths_sum)
             if wer < best_wer:
                 best_coefficient = coefficient
                 best_wer = wer
@@ -107,4 +110,9 @@ class CausalReScorer:
         stop = coefficient_range[1] * normalization_scale
         coefficients = np.linspace(start, stop, coefficient_steps)
         return coefficients
+
+    def _calculate_wer(self, distances, ground_truths_length_sum):
+        wer = distances.sum() / ground_truths_length_sum
+        wer = wer.item()
+        return wer
 

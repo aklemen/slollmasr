@@ -1,4 +1,4 @@
-import torch
+import editdistance
 import pandas as pd
 import numpy as np
 from torch.utils.data import Dataset
@@ -31,7 +31,9 @@ class HypothesesDataset(Dataset):
         input_ids = self._get_input_ids(hypothesis_ids)
         input_mask = self._get_input_mask(hypothesis_ids)
         char_length = len(hypothesis)
-        return hypothesis, asr_score, input_ids, input_mask, char_length
+        ground_truth = self.ground_truths[idx // self.beam_size]
+        distance_to_ground_truth = editdistance.eval(hypothesis.split(), ground_truth.split())
+        return hypothesis, asr_score, input_ids, input_mask, char_length, distance_to_ground_truth
 
     def get_hypotheses_texts(self) -> list[str]:
         return self.hypotheses["text"].tolist()

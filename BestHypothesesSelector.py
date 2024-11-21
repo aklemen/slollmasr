@@ -21,6 +21,7 @@ class BestHypothesesSelector:
         num_samples = dataset.get_number_of_samples()
         best_hypotheses = []
         best_scores = []
+        best_indices = []
         for i in range(num_samples):
             start_idx = i * beam_size
             end_idx = (i + 1) * beam_size
@@ -30,5 +31,6 @@ class BestHypothesesSelector:
             max_index = scores_for_sample.index(max_value)
             best_hypotheses.append(hypotheses_for_sample[max_index])
             best_scores.append(scores_for_sample[max_index])
+            best_indices.append(start_idx + max_index)
 
-        return best_hypotheses, best_scores
+        return best_hypotheses, best_scores, best_indices
