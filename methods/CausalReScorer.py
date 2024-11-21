@@ -64,7 +64,7 @@ class CausalReScorer:
 
         asr_scores = torch.cat(asr_scores)
         llm_scores = torch.cat(llm_scores)
-        char_lengths = torch.cat(char_lengths)
+        char_lengths = torch.cat(char_lengths).to(asr_scores.dtype)
 
         if alpha_weight is None:
             print("Alpha weight was not provided. Executing linear search for it...")
@@ -100,8 +100,8 @@ class CausalReScorer:
     def _get_coefficients(self, scores1, scores2):
         coefficient_range = [0, 10]
         coefficient_steps = 10000
-        asr_scores_mean = scores1.mean(dtype=torch.float64).abs().item()
-        llm_scores_mean = scores2.mean(dtype=torch.float64).abs().item()
+        asr_scores_mean = scores1.mean().abs().item()
+        llm_scores_mean = scores2.mean().abs().item()
         normalization_scale = asr_scores_mean / llm_scores_mean
         start = coefficient_range[0] * normalization_scale
         stop = coefficient_range[1] * normalization_scale
