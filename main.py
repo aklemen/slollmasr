@@ -43,8 +43,8 @@ if __name__ == '__main__':
 
     new_scores = rescorer.re_score(dataset)
 
-    old_best_hypotheses, old_best_scores = BestHypothesesSelector.select(dataset)
-    new_best_hypotheses, new_best_scores = BestHypothesesSelector.select(dataset, new_scores)
+    old_best_hypotheses, old_best_scores, _ = BestHypothesesSelector.select(dataset)
+    new_best_hypotheses, new_best_scores, _ = BestHypothesesSelector.select(dataset, new_scores)
 
     calc = MetricsCalculator()
     old_wer_score = calc.calculate_wer(old_best_hypotheses, ground_truths)
