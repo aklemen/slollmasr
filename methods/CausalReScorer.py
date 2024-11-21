@@ -86,8 +86,8 @@ class CausalReScorer:
         return new_scores.tolist()
 
     def _find_best_coefficient(self, dataset: HypothesesDataset, scores1, scores2, distances):
-        ground_truths_char_lengths_sum = sum(len(ground_truth) for ground_truth in dataset.get_ground_truths())
-        ground_truths_char_lengths_sum = torch.tensor(ground_truths_char_lengths_sum).to(self.device_to_map_to)
+        ground_truths_word_lengths_sum = sum(len(ground_truth.split()) for ground_truth in dataset.get_ground_truths())
+        ground_truths_word_lengths_sum = torch.tensor(ground_truths_word_lengths_sum).to(self.device_to_map_to)
         coefficients = self._get_coefficients(scores1, scores2)
         best_coefficient = coefficients[0]
         best_wer = 10000
@@ -96,7 +96,7 @@ class CausalReScorer:
             _, _, new_best_indices = BestHypothesesSelector.select(dataset, new_scores.tolist())
             new_best_indices = torch.tensor(new_best_indices).to(self.device_to_map_to)
             best_hypothesis_distances = distances.gather(dim=0, index=new_best_indices)
-            wer = self._calculate_wer(best_hypothesis_distances, ground_truths_char_lengths_sum)
+            wer = self._calculate_wer(best_hypothesis_distances, ground_truths_word_lengths_sum)
             if wer < best_wer:
                 best_coefficient = coefficient
                 best_wer = wer
