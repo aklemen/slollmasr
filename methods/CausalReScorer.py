@@ -91,7 +91,7 @@ class CausalReScorer:
         coefficients = self._get_coefficients(scores1, scores2)
         best_coefficient = coefficients[0]
         best_wer = 10000
-        for coefficient in coefficients:
+        for coefficient in tqdm(coefficients):
             new_scores = scores1 + coefficient * scores2
             _, _, new_best_indices = BestHypothesesSelector.select(dataset, new_scores.tolist())
             new_best_indices = torch.tensor(new_best_indices).to(self.device_to_map_to)
