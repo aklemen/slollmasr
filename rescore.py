@@ -25,8 +25,13 @@ if __name__ == '__main__':
     parser.add_argument('--log', type=bool, default=False)
     args = parser.parse_args()
 
-    if len(args.beam_sizes) != len(args.beams_file_paths):
-        raise ValueError("The number of beam_sizes should be the same as the number of beams_file_paths")
+    if args.alphas is None:
+        args.alphas = [None] * len(args.beam_sizes)
+    if args.betas is None:
+        args.betas = [None] * len(args.beam_sizes)
+
+    if len(args.beam_sizes) != len(args.beams_file_paths) or len(args.beam_sizes) != len(args.alphas) or len(args.beam_sizes) != len(args.betas):
+        raise ValueError("The number of beam_sizes, alphas and betas should be the same as the number of beams_file_paths")
 
     if args.log:
         logging.getLogger().setLevel(logging.INFO)
