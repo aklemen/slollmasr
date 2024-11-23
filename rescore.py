@@ -52,7 +52,7 @@ if __name__ == '__main__':
         hypotheses = pd.read_csv(beams_file_path, delimiter="\t", header=None, names=["text", "score"])
         dataset = HypothesesDataset(hypotheses, ground_truths, tokenizer, beam_size, 512)
         start_time = time.time()
-        new_scores = rescorer.re_score(dataset)
+        new_scores = rescorer.re_score(dataset, alpha, beta)
         rescoring_duration = time.time() - start_time
 
         old_best_hypotheses, old_best_scores, old_best_indices = BestHypothesesSelector.select(dataset)
