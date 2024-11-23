@@ -45,7 +45,6 @@ if __name__ == '__main__':
     manifest = ManifestDataset(args.manifest_file_path)
     ground_truths = manifest.get_transcripts()
 
-    # for each beam size, file path, alpha and beta
     for beam_size, beams_file_path, alpha, beta in zip(args.beam_sizes, args.beams_file_paths, args.alphas, args.betas):
         print(f"Processing beam size {beam_size} and beams file {beams_file_path}...")
         print(f"Alpha: {alpha}, Beta: {beta}")
