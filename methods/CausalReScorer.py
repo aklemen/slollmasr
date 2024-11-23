@@ -105,9 +105,9 @@ class CausalReScorer:
     def _get_coefficients(self, scores1, scores2):
         coefficient_range = [0, 10]
         coefficient_steps = 10000
-        asr_scores_mean = scores1.mean().abs().item()
-        llm_scores_mean = scores2.mean().abs().item()
-        normalization_scale = asr_scores_mean / llm_scores_mean
+        scores1_mean = scores1.mean().abs().item()
+        scores2_mean = scores2.mean().abs().item()
+        normalization_scale = scores1_mean / scores2_mean
         start = coefficient_range[0] * normalization_scale
         stop = coefficient_range[1] * normalization_scale
         coefficients = np.linspace(start, stop, coefficient_steps)
