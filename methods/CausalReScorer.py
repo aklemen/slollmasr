@@ -15,7 +15,7 @@ class CausalReScorer:
         self.device_to_map_to = "cuda"
         self.batch_size = 128
 
-    def re_score(self, dataset: HypothesesDataset, alpha_weight: int = None, beta_weight: int = None) -> list[float]:
+    def re_score(self, dataset: HypothesesDataset, alpha_weight: int = None, beta_weight: int = None) -> [list[float], float, float]:
         data_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=self.batch_size)
 
         if "attention_mask" in inspect.getfullargspec(self.llm.model.forward).args:
@@ -83,7 +83,7 @@ class CausalReScorer:
 
         new_scores = scores_with_llm + beta_weight * char_lengths
 
-        return new_scores.tolist()
+        return new_scores.tolist(), alpha_weight, beta_weight
 
     def _find_best_coefficient(self, dataset: HypothesesDataset, scores1, scores2, distances):
         ground_truths_word_lengths_sum = sum(len(ground_truth.split()) for ground_truth in dataset.get_ground_truths())

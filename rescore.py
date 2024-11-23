@@ -47,11 +47,10 @@ if __name__ == '__main__':
 
     for beam_size, beams_file_path, alpha, beta in zip(args.beam_sizes, args.beams_file_paths, args.alphas, args.betas):
         print(f"Processing beam size {beam_size} and beams file {beams_file_path}...")
-        print(f"Alpha: {alpha}, Beta: {beta}")
         hypotheses = pd.read_csv(beams_file_path, delimiter="\t", header=None, names=["text", "score"])
         dataset = HypothesesDataset(hypotheses, ground_truths, tokenizer, beam_size, 512)
         start_time = time.time()
-        new_scores = rescorer.re_score(dataset, alpha, beta)
+        new_scores, used_alpha, used_beta = rescorer.re_score(dataset, alpha, beta)
         rescoring_duration = time.time() - start_time
 
         old_best_hypotheses, old_best_scores, old_best_indices = BestHypothesesSelector.select(dataset)
@@ -59,7 +58,7 @@ if __name__ == '__main__':
         old_wer_score = calc.calculate_wer(old_best_hypotheses, ground_truths)
         new_wer_score = calc.calculate_wer(new_best_hypotheses, ground_truths)
 
-        file_name = f'{args.llm_name}_{beam_size}_alpha={alpha}_beta={beta}'.replace('/', '_')
+        file_name = f'{args.llm_name}_{beam_size}_alpha={used_alpha}_beta={used_beta}'.replace('/', '_')
 
         results_file_path = f'{args.results_dir_path}/{file_name}.tsv'
         data = df = pd.DataFrame({
