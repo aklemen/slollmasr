@@ -105,8 +105,12 @@ class CausalReScorer:
     def _get_coefficients(self, scores1, scores2):
         coefficient_range = [0, 10]
         coefficient_steps = 10000
-        scores1_mean = scores1.mean().abs().item()
-        scores2_mean = scores2.mean().abs().item()
+        if scores1.isnan().any():
+            print("WARNING: scores1 contain NaNs at indices: ", torch.where(scores1.isnan()))
+        if scores2.isnan().any():
+            print("WARNING: scores2 contain NaNs at indices: ", torch.where(scores2.isnan()))
+        scores1_mean = scores1.nanmean().abs().item()
+        scores2_mean = scores2.nanmean().abs().item()
         normalization_scale = scores1_mean / scores2_mean
         start = coefficient_range[0] * normalization_scale
         stop = coefficient_range[1] * normalization_scale
