@@ -103,7 +103,7 @@ class CausalReScorer:
         return best_coefficient, best_wer
 
     def _get_coefficients(self, scores1, scores2):
-        coefficient_range = [0, 10]
+        coefficient_range = [-10, 10]
         coefficient_steps = 10000
         if scores1.isnan().any():
             print("WARNING: scores1 contain NaNs at indices: ", torch.where(scores1.isnan()))
