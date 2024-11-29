@@ -15,7 +15,7 @@ class CausalReScorer:
         self.device_to_map_to = "cuda"
         self.batch_size = 128
 
-    def re_score(self, dataset: HypothesesDataset, alpha_weight: int = None, beta_weight: int = None) -> [list[float], float, float]:
+    def re_score(self, dataset: HypothesesDataset, alpha_weight: float = None, beta_weight: float = None) -> [list[float], float, float]:
         data_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=self.batch_size)
 
         if "attention_mask" in inspect.getfullargspec(self.llm.model.forward).args:
