@@ -5,7 +5,7 @@ import torch
 from tqdm import tqdm
 
 from BestHypothesesSelector import BestHypothesesSelector
-from torch_datasets.HypothesesDataset import HypothesesDataset
+from torch_datasets.HypothesesWithIdsDataset import HypothesesWithIdsDataset
 from LargeLanguageModel import LargeLanguageModel
 
 
@@ -15,7 +15,7 @@ class CausalReScorer:
         self.device_to_map_to = "cuda"
         self.batch_size = 128
 
-    def re_score(self, dataset: HypothesesDataset, alpha_weight: float = None, beta_weight: float = None) -> [list[float], float, float]:
+    def re_score(self, dataset: HypothesesWithIdsDataset, alpha_weight: float = None, beta_weight: float = None) -> [list[float], float, float]:
         data_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=self.batch_size)
 
         if "attention_mask" in inspect.getfullargspec(self.llm.model.forward).args:
@@ -85,7 +85,7 @@ class CausalReScorer:
 
         return new_scores.tolist(), alpha_weight, beta_weight
 
-    def _find_best_coefficient(self, dataset: HypothesesDataset, scores1, scores2, distances):
+    def _find_best_coefficient(self, dataset: HypothesesWithIdsDataset, scores1, scores2, distances):
         ground_truths_word_lengths_sum = sum(len(ground_truth.split()) for ground_truth in dataset.get_ground_truths())
         ground_truths_word_lengths_sum = torch.tensor(ground_truths_word_lengths_sum).to(self.device_to_map_to)
         coefficients = self._get_coefficients(scores1, scores2)

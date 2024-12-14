@@ -4,7 +4,6 @@ from torch_datasets.HypothesesDataset import HypothesesDataset
 
 
 class BestHypothesesSelector:
-
     @staticmethod
     def select(dataset: HypothesesDataset, custom_scores: list[float] = None):
         hypotheses = dataset.get_hypotheses_texts()
@@ -18,7 +17,7 @@ class BestHypothesesSelector:
             raise Exception('Scores should have the same length as the number of hypotheses')
 
         beam_size = dataset.get_beam_size()
-        num_samples = dataset.get_number_of_samples()
+        num_samples = dataset.get_num_of_samples()
         best_hypotheses = []
         best_scores = []
         best_indices = []
