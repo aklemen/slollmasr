@@ -7,7 +7,7 @@ import pandas as pd
 from MetricsCalculator import MetricsCalculator
 from Tokenizer import Tokenizer
 from methods.CausalReScorer import CausalReScorer
-from torch_datasets.HypothesesDataset import HypothesesDataset
+from torch_datasets.HypothesesWithIdsDataset import HypothesesWithIdsDataset
 from torch_datasets.ManifestDataset import ManifestDataset
 from LargeLanguageModel import LargeLanguageModel
 from BestHypothesesSelector import BestHypothesesSelector
@@ -53,9 +53,9 @@ if __name__ == '__main__':
     for beam_size, beams_file_path, alpha, beta in zip(args.beam_sizes, args.beams_file_paths, args.alphas, args.betas):
         print(f"Processing beam size {beam_size} and beams file {beams_file_path}...")
         hypotheses = pd.read_csv(beams_file_path, delimiter="\t", header=None, names=["text", "score"])
-        dataset = HypothesesDataset(hypotheses, ground_truths, tokenizer, beam_size, 512)
+        dataset = HypothesesWithIdsDataset(hypotheses, ground_truths, tokenizer, 512)
         start_time = time.time()
-        new_scores, used_alpha, used_beta = rescorer.re_score(dataset, alpha, beta)
+        new_scores, used_alpha, used_beta = rescorer.run(dataset, alpha, beta)
         rescoring_duration = time.time() - start_time
 
         old_best_hypotheses, old_best_scores, old_best_indices = BestHypothesesSelector.select(dataset)
