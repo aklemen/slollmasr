@@ -85,7 +85,7 @@ if __name__ == '__main__':
             'old_wer': old_wer_score,
             'new_wer': new_wer_score,
             'rescoring_duration': rescoring_duration,
-        })
+        }, index=[0])
         wers_df = pd.concat([wers_df, new_wer_df], ignore_index=True)
         wers_df.to_csv(f'{results_file_base}_wers.tsv', sep='\t', index=False)
         print(new_wer_df.to_string())
