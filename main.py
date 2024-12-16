@@ -81,11 +81,11 @@ if __name__ == '__main__':
         print(f"Results saved to {results_file_path}!")
 
         new_wer_df = pd.DataFrame({
-            'beam_size': beam_size,
-            'old_wer': old_wer_score,
-            'new_wer': new_wer_score,
-            'rescoring_duration': rescoring_duration,
-        }, index=[0])
+            'beam_size': [beam_size],
+            'old_wer': [old_wer_score],
+            'new_wer': [new_wer_score],
+            'rescoring_duration': [rescoring_duration],
+        })
         wers_df = pd.concat([wers_df, new_wer_df], ignore_index=True)
-        wers_df.to_csv(f'{results_file_base}_wers.tsv', sep='\t', index=False)
-        print(new_wer_df.to_string())
+        wers_df.to_csv(f'{args.results_dir_path}/{results_file_base}_wers.tsv', sep='\t', index=False)
+        print(wers_df.to_string())
