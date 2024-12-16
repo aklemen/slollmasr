@@ -5,18 +5,25 @@ import torch
 from tqdm import tqdm
 
 from BestHypothesesSelector import BestHypothesesSelector
+from methods.Method import Method
+from torch_datasets.HypothesesDataset import HypothesesDataset
 from torch_datasets.HypothesesWithIdsDataset import HypothesesWithIdsDataset
 from LargeLanguageModel import LargeLanguageModel
+from Tokenizer import Tokenizer
 
 
-class CausalReScorer:
-    def __init__(self, llm: LargeLanguageModel):
+class CausalReScorer(Method):
+    def __init__(self, llm: LargeLanguageModel, tokenizer: Tokenizer):
+        super().__init__(llm, tokenizer)
         self.llm = llm
+        self.tokenizer = tokenizer
         self.device_to_map_to = "cuda"
         self.batch_size = 128
 
-    def re_score(self, dataset: HypothesesWithIdsDataset, alpha_weight: float = None, beta_weight: float = None) -> [list[float], float, float]:
-        data_loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=self.batch_size)
+    def run(self, dataset: HypothesesDataset, alpha_weight: float = None, beta_weight: float = None) -> [list[float], float, float]:
+        hypotheses_ids = [self.tokenizer.text_to_ids(hypothesis) for hypothesis in dataset.get_hypotheses_texts()]
+        with_ids_dataset = HypothesesWithIdsDataset(dataset.hypotheses, dataset.ground_truths, hypotheses_ids, self.tokenizer.pad_id)
+        data_loader = torch.utils.data.DataLoader(dataset=with_ids_dataset, batch_size=self.batch_size)
 
         if "attention_mask" in inspect.getfullargspec(self.llm.model.forward).args:
             print(f'Attention mask is supported by "{self.llm.name}" and will be used.')
@@ -69,7 +76,7 @@ class CausalReScorer:
 
         if alpha_weight is None:
             print("Alpha weight was not provided. Executing linear search for it...")
-            alpha_weight, best_wer = self._find_best_coefficient(dataset, asr_scores, llm_scores, distances)
+            alpha_weight, best_wer = self._find_best_coefficient(with_ids_dataset, asr_scores, llm_scores, distances)
             alpha_weight = np.round(alpha_weight, 3)
             print(f"alpha_weight={alpha_weight} achieved the best WER ({best_wer}).")
 
@@ -77,7 +84,7 @@ class CausalReScorer:
 
         if beta_weight is None:
             print("Beta weight was not provided. Executing linear search for it...")
-            beta_weight, best_wer = self._find_best_coefficient(dataset, scores_with_llm, char_lengths, distances)
+            beta_weight, best_wer = self._find_best_coefficient(with_ids_dataset, scores_with_llm, char_lengths, distances)
             beta_weight = np.round(beta_weight, 3)
             print(f"beta_weight={beta_weight} achieved the best WER ({best_wer}).")
 
