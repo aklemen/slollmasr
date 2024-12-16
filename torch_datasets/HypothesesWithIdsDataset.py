@@ -12,7 +12,7 @@ class HypothesesWithIdsDataset(HypothesesDataset):
             ground_truths: list[str],
             hypotheses_ids: list[list[int]],
             pad_id: int,
-            max_seq_length: int = 128,
+            max_seq_length: int = 256,
     ):
         super().__init__(hypotheses, ground_truths)
         self.hypotheses_ids = hypotheses_ids
