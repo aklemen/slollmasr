@@ -1,5 +1,4 @@
 from argparse import ArgumentParser
-import logging
 from pathlib import Path
 import time
 import pandas as pd
@@ -22,7 +21,6 @@ if __name__ == '__main__':
     parser.add_argument('--alphas', nargs='+', type=float, required=False)
     parser.add_argument('--betas', nargs='+', type=float, required=False)
     parser.add_argument('--results_dir_path', type=str, required=True)
-    parser.add_argument('--log', type=bool, default=False)
     args = parser.parse_args()
 
     if args.alphas is None:
@@ -33,11 +31,8 @@ if __name__ == '__main__':
     if len(args.beam_sizes) != len(args.beams_file_paths) or len(args.beam_sizes) != len(args.alphas) or len(args.beam_sizes) != len(args.betas):
         raise ValueError("The number of beam_sizes, alphas and betas should be the same as the number of beams_file_paths")
 
-    if args.log:
-        logging.getLogger().setLevel(logging.INFO)
-
     if args.tokenizer_name is None:
-        logging.info(f"Tokenizer name was not given, using LLM name '{args.llm_name}'")
+        print(f"Tokenizer name was not given, using LLM name '{args.llm_name}'")
         args.tokenizer_name = args.llm_name
 
     Path(args.results_dir_path).mkdir(parents=True, exist_ok=True)
