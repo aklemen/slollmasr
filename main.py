@@ -87,6 +87,5 @@ if __name__ == '__main__':
             'rescoring_duration': rescoring_duration,
         })
         wers_df = pd.concat([wers_df, new_wer_df], ignore_index=True)
+        wers_df.to_csv(f'{results_file_base}_wers.tsv', sep='\t', index=False)
         print(new_wer_df.to_string())
-
-    wers_df.to_csv(f'{results_file_base}_wers.tsv', sep='\t', index=False)
