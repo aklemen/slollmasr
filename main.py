@@ -7,6 +7,7 @@ from BestHypothesesSelector import BestHypothesesSelector
 from LargeLanguageModel import LargeLanguageModel
 from MetricsCalculator import MetricsCalculator
 from Tokenizer import Tokenizer
+from methods.PromptRescorer import PromptRescorer
 from parse_args import parse_args
 from methods.CausalReScorer import CausalReScorer
 from torch_datasets.HypothesesDataset import HypothesesDataset
@@ -37,6 +38,8 @@ if __name__ == '__main__':
     method = None
     if args.method == 'causal-rescorer':
         method = CausalReScorer(llm, tokenizer)
+    elif args.method == 'prompt-rescorer':
+        method = PromptRescorer(llm, tokenizer)
     else:
         raise Exception(f"Method {args.method} is not implemented!")
 
@@ -53,9 +56,12 @@ if __name__ == '__main__':
 
         start_time = time.time()
 
+        results_file_name = f'{results_file_base}_{beam_size}'
         if isinstance(method, CausalReScorer):
             new_scores, used_alpha, used_beta = method.run(dataset, alpha, beta)
-            results_file_name = f'{results_file_base}_{beam_size}_alpha={used_alpha}_beta={used_beta}'
+            results_file_name += f'_alpha={used_alpha}_beta={used_beta}'
+        elif isinstance(method, PromptRescorer):
+            new_scores = method.run(dataset)
         else:
             raise Exception(f"Method {method} is not handled!")
 

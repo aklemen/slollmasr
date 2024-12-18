@@ -8,7 +8,7 @@ from methods.Method import Method
 from torch_datasets.HypothesesDataset import HypothesesDataset
 
 
-class Prompter(Method):
+class PromptRescorer(Method):
     def __init__(self, llm: LargeLanguageModel, tokenizer: Tokenizer):
         super().__init__(llm, tokenizer)
         self._generator = pipeline(
@@ -20,12 +20,12 @@ class Prompter(Method):
             num_return_sequences=1,
         )
 
-    def run(self, dataset: HypothesesDataset) -> str:
+    def run(self, dataset: HypothesesDataset) -> list[float]:
         # sequences = self._generator(input_text)
         # output_text = sequences[0]["generated_text"]
         # return self._sanitize_text(input_text, output_text)
         # TODO
-        return ""
+        return dataset.get_hypotheses_scores()
 
     def _sanitize_text(self, input_text: str, output_text: str):
         text = output_text.replace(input_text, "")
