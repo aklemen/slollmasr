@@ -33,11 +33,10 @@ class PromptRescorer(Method):
 
     def run(self, dataset: HypothesesDataset) -> list[float]:
         beam_size = dataset.get_beam_size()
-        hypotheses_groups = [dataset[i:i + beam_size] for i in range(0, len(dataset), beam_size)]
 
         new_scores = []
-        for  (i, group) in tqdm(enumerate(hypotheses_groups)):
-            prompt = self._generate_prompt(group)
+        for  sample_idx in range(dataset.get_num_of_samples()):
+            prompt = self._generate_prompt(dataset, sample_idx)
             sequences = self._generator(prompt)
             result = sequences[-1]["generated_text"]
             partial_new_scores = ','.split(result)
@@ -48,17 +47,15 @@ class PromptRescorer(Method):
 
         return [item for sublist in new_scores for item in sublist]
 
-    def _generate_prompt(self, hypotheses):
+    def _generate_prompt(self, dataset, sample_idx):
         prompt = ("You will be given a list of hypothesis from the ASR system, together with their respective scores. "
                   "The format of the list is the following: <hypothesis></hypothesis><score></score>,<hypothesis></hypothesis><score></score>,... "
-                  "Your task is to rescore the hypotheses and output only the new score, separated by a comma.\n"
+                  "Your task is to rescore the hypotheses and output only the new scores, separated by a comma.\n"
                   "Example: 1.23,3.24,0.12,4.56,2.34\n"
-                  "Do not include any other information in the output."
+                  "Do not include any other information in the output. "
                   "The list of hypotheses is the following:\n")
-        return prompt + self._generate_hypotheses_for_prompt(hypotheses)
-
-    def _generate_hypotheses_for_prompt(self, hypotheses):
-        text = ""
-        for hypothesis in hypotheses:
-            text += '<hypothesis>'  + hypothesis[0] + '</hypothesis>' + '<score>' + str(hypothesis[1]) + '</score>'
-        return text
+        from_idx = sample_idx * dataset.get_beam_size()
+        to_idx = (sample_idx + 1) * dataset.get_beam_size()
+        for i in range(from_idx, to_idx):
+            prompt += f'<hypothesis>{dataset[i][0]}</hypothesis><score>{str(dataset[i][1])}</score>\n'
+        return prompt
