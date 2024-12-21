@@ -60,5 +60,5 @@ class PromptRescorer(Method):
     def _generate_hypotheses_for_prompt(self, hypotheses):
         text = ""
         for hypothesis in hypotheses:
-            text += '<hypothesis>'  + hypothesis[0] + '</hypothesis>' + '<score>' + hypothesis[1] + '</score>'
+            text += '<hypothesis>'  + hypothesis[0] + '</hypothesis>' + '<score>' + str(hypothesis[1]) + '</score>'
         return text
