@@ -17,9 +17,6 @@ from torch_datasets.ManifestDataset import ManifestDataset
 if __name__ == '__main__':
     args = parse_args()
 
-    if len(args.beam_sizes) != len(args.beams_file_paths) or len(args.beam_sizes) != len(args.alphas) or len(args.beam_sizes) != len(args.betas):
-        raise ValueError("The number of beam_sizes, alphas and betas should be the same as the number of beams_file_paths")
-
     if args.tokenizer_name is None:
         print(f"Tokenizer name was not given, using LLM name '{args.llm_name}'")
         args.tokenizer_name = args.llm_name
@@ -28,6 +25,9 @@ if __name__ == '__main__':
         args.alphas = [None] * len(args.beam_sizes)
     if args.betas is None:
         args.betas = [None] * len(args.beam_sizes)
+
+    if len(args.beam_sizes) != len(args.beams_file_paths) or len(args.beam_sizes) != len(args.alphas) or len(args.beam_sizes) != len(args.betas):
+        raise ValueError("The number of beam_sizes, alphas and betas should be the same as the number of beams_file_paths")
 
     Path(args.results_dir_path).mkdir(parents=True, exist_ok=True)
 
