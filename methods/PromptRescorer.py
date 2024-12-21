@@ -1,5 +1,6 @@
 import string
 import torch
+from tqdm import tqdm
 from transformers import pipeline
 
 from LargeLanguageModel import LargeLanguageModel
@@ -19,6 +20,7 @@ class PromptRescorer(Method):
             device_map="auto",
             num_return_sequences=1,
             max_new_tokens=512,
+            return_full_text=False,
         )
 
         # if tokenizer.are_chat_templates_supported():
@@ -35,7 +37,7 @@ class PromptRescorer(Method):
         hypotheses_groups = [hypotheses_texts[i:i + beam_size] for i in range(0, len(hypotheses_texts), beam_size)]
 
         new_scores = []
-        for  (i, group) in enumerate(hypotheses_groups):
+        for  (i, group) in tqdm(enumerate(hypotheses_groups)):
             prompt = self._generate_prompt(group)
             sequences = self._generator(prompt)
             result = sequences[-1]["generated_text"]
