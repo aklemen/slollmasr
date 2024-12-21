@@ -18,6 +18,7 @@ class PromptRescorer(Method):
             torch_dtype=torch.bfloat16,
             device_map="auto",
             num_return_sequences=1,
+            max_new_tokens=512,
         )
 
         # if tokenizer.are_chat_templates_supported():
