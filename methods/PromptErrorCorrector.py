@@ -1,4 +1,5 @@
 import string
+from typing import Union
 
 from torch.utils.data import Dataset
 from tqdm import tqdm
@@ -11,7 +12,7 @@ from torch_datasets.HypothesesDataset import HypothesesDataset
 
 
 class PromptsDataset(Dataset):
-    def __init__(self, prompts: list[str]):
+    def __init__(self, prompts: Union[list[str], list[dict]]):
         self.prompts = prompts
 
     def __getitem__(self, idx):
