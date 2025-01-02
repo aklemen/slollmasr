@@ -41,7 +41,7 @@ if __name__ == '__main__':
     elif args.method == 'prompt-rescorer':
         method = PromptRescorer(llm, tokenizer)
     elif args.method == 'prompt-error-corrector':
-        method = PromptRescorer(llm, tokenizer)
+        method = PromptErrorCorrector(llm, tokenizer)
     else:
         raise Exception(f"Method {args.method} is not implemented!")
 
