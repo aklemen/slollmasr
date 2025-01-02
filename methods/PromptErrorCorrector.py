@@ -31,7 +31,7 @@ class PromptErrorCorrector(Method):
             sequences = self._generator(prompt)
             output = sequences[-1]["generated_text"]
             sanitized_result = self._sanitize_llm_output(output)
-            best_hypotheses.append(output)
+            best_hypotheses.append(sanitized_result)
 
         return best_hypotheses
 
