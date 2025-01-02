@@ -31,6 +31,9 @@ class Tokenizer:
     def are_chat_templates_supported(self):
         return hasattr(self.tokenizer, "chat_template") and self.tokenizer.chat_template is not None
 
+    def set_padding_side(self, side: str):
+        self.tokenizer.padding_side = side
+
     def _get_pad_id(self):
         if hasattr(self.tokenizer, "pad_token") and self.tokenizer.pad_token is not None:
             return self._tokens_to_ids([self.tokenizer.pad_token])[0]
