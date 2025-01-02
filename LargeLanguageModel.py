@@ -10,7 +10,6 @@ class LargeLanguageModel:
                 is_decoder=True,
                 device_map="auto",
                 torch_dtype="auto",
-                temperature=0 # To get as deterministic results as possible - see https://arxiv.org/html/2408.04667v1
             )
             .eval()
         )
