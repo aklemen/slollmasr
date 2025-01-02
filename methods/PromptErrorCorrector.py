@@ -1,5 +1,6 @@
 import string
 
+from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import pipeline
 
@@ -7,6 +8,17 @@ from LargeLanguageModel import LargeLanguageModel
 from Tokenizer import Tokenizer
 from methods.Method import Method
 from torch_datasets.HypothesesDataset import HypothesesDataset
+
+
+class PromptsDataset(Dataset):
+    def __init__(self, prompts: list[str]):
+        self.prompts = prompts
+
+    def __getitem__(self, idx):
+        return self.prompts[idx]
+
+    def __len__(self):
+        return len(self.prompts)
 
 
 class PromptErrorCorrector(Method):
@@ -25,15 +37,21 @@ class PromptErrorCorrector(Method):
         self.should_use_chat_templates = tokenizer.are_chat_templates_supported()
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
+        prompts_dataset = self._build_prompts_dataset(dataset)
         best_hypotheses = []
-        for sample_idx in tqdm(range(dataset.get_num_of_samples())):
-            prompt = self._generate_prompt(dataset, sample_idx)
-            sequences = self._generator(prompt)
+        for sequences in tqdm(self._generator(prompts_dataset, batch_size=8)):
             output = sequences[-1]["generated_text"]
             sanitized_result = self._sanitize_llm_output(output)
             best_hypotheses.append(sanitized_result)
-
         return best_hypotheses
+
+
+    def _build_prompts_dataset(self, dataset) -> PromptsDataset:
+        prompts = []
+        for sample_idx in range(dataset.get_num_of_samples()):
+            prompt = self._generate_prompt(dataset, sample_idx)
+            prompts.append(prompt)
+        return PromptsDataset(prompts)
 
     def _generate_prompt(self, dataset, sample_idx):
         beam_size = dataset.get_beam_size()
