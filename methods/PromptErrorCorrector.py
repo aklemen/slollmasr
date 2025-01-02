@@ -1,6 +1,6 @@
 import string
 
-import torch
+from tqdm import tqdm
 from transformers import pipeline
 
 from LargeLanguageModel import LargeLanguageModel
@@ -26,7 +26,7 @@ class PromptErrorCorrector(Method):
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
         best_hypotheses = []
-        for sample_idx in range(dataset.get_num_of_samples()):
+        for sample_idx in tqdm(range(dataset.get_num_of_samples())):
             prompt = self._generate_prompt(dataset, sample_idx)
             sequences = self._generator(prompt)
             output = sequences[-1]["generated_text"]
