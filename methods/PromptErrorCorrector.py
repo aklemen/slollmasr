@@ -12,7 +12,7 @@ from torch_datasets.HypothesesDataset import HypothesesDataset
 
 
 class PromptsDataset(Dataset):
-    def __init__(self, prompts: Union[list[str], list[dict]]):
+    def __init__(self, prompts: list[str]):
         self.prompts = prompts
 
     def __getitem__(self, idx):
@@ -20,6 +20,16 @@ class PromptsDataset(Dataset):
 
     def __len__(self):
         return len(self.prompts)
+
+class ChatPromptsDataset(Dataset):
+    def __init__(self, chat_prompts: list[list[dict[str, str]]]):
+        self.chat_prompts = chat_prompts
+
+    def __getitem__(self, idx):
+        return self.chat_prompts[idx]
+
+    def __len__(self):
+        return len(self.chat_prompts)
 
 
 class PromptErrorCorrector(Method):
@@ -47,11 +57,14 @@ class PromptErrorCorrector(Method):
         return best_hypotheses
 
 
-    def _build_prompts_dataset(self, dataset) -> PromptsDataset:
+    def _build_prompts_dataset(self, dataset):
         prompts = []
         for sample_idx in range(dataset.get_num_of_samples()):
             prompt = self._generate_prompt(dataset, sample_idx)
             prompts.append(prompt)
+        if self.should_use_chat_templates:
+            chat_prompts = [[{ "role": "user", "content": prompt }] for prompt in prompts]
+            return ChatPromptsDataset(chat_prompts)
         return PromptsDataset(prompts)
 
     def _generate_prompt(self, dataset, sample_idx):
@@ -72,14 +85,9 @@ class PromptErrorCorrector(Method):
             f"Izvedi popravljanje napak na najboljših {beam_size} izhodih, ki jih je generiral sistem za samodejno razpoznavanje govora (Automatic Speech Recognition). "
             f"Hipoteze, navedene po vrstnem redu glede na njihovo posteriorno verjetnost sistema ASR, so naslednje:\n\n"
         )
-
         prompt_end = "Prosim, izpiši popravljen najboljši transkript danega govora, brez dodatnih razlag ali besed."
 
-        prompt = prompt_start + hypotheses_list + prompt_end
-
-        if self.should_use_chat_templates:
-            return [{ "role": "user", "content": prompt }]
-        return prompt
+        return prompt_start + hypotheses_list + prompt_end
 
     def _sanitize_llm_output(self, output):
         return output.translate(str.maketrans('', '', string.punctuation)).lower()
