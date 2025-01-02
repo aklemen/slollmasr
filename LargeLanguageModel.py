@@ -8,7 +8,8 @@ class LargeLanguageModel:
             AutoModelForCausalLM.from_pretrained(
                 pretrained_model_name_or_path=name,
                 is_decoder=True,
-                device_map="auto"
+                device_map="auto",
+                torch_dtype="auto"
             )
             .eval()
         )
