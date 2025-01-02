@@ -1,3 +1,5 @@
+import string
+
 import torch
 from transformers import pipeline
 
@@ -27,8 +29,9 @@ class PromptErrorCorrector(Method):
         for sample_idx in range(dataset.get_num_of_samples()):
             prompt = self._generate_prompt(dataset, sample_idx)
             sequences = self._generator(prompt)
-            result = sequences[-1]["generated_text"]
-            best_hypotheses.append(result)
+            output = sequences[-1]["generated_text"]
+            sanitized_result = self._sanitize_llm_output(output)
+            best_hypotheses.append(output)
 
         return best_hypotheses
 
@@ -43,7 +46,8 @@ class PromptErrorCorrector(Method):
         for i in range(beam_size):
             hypothesis_index = indexes[i]
             hypothesis = dataset[hypothesis_index][0]
-            hypotheses_list += f'<hipoteza{i}> {hypothesis} </hipoteza{i}>\n'
+            hypothesis_number = i + 1
+            hypotheses_list += f'<hipoteza{hypothesis_number}> {hypothesis} </hipoteza{hypothesis_number}>\n'
 
         prompt_start = (
             f"Izvedi popravljanje napak na najboljših {beam_size} izhodih, ki jih je generiral sistem za samodejno razpoznavanje govora (Automatic Speech Recognition). "
@@ -57,3 +61,6 @@ class PromptErrorCorrector(Method):
         if self.should_use_chat_templates:
             return [{ "role": "user", "content": prompt }]
         return prompt
+
+    def _sanitize_llm_output(self, output):
+        return output.translate(str.maketrans('', '', string.punctuation)).lower()
