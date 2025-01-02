@@ -50,7 +50,7 @@ class PromptErrorCorrector(Method):
     def run(self, dataset: HypothesesDataset) -> list[str]:
         prompts_dataset = self._build_prompts_dataset(dataset)
         best_hypotheses = []
-        for sequences in tqdm(self._generator(prompts_dataset, batch_size=8)):
+        for sequences in tqdm(self._generator(prompts_dataset, batch_size=8), total=dataset.get_num_of_samples()):
             output = sequences[-1]["generated_text"]
             sanitized_result = self._sanitize_llm_output(output)
             best_hypotheses.append(sanitized_result)
