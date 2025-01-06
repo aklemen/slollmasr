@@ -23,26 +23,44 @@ class PromptsDataset(Dataset):
         return len(self.prompts)
 
 
+class TokenizedPromptsDataset(Dataset):
+    def __init__(self, prompts_ids):
+        self.prompts_ids = prompts_ids
+
+    def __getitem__(self, idx):
+        return self.prompts_ids[idx]
+
+    def __len__(self):
+        return len(self.prompts_ids)
+
+
 class PromptErrorCorrector(Method):
     def __init__(self, llm: LargeLanguageModel, tokenizer: Tokenizer):
         super().__init__(llm, tokenizer)
         self.llm = llm
         self.tokenizer = tokenizer
         self.device_to_map_to = "cuda"
-        self.batch_size = 8
+        self.batch_size = 128
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
-        prompts_dataset = self._build_prompts_dataset(dataset)
-        data_loader = torch.utils.data.DataLoader(dataset=prompts_dataset, batch_size=self.batch_size)
+        prompts = self._build_prompts(dataset)
+        print("Prompts built. Tokenizing ...")
+        input_ids = self.tokenizer.tokenizer(prompts, return_tensors="pt", padding=True, padding_side="left")
+        tokenized_prompts_dataset = TokenizedPromptsDataset(input_ids)
+        data_loader = torch.utils.data.DataLoader(dataset=tokenized_prompts_dataset, batch_size=self.batch_size)
+        print("Prompts tokenized.")
 
         with torch.amp.autocast('cuda'):
             with torch.no_grad():
                 best_hypotheses = []
                 for batch in tqdm(data_loader):
-                    model_inputs = self.tokenizer.tokenizer(batch, return_tensors="pt", padding=True, padding_side="left")
-                    model_inputs = model_inputs.to(self.device_to_map_to)
+                    print("Starting batch ...")
+                    model_inputs = batch.to(self.device_to_map_to)
+                    print("Generating ...")
                     generated_ids = self.llm.model.generate(**model_inputs, max_new_tokens=512, pad_token_id=self.tokenizer.pad_id)
+                    print("Decoding ...")
                     decoded_output = self.tokenizer.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+                    print("Decoded.")
                     best_hypotheses.extend(decoded_output)
         return best_hypotheses
 
