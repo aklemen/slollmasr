@@ -44,7 +44,7 @@ class PromptErrorCorrector(Method):
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
         prompts = self._build_prompts(dataset)
-        print("Prompts built. Tokenizing ...")
+        print(f"{len(prompts)} prompts built. Tokenizing ...")
         model_inputs = self.tokenizer.tokenizer(prompts, return_tensors="pt", padding=True, padding_side="left")
         print(f"Prompts tokenized. Number of model_inputs: {len(model_inputs)}.")
         tokenized_prompts_dataset = TokenizedPromptsDataset(model_inputs)
