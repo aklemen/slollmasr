@@ -1,7 +1,6 @@
 import string
 from typing import Union
 
-import torch
 from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import pipeline
@@ -22,40 +21,52 @@ class PromptsDataset(Dataset):
     def __len__(self):
         return len(self.prompts)
 
+class ChatPromptsDataset(Dataset):
+    def __init__(self, chat_prompts: list[list[dict[str, str]]]):
+        self.chat_prompts = chat_prompts
+
+    def __getitem__(self, idx):
+        return self.chat_prompts[idx]
+
+    def __len__(self):
+        return len(self.chat_prompts)
+
 
 class PromptErrorCorrector(Method):
     def __init__(self, llm: LargeLanguageModel, tokenizer: Tokenizer):
         super().__init__(llm, tokenizer)
-        self.llm = llm
-        self.tokenizer = tokenizer
-        self.device_to_map_to = "cuda"
-        self.batch_size = 8
+        tokenizer.set_padding_side("left")
+        self._generator = pipeline(
+            "text-generation",
+            model=llm.model,
+            tokenizer=tokenizer.tokenizer,
+            device_map="auto",
+            torch_dtype="auto",
+            num_return_sequences=1,
+            max_new_tokens=512,
+            return_full_text=False,
+        )
+        self.should_use_chat_templates = tokenizer.are_chat_templates_supported()
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
         prompts_dataset = self._build_prompts_dataset(dataset)
-        data_loader = torch.utils.data.DataLoader(dataset=prompts_dataset, batch_size=self.batch_size)
-
-        with torch.amp.autocast('cuda'):
-            with torch.no_grad():
-                best_hypotheses = []
-                for batch in tqdm(data_loader):
-                    model_inputs = self.tokenizer.tokenizer(batch, return_tensors="pt", padding=True, padding_side="left")
-                    model_inputs = model_inputs.to(self.device_to_map_to)
-                    generated_ids = self.llm.model.generate(**model_inputs)
-                    decoded_output = self.tokenizer.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-                    best_hypotheses.extend(decoded_output)
+        best_hypotheses = []
+        for sequences in tqdm(self._generator(prompts_dataset, padding=True, batch_size=8), total=dataset.get_num_of_samples()):
+            output = sequences[-1]["generated_text"]
+            sanitized_result = self._sanitize_llm_output(output)
+            best_hypotheses.append(sanitized_result)
         return best_hypotheses
 
-    def _build_prompts_dataset(self, dataset):
-        prompts = self._build_prompts(dataset)
-        return PromptsDataset(prompts)
 
-    def _build_prompts(self, dataset) -> list[str]:
+    def _build_prompts_dataset(self, dataset):
         prompts = []
         for sample_idx in range(dataset.get_num_of_samples()):
             prompt = self._generate_prompt(dataset, sample_idx)
             prompts.append(prompt)
-        return prompts
+        if self.should_use_chat_templates:
+            chat_prompts = [[{ "role": "user", "content": prompt }] for prompt in prompts]
+            return ChatPromptsDataset(chat_prompts)
+        return PromptsDataset(prompts)
 
     def _generate_prompt(self, dataset, sample_idx):
         beam_size = dataset.get_beam_size()
