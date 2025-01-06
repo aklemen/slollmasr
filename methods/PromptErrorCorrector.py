@@ -45,9 +45,9 @@ class PromptErrorCorrector(Method):
     def run(self, dataset: HypothesesDataset) -> list[str]:
         prompts = self._build_prompts(dataset)
         print("Prompts built. Tokenizing ...")
-        input_ids = self.tokenizer.tokenizer(prompts, return_tensors="pt", padding=True, padding_side="left")
-        print("Prompts tokenized.")
-        tokenized_prompts_dataset = TokenizedPromptsDataset(input_ids)
+        model_inputs = self.tokenizer.tokenizer(prompts, return_tensors="pt", padding=True, padding_side="left")
+        print(f"Prompts tokenized. Number of model_inputs: {len(model_inputs)}.")
+        tokenized_prompts_dataset = TokenizedPromptsDataset(model_inputs)
         data_loader = torch.utils.data.DataLoader(dataset=tokenized_prompts_dataset, batch_size=self.batch_size)
         print("Data loader created.")
 
