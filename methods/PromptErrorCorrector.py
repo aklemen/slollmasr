@@ -41,7 +41,7 @@ class PromptErrorCorrector(Method):
                 for batch in tqdm(data_loader):
                     model_inputs = self.tokenizer.tokenizer(batch, return_tensors="pt", padding=True, padding_side="left")
                     model_inputs = model_inputs.to(self.device_to_map_to)
-                    generated_ids = self.llm.model.generate(**model_inputs, max_new_tokens=512)
+                    generated_ids = self.llm.model.generate(**model_inputs, max_new_tokens=512, pad_token_id=self.tokenizer.pad_id)
                     decoded_output = self.tokenizer.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
                     best_hypotheses.extend(decoded_output)
         return best_hypotheses
