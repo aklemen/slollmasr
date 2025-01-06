@@ -46,9 +46,10 @@ class PromptErrorCorrector(Method):
         prompts = self._build_prompts(dataset)
         print("Prompts built. Tokenizing ...")
         input_ids = self.tokenizer.tokenizer(prompts, return_tensors="pt", padding=True, padding_side="left")
+        print("Prompts tokenized.")
         tokenized_prompts_dataset = TokenizedPromptsDataset(input_ids)
         data_loader = torch.utils.data.DataLoader(dataset=tokenized_prompts_dataset, batch_size=self.batch_size)
-        print("Prompts tokenized.")
+        print("Data loader created.")
 
         with torch.amp.autocast('cuda'):
             with torch.no_grad():
