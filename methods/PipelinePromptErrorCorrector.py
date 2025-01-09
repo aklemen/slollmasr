@@ -32,7 +32,7 @@ class ChatPromptsDataset(Dataset):
         return len(self.chat_prompts)
 
 
-class PromptErrorCorrector(Method):
+class PipelinePromptErrorCorrector(Method):
     def __init__(self, llm: LargeLanguageModel, tokenizer: Tokenizer):
         super().__init__(llm, tokenizer)
         tokenizer.set_padding_side("left")
