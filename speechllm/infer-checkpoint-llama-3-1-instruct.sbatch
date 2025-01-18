@@ -1,19 +1,36 @@
 #!/bin/bash
-#SBATCH --job-name=train_speechllm
+#SBATCH --job-name=infer_speechllm_checkpoints
 #SBATCH --partition=frida
-#SBATCH --time=11:00:00
+#SBATCH --time=10:00:00
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=8
-#SBATCH --gpus-per-node=H100:8
-#SBATCH --cpus-per-task=16
+#SBATCH --ntasks-per-node=1
+#SBATCH --gpus-per-node=A100_80GB:1
+#SBATCH --cpus-per-task=32
 #SBATCH --mem-per-gpu=128G
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/speechllm/error_%x_%j.txt
 
-EXPERIMENT_NAME=wer
+EXPERIMENT_NAME=llama-3-1-8b-instruct-infer-checkpoint
 
-NUM_GPUS=8
+NUM_GPUS=1
 MICRO_BATCH_SIZE=8
+GLOBAL_BATCH_SIZE=8
+
+LLM_FILE_NAME=llama3_1_8b_instruct
+LLM_PATH="/models/llm/$LLM_FILE_NAME.nemo"
+
+ASR_MODEL_FILE_NAME=conformer_ctc_bpe
+ASR_MODEL_PATH="/models/asr/$ASR_MODEL_FILE_NAME.nemo"
+
+TRAIN_EXP_DIR="$HOME/exp/llama-3-1-8b-instruct-bf16-earlystop/2024-08-24___14-16/speechllm_conformer_ctc_bpe_llama3_1_8b_instruct_lora"
+TRAIN_EXP_MOUNT="$TRAIN_EXP_DIR:/train-exp"
+CHECKPOINT_PATH="/train-exp/checkpoints/speechllm_conformer_ctc_bpe_llama3_1_8b_instruct_lora--validation_loss_0.074-step_45708-epoch_6.ckpt"
+HPARAMS_PATH="/train-exp/version_0/hparams.yaml"
+
+MANIFESTS_DIR="/manifests/artur/kaj-je-transkript-tega-avdia/clean"
+TEST_MANIFESTS=["/manifests/artur/kaj-je-transkript-tega-avdia/test.nemo"]
+TEST_NAMES=["artur-test"]
+
 
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
@@ -86,67 +103,28 @@ export NCCL_DEBUG=INFO
 echo "Replacing data_utils.py.."
 curl -o /opt/NeMo/nemo/collections/multimodal/speech_llm/parts/utils/data_utils.py https://raw.githubusercontent.com/aklemen/NeMo/text-processing/nemo/collections/multimodal/speech_llm/parts/utils/data_utils.py
 
-# fixes non getting relu function
-echo "Replacing utils_funcs.py.."
-curl -o /opt/NeMo/nemo/collections/nlp/parts/utils_funcs.py https://raw.githubusercontent.com/aklemen/NeMo/relu-support/nemo/collections/nlp/parts/utils_funcs.py
-
-# fixes non getting relu function
-echo "Replacing mlp.py.."
-curl -o /opt/NeMo/nemo/collections/nlp/modules/common/megatron/mlp.py https://raw.githubusercontent.com/aklemen/NeMo/relu-support/nemo/collections/nlp/modules/common/megatron/mlp.py
-
 
 # train
 
-# LLM_FILE_NAME=llama2-7b-bf16
-# LLM_FILE_NAME=llama3_1_8b_instruct
-# LLM_PATH="/models/llm/\${LLM_FILE_NAME}.nemo"
-
-LLM_FILE_NAME=slopt_chat
-LLM_PATH="/lpt-models/\${LLM_FILE_NAME}.nemo"
-
-ASR_MODEL_FILE_NAME=conformer_ctc_bpe
-ASR_MODEL_PATH="/models/asr/sl-SI_GEN_nemo-2.0/\${ASR_MODEL_FILE_NAME}.nemo"
-
-ARTUR_MANIFESTS_PATH=/manifests/artur/kaj-je-transkript-tega-avdio-posnetka
-TRAIN_MANIFEST="\${ARTUR_MANIFESTS_PATH}/clean/train.nemo"
-VAL_MANIFEST="\${ARTUR_MANIFESTS_PATH}/clean/val.nemo"
-VAL_NAME="artur-clean-val"
-
-GLOBAL_BATCH_SIZE=\$(($NUM_GPUS * $MICRO_BATCH_SIZE))
-
-NUM_TRAINING_SAMPLES=\$(wc -l < \${TRAIN_MANIFEST})
-NUM_EPOCHS=2
-STEPS_PER_EPOCH=\$((\${NUM_TRAINING_SAMPLES} / \${GLOBAL_BATCH_SIZE}))
-ROUNDED_STEPS_PER_EPOCH=\$((((\${STEPS_PER_EPOCH} + 999) / 1000) * 1000))
-MAX_STEPS=\$((\${ROUNDED_STEPS_PER_EPOCH} * \${NUM_EPOCHS}))
-
-echo "================================================================"
-echo "Micro batch size___$MICRO_BATCH_SIZE"
-echo "Global batch size__\${GLOBAL_BATCH_SIZE}"
-echo "Max steps__________\${MAX_STEPS}"
-echo "================================================================"
-
-MODEL_NAME=speechllm_\${ASR_MODEL_FILE_NAME}_\${LLM_FILE_NAME}_lora
-MAX_DURATION=17 # for clean/train.nemo
-
 cd "/opt/NeMo/examples/multimodal/speech_llm" || exit
-python modular_audio_gpt_train.py --config-path="./conf" --config-name "modular_audio_gpt_config_peft" \
-    name=\${MODEL_NAME} \
-    trainer.devices=-1 \
-    trainer.max_steps=\${MAX_STEPS} \
-    trainer.val_check_interval=1000 \
-    exp_manager.exp_dir="/exp" \
-    model.freeze_audio_encoder=True \
-    model.freeze_modality_adapter=False \
-    model.freeze_llm=True \
-    model.global_batch_size=\${GLOBAL_BATCH_SIZE} \
-    model.micro_batch_size=$MICRO_BATCH_SIZE \
-    model.pretrained_audio_model=\${ASR_MODEL_PATH} \
-    model.restore_from_path=\${LLM_PATH} \
-    model.data.train_ds.max_duration=\${MAX_DURATION} \
-    ++model.data.train_ds.manifest_filepath=[\${TRAIN_MANIFEST}] \
-    ++model.data.validation_ds.manifest_filepath=[\${VAL_MANIFEST}] \
-    ++model.data.validation_ds.names=["\${VAL_NAME}"]
+
+python modular_audio_gpt_eval.py --config-path="./conf" --config-name "modular_audio_gpt_config_eval" \
+    model.restore_from_path=$LLM_PATH \
+    model.peft.restore_from_path="$CHECKPOINT_PATH" \
+    model.peft.restore_from_hparams_path="$HPARAMS_PATH" \
+    model.data.test_ds.names=$TEST_NAMES \
+    model.data.test_ds.metric.name="wer" \
+    model.data.test_ds.global_batch_size=$GLOBAL_BATCH_SIZE \
+    model.data.test_ds.micro_batch_size=$MICRO_BATCH_SIZE \
+    model.data.test_ds.tokens_to_generate=256 \
+    ++inference.greedy=False \
+    ++inference.top_k=50 \
+    ++inference.top_p=0.95 \
+    ++inference.temperature=0.4 \
+    ++inference.repetition_penalty=1.2 \
+    ++model.data.test_ds.manifest_filepath=$TEST_MANIFESTS \
+    ++model.data.test_ds.output_dir=/exp
+    
 cd -
 
 echo -e \"\"\"
@@ -154,12 +132,22 @@ echo -e \"\"\"
 \"\"\"
 """ >> $SCRIPT
 
-LPT_DATASETS_PATH="/shared/workspace/lpt-llm/datasets"
-LPT_MODELS_PATH="/shared/workspace/lpt-llm/models/lora_models"
-EXP_PATH=${EXPERIMENT_DIR}/${EXPERIMENT_NAME}/${version}
+EXP_PATH="$EXPERIMENT_DIR/$EXPERIMENT_NAME/$version"
+
+EXP_MOUNT="$EXP_PATH:/exp"
+LPT_DATASETS_MOUNT="/shared/workspace/lpt-llm/datasets:/dataset:ro"
+MANIFESTS_MOUNT="$HOME/manifests:/manifests:ro"
+MODELS_MOUNT="$HOME/models:/models:ro"
+DATASETS_MOUNT="$HOME/datasets:/datasets:ro"
+SLOLLMASR_MOUNT="$HOME/slollmasr:/slollmasr:ro"
+
+BEAMS_MOUNT="$HOME/beams:/beams"
+TESTING_MOUNT="$HOME/testing:/testing"
+SCRIPTS_MOUNT="$HOME/scripts:/scripts"
+HF_HOME_MOUNT="$HOME/.cache/huggingface:/hf-home"
 
 CONTAINER_IMAGE="nvcr.io/nvidia/nemo:24.07"
-CONTAINER_MOUNTS="$LPT_DATASETS_PATH:/dataset:ro,$LPT_MODELS_PATH:/lpt-models:ro,$EXP_PATH:/exp,${HOME}/manifests:/manifests:ro,${HOME}/models:/models:ro"
+CONTAINER_MOUNTS="$EXP_MOUNT,$LPT_DATASETS_MOUNT,$MANIFESTS_MOUNT,$MODELS_MOUNT,$TESTING_MOUNT,$TRAIN_EXP_MOUNT"
 
 srun \
   --container-image="$CONTAINER_IMAGE" \
