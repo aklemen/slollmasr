@@ -1,52 +1,32 @@
 import string
-from typing import Union
 
-from torch.utils.data import Dataset
 from tqdm import tqdm
-from transformers import pipeline
+from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 
-from LargeLanguageModel import LargeLanguageModel
-from Tokenizer import Tokenizer
 from methods.Method import Method
+from torch_datasets.PromptsDataset import PromptsDataset
 from torch_datasets.HypothesesDataset import HypothesesDataset
 
 
-class PromptsDataset(Dataset):
-    def __init__(self, prompts: list[str]):
-        self.prompts = prompts
-
-    def __getitem__(self, idx):
-        return self.prompts[idx]
-
-    def __len__(self):
-        return len(self.prompts)
-
-class ChatPromptsDataset(Dataset):
-    def __init__(self, chat_prompts: list[list[dict[str, str]]]):
-        self.chat_prompts = chat_prompts
-
-    def __getitem__(self, idx):
-        return self.chat_prompts[idx]
-
-    def __len__(self):
-        return len(self.chat_prompts)
-
-
 class PipelinePromptErrorCorrector(Method):
-    def __init__(self, llm: LargeLanguageModel, tokenizer: Tokenizer):
-        super().__init__(llm, tokenizer)
-        tokenizer.set_padding_side("left")
+    def __init__(self, model_name: str, tokenizer_name: str):
+        llm = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            attn_implementation="flash_attention_2",
+            device_map="auto",
+            torch_dtype="auto",
+        )
         self._generator = pipeline(
             "text-generation",
-            model=llm.model,
-            tokenizer=tokenizer.tokenizer,
+            model=llm,
+            tokenizer=tokenizer_name,
             device_map="auto",
             torch_dtype="auto",
             num_return_sequences=1,
-            max_new_tokens=512,
+            max_new_tokens=256,
             return_full_text=False,
         )
-        self.should_use_chat_templates = tokenizer.are_chat_templates_supported()
+        self._tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
         prompts_dataset = self._build_prompts_dataset(dataset)
@@ -63,9 +43,8 @@ class PipelinePromptErrorCorrector(Method):
         for sample_idx in range(dataset.get_num_of_samples()):
             prompt = self._generate_prompt(dataset, sample_idx)
             prompts.append(prompt)
-        if self.should_use_chat_templates:
-            chat_prompts = [[{ "role": "user", "content": prompt }] for prompt in prompts]
-            return ChatPromptsDataset(chat_prompts)
+        if self.are_chat_templates_supported():
+            prompts = [self._tokenizer.apply_chat_template([{ "role": "user", "content": prompt }], tokenize=False, add_generation_prompt=True) for prompt in prompts]
         return PromptsDataset(prompts)
 
     def _generate_prompt(self, dataset, sample_idx):
@@ -92,3 +71,6 @@ class PipelinePromptErrorCorrector(Method):
 
     def _sanitize_llm_output(self, output):
         return output.translate(str.maketrans('', '', string.punctuation)).lower()
+
+    def are_chat_templates_supported(self):
+        return hasattr(self._tokenizer, "chat_template") and self._tokenizer.chat_template is not None
