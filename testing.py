@@ -51,7 +51,7 @@ if __name__ == '__main__':
         decoded_outputs = tokenizer.batch_decode(outputs, skip_special_tokens=True)
         results.extend(decoded_outputs)
 
-    df = pd.DataFrame({'prompt': prompts, 'response': results})
-    df.to_excel("/testing/prompt-test-results.tsv", index=False, sep="\t")
-
     print(f"Execution time in seconds: {time.time() - start_time}")
+
+    df = pd.DataFrame({'prompt': prompts, 'response': results})
+    df.to_csv("/testing/prompt-test-results.tsv", index=False, sep="\t")
