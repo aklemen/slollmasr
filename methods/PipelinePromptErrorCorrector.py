@@ -17,18 +17,18 @@ class PipelinePromptErrorCorrector(Method):
             device_map="auto",
             torch_dtype="auto",
         )
+        self._tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
+        self._tokenizer.pad_token = self._tokenizer.eos_token
         self._generator = pipeline(
             "text-generation",
             model=llm,
-            tokenizer=tokenizer_name,
+            tokenizer=self._tokenizer,
             device_map="auto",
             torch_dtype="auto",
             num_return_sequences=1,
             max_new_tokens=256,
             return_full_text=False,
         )
-        self._generator.tokenizer.pad_token_id = llm.config.eos_token_id
-        self._tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
         prompts_dataset = self._build_prompts_dataset(dataset)
