@@ -8,6 +8,7 @@ from LargeLanguageModel import LargeLanguageModel
 from MetricsCalculator import MetricsCalculator
 from Tokenizer import Tokenizer
 from methods.CausalReScorer import CausalReScorer
+from methods.PipelinePromptErrorCorrector import PipelinePromptErrorCorrector
 from methods.PromptErrorCorrector import PromptErrorCorrector
 from methods.PromptRescorer import PromptRescorer
 from parse_args import parse_args
@@ -39,7 +40,7 @@ if __name__ == '__main__':
     elif args.method == 'prompt-rescorer':
         method = PromptRescorer(args.llm_name, args.tokenizer_name)
     elif args.method == 'prompt-error-corrector':
-        method = PromptErrorCorrector(args.llm_name, args.tokenizer_name)
+        method = PipelinePromptErrorCorrector(args.llm_name, args.tokenizer_name)
     else:
         raise Exception(f"Method {args.method} is not implemented!")
 
@@ -82,7 +83,7 @@ if __name__ == '__main__':
                 'asr+llm_score': new_best_scores,
                 'asr+llm_best_index': new_best_indices,
             })
-        elif isinstance(method, PromptErrorCorrector):
+        elif isinstance(method, PipelinePromptErrorCorrector):
             new_best_hypotheses = method.run(dataset)
             run_duration = time.time() - start_time
         else:
