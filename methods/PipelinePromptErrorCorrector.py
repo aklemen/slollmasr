@@ -27,7 +27,7 @@ class PipelinePromptErrorCorrector(Method):
             max_new_tokens=256,
             return_full_text=False,
         )
-        self._tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
+        self._generator.tokenizer.pad_token_id = llm.config.eos_token_id
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
         prompts_dataset = self._build_prompts_dataset(dataset)
