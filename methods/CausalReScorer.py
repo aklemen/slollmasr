@@ -3,20 +3,28 @@ import inspect
 import numpy as np
 import torch
 from tqdm import tqdm
+from transformers import AutoModelForCausalLM
 
 from BestHypothesesSelector import BestHypothesesSelector
 from methods.Method import Method
 from torch_datasets.HypothesesDataset import HypothesesDataset
 from torch_datasets.HypothesesWithIdsDataset import HypothesesWithIdsDataset
-from LargeLanguageModel import LargeLanguageModel
 from Tokenizer import Tokenizer
 
 
 class CausalReScorer(Method):
-    def __init__(self, llm: LargeLanguageModel, tokenizer: Tokenizer):
-        super().__init__(llm, tokenizer)
-        self.llm = llm
-        self.tokenizer = tokenizer
+    def __init__(self, llm_name: str, tokenizer_name: str):
+        self.llm_name = llm_name
+        self.llm = (
+            AutoModelForCausalLM.from_pretrained(
+                pretrained_model_name_or_path=llm_name,
+                is_decoder=True,
+                device_map="auto",
+                torch_dtype="auto",
+            )
+            .eval()
+        )
+        self.tokenizer = Tokenizer(tokenizer_name)
         self.device_to_map_to = "cuda"
         self.batch_size = 128
 
@@ -26,10 +34,10 @@ class CausalReScorer(Method):
         data_loader = torch.utils.data.DataLoader(dataset=with_ids_dataset, batch_size=self.batch_size)
 
         if "attention_mask" in inspect.getfullargspec(self.llm.model.forward).args:
-            print(f'Attention mask is supported by "{self.llm.name}" and will be used.')
+            print(f'Attention mask is supported by "{self.llm_name}" and will be used.')
             support_attention_mask = True
         else:
-            print(f'Attention mask NOT supported by "{self.llm.name}" and will NOT be used.')
+            print(f'Attention mask NOT supported by "{self.llm_name}" and will NOT be used.')
             support_attention_mask = False
 
         with torch.amp.autocast('cuda'):

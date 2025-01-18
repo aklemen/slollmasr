@@ -6,12 +6,13 @@ from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 from methods.Method import Method
 from torch_datasets.PromptsDataset import PromptsDataset
 from torch_datasets.HypothesesDataset import HypothesesDataset
+from utils.are_chat_templates_supported import are_chat_templates_supported
 
 
 class PipelinePromptErrorCorrector(Method):
-    def __init__(self, model_name: str, tokenizer_name: str):
+    def __init__(self, llm_name: str, tokenizer_name: str):
         llm = AutoModelForCausalLM.from_pretrained(
-            model_name,
+            pretrained_model_name_or_path=llm_name,
             attn_implementation="flash_attention_2",
             device_map="auto",
             torch_dtype="auto",
@@ -43,7 +44,7 @@ class PipelinePromptErrorCorrector(Method):
         for sample_idx in range(dataset.get_num_of_samples()):
             prompt = self._generate_prompt(dataset, sample_idx)
             prompts.append(prompt)
-        if self.are_chat_templates_supported():
+        if are_chat_templates_supported(self._tokenizer):
             prompts = [self._tokenizer.apply_chat_template([{ "role": "user", "content": prompt }], tokenize=False, add_generation_prompt=True) for prompt in prompts]
         return PromptsDataset(prompts)
 
@@ -71,6 +72,3 @@ class PipelinePromptErrorCorrector(Method):
 
     def _sanitize_llm_output(self, output):
         return output.translate(str.maketrans('', '', string.punctuation)).lower()
-
-    def are_chat_templates_supported(self):
-        return hasattr(self._tokenizer, "chat_template") and self._tokenizer.chat_template is not None

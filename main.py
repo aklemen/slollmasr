@@ -31,17 +31,15 @@ if __name__ == '__main__':
 
     Path(args.results_dir_path).mkdir(parents=True, exist_ok=True)
 
-    tokenizer = Tokenizer(args.tokenizer_name)
-    llm = LargeLanguageModel(args.llm_name)
     calc = MetricsCalculator()
 
     method = None
     if args.method == 'causal-rescorer':
-        method = CausalReScorer(llm, tokenizer)
+        method = CausalReScorer(args.llm_name, args.tokenizer_name)
     elif args.method == 'prompt-rescorer':
-        method = PromptRescorer(llm, tokenizer)
+        method = PromptRescorer(args.llm_name, args.tokenizer_name)
     elif args.method == 'prompt-error-corrector':
-        method = PromptErrorCorrector(llm, tokenizer)
+        method = PromptErrorCorrector(args.llm_name, args.tokenizer_name)
     else:
         raise Exception(f"Method {args.method} is not implemented!")
 

@@ -1,27 +1,26 @@
-import torch
-from transformers import pipeline
+from transformers import pipeline, AutoTokenizer
 
-from LargeLanguageModel import LargeLanguageModel
-from Tokenizer import Tokenizer
 from methods.Method import Method
 from torch_datasets.HypothesesDataset import HypothesesDataset
+from utils.are_chat_templates_supported import are_chat_templates_supported
 
 
+# !!! - WIP
 class PromptRescorer(Method):
-    def __init__(self, llm: LargeLanguageModel, tokenizer: Tokenizer):
-        super().__init__(llm, tokenizer)
+    def __init__(self, llm_name: str, tokenizer_name: str):
         self._generator = pipeline(
             "text-generation",
-            model=llm.model,
-            tokenizer=tokenizer.tokenizer,
+            model=llm_name,
+            tokenizer=tokenizer_name,
             device_map="auto",
             torch_dtype="auto",
             num_return_sequences=1,
             max_new_tokens=512,
             return_full_text=False,
         )
-        self.should_use_chat_templates = tokenizer.are_chat_templates_supported()
-        self.base_prompt = (
+        tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
+        self._should_use_chat_templates = are_chat_templates_supported(tokenizer)
+        self._base_prompt = (
             "Prejel boš seznam hipotez in njihovih ocen iz sistema ASR (Automatic Speech Recognition). "
             "Ponovno oceni hipoteze in izpiši le nove ocene, ločene z vejico, na primer '1.23,3.24,0.12,4.56,2.34'. "
             "Seznam hipotez in njihovih ocen je naslednji:\n\n"
@@ -51,8 +50,8 @@ class PromptRescorer(Method):
         for i in range(from_idx, to_idx):
             hypotheses_list += f'<hipoteza>{dataset[i][0]}</hipoteza><ocena>{str(dataset[i][1])}</ocena>\n'
 
-        prompt = self.base_prompt + hypotheses_list
+        prompt = self._base_prompt + hypotheses_list
 
-        if self.should_use_chat_templates:
+        if self._should_use_chat_templates:
             return [{ "role": "user", "content": prompt }]
         return prompt

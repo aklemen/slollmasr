@@ -1,13 +1,10 @@
 import string
-from typing import Union
 
 import torch
 from torch.utils.data import Dataset
 from tqdm import tqdm
-from transformers import pipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from LargeLanguageModel import LargeLanguageModel
-from Tokenizer import Tokenizer
 from methods.Method import Method
 from torch_datasets.HypothesesDataset import HypothesesDataset
 
@@ -33,22 +30,26 @@ class TokenizedPromptsDataset(Dataset):
     def __len__(self):
         return len(self.prompts_ids)
 
-
+# !!! - WIP
 class PromptErrorCorrector(Method):
-    def __init__(self, llm: LargeLanguageModel, tokenizer: Tokenizer):
-        super().__init__(llm, tokenizer)
-        self.llm = llm
-        self.tokenizer = tokenizer
-        self.device_to_map_to = "cuda"
-        self.batch_size = 128
+    def __init__(self, llm_name: str, tokenizer_name: str):
+        self._llm = AutoModelForCausalLM.from_pretrained(
+            pretrained_model_name_or_path=llm_name,
+            attn_implementation="flash_attention_2",
+            device_map="auto",
+            torch_dtype="auto",
+        )
+        self._tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
+        self._device_to_map_to = "cuda"
+        self._batch_size = 128
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
         prompts = self._build_prompts(dataset)
         print(f"{len(prompts)} prompts built. Tokenizing ...")
-        model_inputs = self.tokenizer.tokenizer(prompts, return_tensors="pt", padding=True, padding_side="left")
+        model_inputs = self._tokenizer(prompts, return_tensors="pt", padding=True, padding_side="left")
         print(f"Prompts tokenized. Number of model_inputs: {len(model_inputs)}.")
         tokenized_prompts_dataset = TokenizedPromptsDataset(model_inputs)
-        data_loader = torch.utils.data.DataLoader(dataset=tokenized_prompts_dataset, batch_size=self.batch_size)
+        data_loader = torch.utils.data.DataLoader(dataset=tokenized_prompts_dataset, batch_size=self._batch_size)
         print("Data loader created.")
 
         with torch.amp.autocast('cuda'):
@@ -56,11 +57,11 @@ class PromptErrorCorrector(Method):
                 best_hypotheses = []
                 for batch in tqdm(data_loader):
                     print("Starting batch ...")
-                    model_inputs = batch.to(self.device_to_map_to)
+                    model_inputs = batch.to(self._device_to_map_to)
                     print("Generating ...")
-                    generated_ids = self.llm.model.generate(**model_inputs, max_new_tokens=512, pad_token_id=self.tokenizer.pad_id)
+                    generated_ids = self._llm.generate(**model_inputs, max_new_tokens=512, pad_token=self._tokenizer.eos_token)
                     print("Decoding ...")
-                    decoded_output = self.tokenizer.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+                    decoded_output = self._tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
                     print("Decoded.")
                     best_hypotheses.extend(decoded_output)
         return best_hypotheses
