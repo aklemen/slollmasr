@@ -14,6 +14,7 @@ from torch_datasets.ManifestDataset import ManifestDataset
 
 if __name__ == '__main__':
     args = parse_args()
+    print(f"Batch size given: {args.batch_size}")
 
     if args.tokenizer_name is None:
         print(f"Tokenizer name was not given, using LLM name '{args.llm_name}'")
@@ -33,11 +34,11 @@ if __name__ == '__main__':
 
     method = None
     if args.method == 'causal-rescorer':
-        method = CausalReScorer(args.llm_name, args.tokenizer_name)
+        method = CausalReScorer(args.llm_name, args.tokenizer_name, args.batch_size)
     elif args.method == 'prompt-rescorer':
         method = PromptRescorer(args.llm_name, args.tokenizer_name)
     elif args.method == 'prompt-error-corrector':
-        method = PipelinePromptErrorCorrector(args.llm_name, args.tokenizer_name)
+        method = PipelinePromptErrorCorrector(args.llm_name, args.tokenizer_name, args.batch_size)
     else:
         raise Exception(f"Method {args.method} is not implemented!")
 
