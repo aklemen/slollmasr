@@ -46,7 +46,8 @@ mkdir -p "$EXPERIMENT_DIR"
 cp -rp "$SBATCH_SCRIPT_FILE_PATH" "$EXPERIMENT_DIR/script.sbatch"
 
 # create execution script file
-SCRIPT_FILE_PATH="$EXPERIMENT_DIR/script.sh"
+SCRIPT_FILE_NAME="script.sh"
+SCRIPT_FILE_PATH="$EXPERIMENT_DIR/$SCRIPT_FILE_NAME"
 touch "$SCRIPT_FILE_PATH"
 chmod a+x "$SCRIPT_FILE_PATH"
 
@@ -119,4 +120,4 @@ srun \
   --container-mounts="$CONTAINER_MOUNTS" \
   --output="$EXPERIMENT_DIR/output.log" \
   --container-workdir="/exp" \
-  "$SCRIPT_FILE_PATH"
+  /exp/$SCRIPT_FILE_NAME
