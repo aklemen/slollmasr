@@ -45,7 +45,7 @@ if __name__ == '__main__':
     ground_truths = manifest.get_transcripts()
 
     results_file_basename = f'{args.method}_{args.llm_name}'.replace('/', '_')
-    wers_df = pd.DataFrame(columns=['beam_size', 'old_wer', 'new_wer', 'rescoring_duration'])
+    wers_df = pd.DataFrame(columns=['beam_size', 'old_wer', 'new_wer', 'run_duration'])
 
     for beam_size, beams_file_path, alpha, beta in zip(args.beam_sizes, args.beams_file_paths, args.alphas, args.betas):
         print(f"Processing beam size {beam_size} and beams file {beams_file_path}...")
