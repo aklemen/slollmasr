@@ -9,7 +9,7 @@ from BestHypothesesSelector import BestHypothesesSelector
 from methods.Method import Method
 from torch_datasets.HypothesesDataset import HypothesesDataset
 from torch_datasets.HypothesesWithIdsDataset import HypothesesWithIdsDataset
-from Tokenizer import Tokenizer
+from CustomTokenizer import CustomTokenizer
 
 
 class CausalReScorer(Method):
@@ -24,7 +24,7 @@ class CausalReScorer(Method):
             )
             .eval()
         )
-        self.tokenizer = Tokenizer(tokenizer_name)
+        self.tokenizer = CustomTokenizer(tokenizer_name)
         self.device_to_map_to = "cuda"
         self.batch_size = 128
 

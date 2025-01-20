@@ -1,7 +1,7 @@
 from transformers import AutoTokenizer
 
 
-class Tokenizer:
+class CustomTokenizer:
     def __init__(self, name: str):
         self.name = name
         self.tokenizer = AutoTokenizer.from_pretrained(
