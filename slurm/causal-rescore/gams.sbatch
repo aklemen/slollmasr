@@ -80,14 +80,14 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
-DATASETS_ARRAY=(\"${TEST_DATASETS[*]}\")
-SIZES_ARRAY=(\"${BEAM_SIZES[*]}\")
+DATASETS_STRING=\"${TEST_DATASETS[*]}\"
+SIZES_STRING=\"${BEAM_SIZES[*]}\"
 
-for DATASET in \"\${DATASETS_ARRAY[@]}\"; do
+for DATASET in \$DATASETS_STRING; do
   echo \"Processing dataset: '\$DATASET' ...\"
   MANIFEST_PATH=\"/dataset/\$DATASET.nemo\"
   BEAM_FILE_PATHS_ARRAY=()
-  for SIZE in \"\${SIZES_ARRAY[@]}\"; do
+  for SIZE in \$SIZES_STRING; do
       BEAM_FILE_PATHS_ARRAY+=(\"/beams/original/\${DATASET}/preds_out_width\${SIZE}_alpha1.0_beta0.0.tsv\")
   done
 
