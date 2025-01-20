@@ -39,15 +39,16 @@ fi
 DATETIME=$(date -d "+1 hour" "+%Y-%m-%d___%H-%M")
 
 # experiment dir
-EXPERIMENT_DIR="${HOME}/exp/$EXPERIMENT_NAME/$DATETIME"
-mkdir -p "$EXPERIMENT_DIR"
+EXPERIMENT_DIR="$EXPERIMENT_NAME/$DATETIME"
+LOCAL_EXPERIMENT_DIR="$HOME/exp/$EXPERIMENT_DIR"
+mkdir -p "$LOCAL_EXPERIMENT_DIR"
 
 # archive this bash script
-cp -rp "$SBATCH_SCRIPT_FILE_PATH" "$EXPERIMENT_DIR/script.sbatch"
+cp -rp "$SBATCH_SCRIPT_FILE_PATH" "$LOCAL_EXPERIMENT_DIR/script.sbatch"
 
 # create execution script file
 SCRIPT_FILE_NAME="script.sh"
-SCRIPT_FILE_PATH="$EXPERIMENT_DIR/$SCRIPT_FILE_NAME"
+SCRIPT_FILE_PATH="$LOCAL_EXPERIMENT_DIR/$SCRIPT_FILE_NAME"
 touch "$SCRIPT_FILE_PATH"
 chmod a+x "$SCRIPT_FILE_PATH"
 
@@ -102,6 +103,7 @@ echo -e \"\"\"
 CONTAINER_IMAGE="nvcr.io/nvidia/nemo:24.12"
 
 EXPERIMENTS="$HOME/exp:/exp"
+CONTAINER_EXPERIMENTS_DIR="/exp/$EXPERIMENT_DIR"
 
 DATASETS="/shared/workspace/lpt-llm/datasets:/dataset:ro"
 MANIFESTS="$HOME/manifests:/manifests:ro"
@@ -118,6 +120,6 @@ srun \
   --container-image="$CONTAINER_IMAGE" \
   --container-name="$SLURM_JOB_NAME" \
   --container-mounts="$CONTAINER_MOUNTS" \
-  --output="$EXPERIMENT_DIR/output.log" \
+  --output="$LOCAL_EXPERIMENT_DIR/output.log" \
   --container-workdir="/exp" \
-  /exp/$SCRIPT_FILE_NAME
+  "$CONTAINER_EXPERIMENTS_DIR/$SCRIPT_FILE_NAME"
