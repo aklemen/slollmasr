@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # DON'T FORGET TO RUN prepare_for_beam_search.sh (installs required packages, fixes errors)
 
 DATASET_PATH="artur/v1.0/nemo/dev"

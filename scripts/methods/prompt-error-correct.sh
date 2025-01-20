@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # DATASET="artur/v1.0/nemo/dev_without_utterance_AJO-3114-500056-0202"
 # MANIFEST_PATH="/manifests/artur/dev_without_utterance_AJO-3114-500056-0202.nemo"
 

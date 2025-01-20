@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # manifests
 TEST_MANIFESTS="[/manifests/artur/test.nemo]"
 TEST_NAMES="[artur-test]"

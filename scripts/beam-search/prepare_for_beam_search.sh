@@ -1,3 +1,5 @@
+#!/bin/bash
+
 apt-get update && apt-get upgrade -y && apt-get install -y swig && rm -rf /var/lib/apt/lists/*
 
 git clone https://github.com/NVIDIA/OpenSeq2Seq && \
