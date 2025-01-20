@@ -15,7 +15,12 @@ EXPERIMENT_NAME=causal-rescore-gams
 LLM_NAME="cjvt/GaMS-1B"
 TOKENIZER_NAME="cjvt/GaMS-1B"
 
-BEAM_SIZES="5 10 50 100"
+BEAM_SIZES=(
+  "5"
+  "10"
+  "50"
+  "100"
+)
 ALPHAS="0.576 0.595 0.65 0.586"
 BETAS="0.080 0.092 0.49 0.201"
 
@@ -75,22 +80,24 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
-for dataset in \"${TEST_DATASETS[*]}\"; do
-  echo \"Processing dataset: '\$dataset' ...\"
-  MANIFEST_PATH=\"/dataset/\$dataset.nemo\"
+DATASETS_ARRAY=(\"${TEST_DATASETS[*]}\")
+SIZES_ARRAY=(\"${BEAM_SIZES[*]}\")
+
+for DATASET in \"\${DATASETS_ARRAY[@]}\"; do
+  echo \"Processing dataset: '\$DATASET' ...\"
+  MANIFEST_PATH=\"/dataset/\$DATASET.nemo\"
   BEAM_FILE_PATHS_ARRAY=()
-  for size in \"${BEAM_SIZES[*]}\"; do
-      BEAM_FILE_PATHS_ARRAY+=(\"/beams/original/\$dataset/preds_out_width\${size}_alpha1.0_beta0.0.tsv\")
+  for SIZE in \"\${SIZES_ARRAY[@]}\"; do
+      BEAM_FILE_PATHS_ARRAY+=(\"/beams/original/\${DATASET}/preds_out_width\${SIZE}_alpha1.0_beta0.0.tsv\")
   done
-  BEAM_FILE_PATHS=\"\${BEAM_FILE_PATHS_ARRAY[*]}\"
 
   python /slollmasr/main.py \
      --method causal-rescorer \
      --llm_name $LLM_NAME \
      --tokenizer_name $TOKENIZER_NAME \
      --manifest_file_path \$MANIFEST_PATH \
-     --beams_file_paths \$BEAM_FILE_PATHS \
-     --beam_sizes $BEAM_SIZES \
+     --beams_file_paths \"\${BEAM_FILE_PATHS_ARRAY[*]}\" \
+     --beam_sizes \"\${SIZES_ARRAY[*]}\" \
      --alphas $ALPHAS \
      --betas $BETAS \
      --results_dir_path /beams/rescored/\$dataset
@@ -106,7 +113,7 @@ CONTAINER_IMAGE="nvcr.io/nvidia/nemo:24.12"
 EXPERIMENTS="$HOME/exp:/exp"
 CONTAINER_EXPERIMENTS_DIR="/exp/$EXPERIMENT_DIR"
 
-DATASETS="/shared/workspace/lpt-llm/datasets:/dataset:ro"
+DATASETS_ARRAY="/shared/workspace/lpt-llm/datasets:/dataset:ro"
 MANIFESTS="$HOME/manifests:/manifests:ro"
 MODELS="$HOME/models:/models:ro"
 SLOLLMASR="$HOME/slollmasr:/slollmasr:ro"
@@ -115,7 +122,7 @@ BEAMS="$HOME/beams:/beams"
 TESTING="$HOME/testing:/testing"
 HF_HOME="$HOME/.cache/huggingface:/hf-home"
 
-CONTAINER_MOUNTS="$EXPERIMENTS,$DATASETS,$MANIFESTS,$MODELS,$SLOLLMASR,$BEAMS,$TESTING,$HF_HOME"
+CONTAINER_MOUNTS="$EXPERIMENTS,$DATASETS_ARRAY,$MANIFESTS,$MODELS,$SLOLLMASR,$BEAMS,$TESTING,$HF_HOME"
 
 srun \
   --container-image="$CONTAINER_IMAGE" \
