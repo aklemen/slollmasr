@@ -31,7 +31,7 @@ class CausalReScorer(Method):
     def run(self, dataset: HypothesesDataset, alpha_weight: float = None, beta_weight: float = None) -> [list[float], float, float]:
         hypotheses_ids = [self.tokenizer.text_to_ids(hypothesis) for hypothesis in dataset.get_hypotheses_texts()]
         with_ids_dataset = HypothesesWithIdsDataset(dataset.hypotheses, dataset.ground_truths, hypotheses_ids, self.tokenizer.pad_id)
-        data_loader = torch.utils.data.DataLoader(dataset=with_ids_dataset, batch_size=self.batch_size)
+        data_loader = torch.utils.data.DataLoader(dataset=with_ids_dataset, batch_size=self.batch_size, pin_memory=True)
 
         if "attention_mask" in inspect.getfullargspec(self.llm.forward).args:
             print(f'Attention mask is supported by "{self.llm_name}" and will be used.')
