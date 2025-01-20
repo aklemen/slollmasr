@@ -33,7 +33,7 @@ class CausalReScorer(Method):
         with_ids_dataset = HypothesesWithIdsDataset(dataset.hypotheses, dataset.ground_truths, hypotheses_ids, self.tokenizer.pad_id)
         data_loader = torch.utils.data.DataLoader(dataset=with_ids_dataset, batch_size=self.batch_size)
 
-        if "attention_mask" in inspect.getfullargspec(self.llm.model.forward).args:
+        if "attention_mask" in inspect.getfullargspec(self.llm.forward).args:
             print(f'Attention mask is supported by "{self.llm_name}" and will be used.')
             support_attention_mask = True
         else:
@@ -54,9 +54,9 @@ class CausalReScorer(Method):
                     distance = distance.to(self.device_to_map_to)
 
                     if support_attention_mask:
-                        output = self.llm.model(input_ids=input_ids, attention_mask=input_mask)
+                        output = self.llm(input_ids=input_ids, attention_mask=input_mask)
                     else:
-                        output = self.llm.model(input_ids=input_ids)
+                        output = self.llm(input_ids=input_ids)
 
                     log_probs = torch.nn.functional.log_softmax(output.logits, dim=-1)  # [batch_size, sequence_length, vocab_size]
 
