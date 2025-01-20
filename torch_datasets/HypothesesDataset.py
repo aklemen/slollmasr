@@ -3,12 +3,8 @@ from torch.utils.data import Dataset
 
 
 class HypothesesDataset(Dataset):
-    def __init__(
-            self,
-            hypotheses: pd.DataFrame,
-            ground_truths: list[str],
-    ):
-        self.hypotheses = hypotheses
+    def __init__(self, hypotheses: pd.DataFrame, ground_truths: list[str]):
+        self.hypotheses = self._create_hypotheses_df(hypotheses)
         self.ground_truths = ground_truths
         self.beam_size = len(hypotheses) // len(ground_truths)
 
@@ -40,3 +36,8 @@ class HypothesesDataset(Dataset):
 
     def _get_hypothesis_score(self, idx):
         return self.hypotheses["score"][idx]
+
+    def _create_hypotheses_df(self, hypotheses):
+        hypotheses_copy = hypotheses.copy()
+        hypotheses["text"].fillna("", inplace=True)
+        return hypotheses_copy
