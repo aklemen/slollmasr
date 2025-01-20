@@ -13,7 +13,7 @@ from CustomTokenizer import CustomTokenizer
 
 
 class CausalReScorer(Method):
-    def __init__(self, llm_name: str, tokenizer_name: str):
+    def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 128):
         self.llm_name = llm_name
         self.llm = (
             AutoModelForCausalLM.from_pretrained(
@@ -26,7 +26,7 @@ class CausalReScorer(Method):
         )
         self.tokenizer = CustomTokenizer(tokenizer_name)
         self.device_to_map_to = "cuda"
-        self.batch_size = 128
+        self.batch_size = batch_size
 
     def run(self, dataset: HypothesesDataset, alpha_weight: float = None, beta_weight: float = None) -> [list[float], float, float]:
         hypotheses_ids = [self.tokenizer.text_to_ids(hypothesis) for hypothesis in dataset.get_hypotheses_texts()]

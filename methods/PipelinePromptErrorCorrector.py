@@ -10,7 +10,7 @@ from utils.are_chat_templates_supported import are_chat_templates_supported
 
 
 class PipelinePromptErrorCorrector(Method):
-    def __init__(self, llm_name: str, tokenizer_name: str):
+    def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 8):
         llm = AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=llm_name,
             attn_implementation="flash_attention_2",
@@ -29,17 +29,24 @@ class PipelinePromptErrorCorrector(Method):
             max_new_tokens=256,
             return_full_text=False,
         )
+        self._batch_size = batch_size
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
         prompts_dataset = self._build_prompts_dataset(dataset)
         print(f"{len(prompts_dataset)} prompts built. Generating ...")
         best_hypotheses = []
-        for sequences in tqdm(self._generator(prompts_dataset, padding=True, batch_size=8), total=len(prompts_dataset)):
+        for sequences in tqdm(
+                self._generator(
+                    prompts_dataset,
+                    padding=True,
+                    batch_size=self._batch_size
+                ),
+                total=len(prompts_dataset)
+        ):
             output = sequences[-1]["generated_text"]
             sanitized_result = self._sanitize_llm_output(output)
             best_hypotheses.append(sanitized_result)
         return best_hypotheses
-
 
     def _build_prompts_dataset(self, dataset):
         prompts = []
@@ -47,7 +54,13 @@ class PipelinePromptErrorCorrector(Method):
             prompt = self._generate_prompt(dataset, sample_idx)
             prompts.append(prompt)
         if are_chat_templates_supported(self._tokenizer):
-            prompts = [self._tokenizer.apply_chat_template([{ "role": "user", "content": prompt }], tokenize=False, add_generation_prompt=True) for prompt in prompts]
+            prompts = [
+                self._tokenizer.apply_chat_template(
+                    [{"role": "user", "content": prompt}],
+                    tokenize=False,
+                    add_generation_prompt=True
+                ) for prompt in prompts
+            ]
         return PromptsDataset(prompts)
 
     def _generate_prompt(self, dataset, sample_idx):
