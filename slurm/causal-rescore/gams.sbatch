@@ -85,6 +85,7 @@ for DATASET in \$DATASETS_STRING; do
       BEAM_FILE_PATHS_ARRAY+=(\"/beams/original/\${DATASET}/preds_out_width\${SIZE}_alpha1.0_beta0.0.tsv\")
   done
 
+
   python /slollmasr/main.py \
      --method causal-rescorer \
      --llm_name $LLM_NAME \
@@ -94,7 +95,7 @@ for DATASET in \$DATASETS_STRING; do
      --beam_sizes $BEAM_SIZES \
      --alphas $ALPHAS \
      --betas $BETAS \
-     --results_dir_path /beams/rescored/\$dataset
+     --results_dir_path /beams/rescored/\$DATASET
 done
 
 echo -e \"\"\"
