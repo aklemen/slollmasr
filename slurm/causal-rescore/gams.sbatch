@@ -81,7 +81,7 @@ for DATASET in \$DATASETS_STRING; do
   echo \"Processing dataset: '\$DATASET' ...\"
   MANIFEST_PATH=\"/dataset/\$DATASET.nemo\"
   BEAM_FILE_PATHS_ARRAY=()
-  for SIZE in $BEAM_SIZES; do
+  for SIZE in \"$BEAM_SIZES\"; do
       BEAM_FILE_PATHS_ARRAY+=(\"/beams/original/\${DATASET}/preds_out_width\${SIZE}_alpha1.0_beta0.0.tsv\")
   done
 
