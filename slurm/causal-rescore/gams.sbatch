@@ -1,14 +1,14 @@
 #!/bin/bash
-#SBATCH_SCRIPT_FILE_PATH --job-name=causal-rescore-gams
-#SBATCH_SCRIPT_FILE_PATH --partition=frida
-#SBATCH_SCRIPT_FILE_PATH --time=2-00:00:00
-#SBATCH_SCRIPT_FILE_PATH --nodes=1
-#SBATCH_SCRIPT_FILE_PATH --ntasks-per-node=1
-#SBATCH_SCRIPT_FILE_PATH --gpus-per-node=A100_80GB:2
-#SBATCH_SCRIPT_FILE_PATH --cpus-per-task=32
-#SBATCH_SCRIPT_FILE_PATH --mem-per-gpu=128G
-#SBATCH_SCRIPT_FILE_PATH --output=/dev/null
-#SBATCH_SCRIPT_FILE_PATH --error=/shared/home/anton.klemen/logs/causal_rescore/error_%x_%j.txt
+#SBATCH --job-name=causal-rescore-gams
+#SBATCH --partition=frida
+#SBATCH --time=2-00:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --gpus-per-node=A100_80GB:2
+#SBATCH --cpus-per-task=32
+#SBATCH --mem-per-gpu=128G
+#SBATCH --output=/dev/null
+#SBATCH --error=/shared/home/anton.klemen/logs/causal_rescore/error_%x_%j.txt
 
 EXPERIMENT_NAME=causal-rescore-gams
 
