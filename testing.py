@@ -4,47 +4,54 @@ import pandas as pd
 import torch
 from accelerate import init_empty_weights, load_checkpoint_and_dispatch
 from tqdm import tqdm
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
-from torch.utils.data import Dataset
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 if __name__ == '__main__':
     print("Executing...")
     start_time = time.time()
     results = []
-
-    model_id = "meta-llama/Llama-3.3-70B-Instruct"
-    model = AutoModelForCausalLM.from_pretrained(model_id, attn_implementation="flash_attention_2", device_map="auto",
-                                                 torch_dtype="auto")
-
-    pipe = pipeline("text-generation", model=model, tokenizer=model_id, max_new_tokens=256, num_return_sequences=1,
-                    return_full_text=False, device_map="auto", torch_dtype="auto")
-
-    messages = [
-        {"role": "system", "content": "You are a helpful AI assistant."},
-        {"role": "user", "content": "Can you provide ways to eat combinations of bananas and dragonfruits?"},
-        {"role": "assistant",
-         "content": "Sure! Here are some ways to eat bananas and dragonfruits together: 1. Banana and dragonfruit smoothie: Blend bananas and dragonfruits together with some milk and honey. 2. Banana and dragonfruit salad: Mix sliced bananas and dragonfruits together with some lemon juice and honey."},
-        {"role": "user", "content": "What about solving an 2x + 3 = 7 equation?"},
-    ]
+    prompts = [
+                  "What is the capital of France?",
+                  "What is the capital of Germany?",
+                  "What is the capital of Italy?",
+                  "What is the capital of Spain?",
+                  "What is the capital of Portugal?",
+              ] * 200
+    model_id = "meta-llama/Llama-3.1-8B-Instruct"
+    weights_path = "/hf-home/hub/models--meta-llama--Llama-3.1-8B-Instruct/snapshots/0e9e39f249a16976918f6564b8830bc894c89659/model.safetensors.index.json"
     tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
-    chat_messages = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    tokenizer.pad_token = tokenizer.eos_token
+    # model = AutoModelForCausalLM.from_pretrained(model_id", pad_token_id=tokenizer.eos_token_id)
+    with init_empty_weights():
+        model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float16, low_cpu_mem_usage=True)
 
+    # pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=512, device=0)
+    # results = []
+    # for prompt in tqdm(prompts):
+    #     result = pipe(prompt, pad_token_id=tokenizer.eos_token_id)
+    #     results.append(result)
 
-    class MyDataset(Dataset):
-        def __len__(self):
-            return 600
+    model = load_checkpoint_and_dispatch(
+        model,
+        weights_path,
+        device_map="auto",
+        no_split_module_classes=["LlamaDecoderLayer"], # LlamaDecoderLayer layer has a residual connection, so it should not be split
+        dtype=torch.float16,
+    )
 
-        def __getitem__(self, i):
-            return chat_messages
+    batch_size = 256
+    all_inputs = tokenizer(prompts, padding=True, truncation=True, return_tensors="pt")
+    for i in tqdm(range(0, len(prompts), batch_size)):
+        batch_prompts = prompts[i:i + batch_size]
+        inputs = tokenizer(batch_prompts, padding=True, return_tensors="pt").to("cuda")
 
+        with torch.no_grad():
+            outputs = model.generate(**inputs, max_new_tokens=512, pad_token_id=tokenizer.eos_token_id)
 
-    dataset = MyDataset()
+        decoded_outputs = tokenizer.batch_decode(outputs, skip_special_tokens=True)
+        results.extend(decoded_outputs)
 
-    for batch_size in [128]:
-        print("-" * 30)
-        print(f"Streaming batch_size={batch_size}")
-        ind = True
-        for out in tqdm(pipe(dataset, batch_size=batch_size), total=len(dataset)):
-            if ind:
-                print('RESULT: ', out)
-                ind = False
+    print(f"Execution time in seconds: {time.time() - start_time}")
+
+    df = pd.DataFrame({'prompt': prompts, 'response': results})
+    df.to_csv("/testing/prompt-test-results.tsv", index=False, sep="\t")
