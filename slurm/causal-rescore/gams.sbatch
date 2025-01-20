@@ -16,6 +16,7 @@ LLM_NAME="cjvt/GaMS-1B"
 TOKENIZER_NAME="cjvt/GaMS-1B"
 
 BEAM_SIZES="5 10 50 100"
+BEAM_SIZES_ARRAY=("5" "10" "50" "100")
 ALPHAS="0.576 0.595 0.65 0.586"
 BETAS="0.080 0.092 0.49 0.201"
 
@@ -76,15 +77,15 @@ export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
 DATASETS_STRING=\"${TEST_DATASETS[*]}\"
+BEAM_SIZES_STRING=\"${BEAM_SIZES_ARRAY[*]}\"
 
 for DATASET in \$DATASETS_STRING; do
   echo \"Processing dataset: '\$DATASET' ...\"
   MANIFEST_PATH=\"/dataset/\$DATASET.nemo\"
   BEAM_FILE_PATHS_ARRAY=()
-  for SIZE in \"$BEAM_SIZES\"; do
+  for SIZE in \$BEAM_SIZES_STRING; do
       BEAM_FILE_PATHS_ARRAY+=(\"/beams/original/\${DATASET}/preds_out_width\${SIZE}_alpha1.0_beta0.0.tsv\")
   done
-
 
   python /slollmasr/main.py \
      --method causal-rescorer \
