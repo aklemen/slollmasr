@@ -117,6 +117,6 @@ srun \
   --container-image="$CONTAINER_IMAGE" \
   --container-name="$SLURM_JOB_NAME" \
   --container-mounts="$CONTAINER_MOUNTS" \
-  --output="$EXPERIMENT_DIR.%s.txt" \
+  --output="$EXPERIMENT_DIR/output.log" \
   --container-workdir="/exp" \
   "$SCRIPT_FILE_PATH"
