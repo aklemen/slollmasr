@@ -8,7 +8,7 @@ class BestHypothesesSelector:
         scores = dataset.get_hypotheses_scores()
 
         if custom_scores is not None:
-            print("Custom scores were provided - using custom scores.")
+            # print("Custom scores were provided - using custom scores.")
             scores = custom_scores
 
         if len(scores) != len(hypotheses):
