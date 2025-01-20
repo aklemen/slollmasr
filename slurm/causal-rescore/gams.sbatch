@@ -82,14 +82,14 @@ for dataset in \"${TEST_DATASETS[*]}\"; do
   for size in \"${BEAM_SIZES[*]}\"; do
       BEAM_FILE_PATHS_ARRAY+=(\"/beams/original/\$dataset/preds_out_width\${size}_alpha1.0_beta0.0.tsv\")
   done
-  BEAM_FILE_PATHS=\$(IFS=' '; echo \"${BEAM_FILE_PATHS_ARRAY[*]}\")
+  BEAM_FILE_PATHS=\"${BEAM_FILE_PATHS_ARRAY[*]}\"
 
   python /slollmasr/main.py \
      --method causal-rescorer \
      --llm_name $LLM_NAME \
      --tokenizer_name $TOKENIZER_NAME \
-     --manifest_file_path $MANIFEST_PATH \
-     --beams_file_paths $BEAM_FILE_PATHS \
+     --manifest_file_path \$MANIFEST_PATH \
+     --beams_file_paths \$BEAM_FILE_PATHS \
      --beam_sizes $BEAM_SIZES \
      --alphas $ALPHAS \
      --betas $BETAS \
