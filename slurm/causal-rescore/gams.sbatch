@@ -15,12 +15,7 @@ EXPERIMENT_NAME=causal-rescore-gams
 LLM_NAME="cjvt/GaMS-1B"
 TOKENIZER_NAME="cjvt/GaMS-1B"
 
-BEAM_SIZES=(
-  "5"
-  "10"
-  "50"
-  "100"
-)
+BEAM_SIZES="5 10 50 100"
 ALPHAS="0.576 0.595 0.65 0.586"
 BETAS="0.080 0.092 0.49 0.201"
 
@@ -81,13 +76,12 @@ export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
 DATASETS_STRING=\"${TEST_DATASETS[*]}\"
-SIZES_STRING=\"${BEAM_SIZES[*]}\"
 
 for DATASET in \$DATASETS_STRING; do
   echo \"Processing dataset: '\$DATASET' ...\"
   MANIFEST_PATH=\"/dataset/\$DATASET.nemo\"
   BEAM_FILE_PATHS_ARRAY=()
-  for SIZE in \$SIZES_STRING; do
+  for SIZE in $BEAM_SIZES; do
       BEAM_FILE_PATHS_ARRAY+=(\"/beams/original/\${DATASET}/preds_out_width\${SIZE}_alpha1.0_beta0.0.tsv\")
   done
 
@@ -97,7 +91,7 @@ for DATASET in \$DATASETS_STRING; do
      --tokenizer_name $TOKENIZER_NAME \
      --manifest_file_path \$MANIFEST_PATH \
      --beams_file_paths \"\${BEAM_FILE_PATHS_ARRAY[*]}\" \
-     --beam_sizes \$SIZES_STRING \
+     --beam_sizes $BEAM_SIZES \
      --alphas $ALPHAS \
      --betas $BETAS \
      --results_dir_path /beams/rescored/\$dataset
