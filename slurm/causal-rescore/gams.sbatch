@@ -97,7 +97,7 @@ for DATASET in \$DATASETS_STRING; do
      --tokenizer_name $TOKENIZER_NAME \
      --manifest_file_path \$MANIFEST_PATH \
      --beams_file_paths \"\${BEAM_FILE_PATHS_ARRAY[*]}\" \
-     --beam_sizes \"\$SIZES_STRING\" \
+     --beam_sizes \$SIZES_STRING \
      --alphas $ALPHAS \
      --betas $BETAS \
      --results_dir_path /beams/rescored/\$dataset
