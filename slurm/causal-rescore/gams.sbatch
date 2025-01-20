@@ -74,14 +74,14 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
-for dataset in \"\${TEST_DATASETS[@]}\"; do
+for dataset in \"${TEST_DATASETS[*]}\"; do
   echo \"Processing dataset: '\$dataset' ...\"
   MANIFEST_PATH=\"/dataset/\$dataset.nemo\"
   BEAM_FILE_PATHS_ARRAY=()
-  for size in \"\${BEAM_SIZES[@]}\"; do
+  for size in \"${BEAM_SIZES[*]}\"; do
       BEAM_FILE_PATHS_ARRAY+=(\"/beams/original/\$dataset/preds_out_width\${size}_alpha1.0_beta0.0.tsv\")
   done
-  BEAM_FILE_PATHS=\$(IFS=' '; echo \"\${BEAM_FILE_PATHS_ARRAY[*]}\")
+  BEAM_FILE_PATHS=\$(IFS=' '; echo \"${BEAM_FILE_PATHS_ARRAY[*]}\")
 
   python /slollmasr/main.py \
      --method causal-rescorer \
