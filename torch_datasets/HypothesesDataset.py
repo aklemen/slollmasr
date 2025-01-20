@@ -39,5 +39,5 @@ class HypothesesDataset(Dataset):
 
     def _create_hypotheses_df(self, hypotheses):
         hypotheses_copy = hypotheses.copy()
-        hypotheses["text"] = hypotheses["text"].fillna("")
+        hypotheses_copy["text"] = hypotheses_copy["text"].fillna("")
         return hypotheses_copy
