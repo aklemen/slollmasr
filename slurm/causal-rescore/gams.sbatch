@@ -92,7 +92,7 @@ for DATASET in \$DATASETS_STRING; do
      --llm_name $LLM_NAME \
      --tokenizer_name $TOKENIZER_NAME \
      --manifest_file_path \$MANIFEST_PATH \
-     --beams_file_paths \"\${BEAM_FILE_PATHS_ARRAY[*]}\" \
+     --beams_file_paths \${BEAM_FILE_PATHS_ARRAY[*]} \
      --beam_sizes $BEAM_SIZES \
      --alphas $ALPHAS \
      --betas $BETAS \
