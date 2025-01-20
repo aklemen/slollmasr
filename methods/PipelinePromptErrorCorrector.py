@@ -68,7 +68,7 @@ class PipelinePromptErrorCorrector(Method):
             f"Izvedi popravljanje napak na najboljših {beam_size} izhodih, ki jih je generiral sistem za samodejno razpoznavanje govora (Automatic Speech Recognition). "
             f"Hipoteze, navedene po vrstnem redu glede na njihovo posteriorno verjetnost sistema ASR, so naslednje:\n\n"
         )
-        prompt_end = "\n\nProsim, izpiši popravljen najboljši transkript danega govora, brez dodatnih razlag ali besed."
+        prompt_end = "\n\nProsim, izpiši le popravljen najboljši transkript danega govora, brez dodatnih razlag ali besed."
 
         return prompt_start + hypotheses_list + prompt_end
 
