@@ -131,4 +131,5 @@ srun \
   --container-mounts="$CONTAINER_MOUNTS" \
   --output="$LOCAL_EXPERIMENT_DIR/output.log" \
   --container-workdir="/exp" \
+  --export="HF_HOME=/hf-home" \
   "/exp/$SCRIPT_FILE_NAME"
