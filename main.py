@@ -1,4 +1,5 @@
 import time
+import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -125,7 +126,8 @@ if __name__ == '__main__':
                 'beta': [used_beta],
                 'old_wer': [old_wer_score],
                 'new_wer': [new_wer_score],
-                'run_duration': [run_duration],
+                'run_duration': [str(datetime.timedelta(seconds=run_duration))],
+                'run_duration_in_seconds': [round(run_duration, 3)],
             })
             eval_df = pd.concat([eval_df, new_eval_df], ignore_index=True)
             eval_df.to_csv(f'{args.evaluation_dir_path}/evaluation.tsv', sep='\t', index=False)
