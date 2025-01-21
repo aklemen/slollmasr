@@ -11,7 +11,7 @@
 #SBATCH --error=/shared/home/anton.klemen/logs/causal_rescore/error_%x_%j.txt
 
 # Check if all required environment variables are set
-required_vars=(LLM_NAME TOKENIZER_NAME BEAM_SIZES ALPHAS BETAS BATCH_SIZE)
+required_vars=(LLM_NAME TOKENIZER_NAME ALPHAS BETAS BATCH_SIZE)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
