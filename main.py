@@ -56,18 +56,23 @@ if __name__ == '__main__':
     else:
         raise Exception(f"Method {args.method} is not implemented!")
 
-    manifest = ManifestDataset(args.manifest_file_path)
-    ground_truths = manifest.get_transcripts()
-
     wers_df = pd.DataFrame(columns=['beam_size', 'alpha', 'beta', 'old_wer', 'new_wer', 'run_duration'])
 
     num_of_beam_sizes = len(args.beam_sizes)
     grouped_beam_file_paths = [
         args.beams_file_paths[i:i + num_of_beam_sizes] for i in range(0, len(args.beams_file_paths), num_of_beam_sizes)
     ]
-    for results_dir_path, beams_file_paths in zip(args.results_dir_paths, grouped_beam_file_paths):
-        print(f"Using results directory {results_dir_path} ...")
+    for manifest_file_path, results_dir_path, beams_file_paths in zip(
+            args.manifest_file_paths,
+            args.results_dir_paths,
+            grouped_beam_file_paths
+    ):
+        print(f"Processing manifest file {manifest_file_path} ...")
+        manifest = ManifestDataset(manifest_file_path)
+        ground_truths = manifest.get_transcripts()
+
         Path(results_dir_path).mkdir(parents=True, exist_ok=True)
+        print(f"Created results directory {results_dir_path}.")
 
         for beams_file_path, beam_size, alpha, beta in zip(beams_file_paths, args.beam_sizes, args.alphas, args.betas):
             print(f"Processing beam size {beam_size} and beams file {beams_file_path} ...")
