@@ -16,7 +16,6 @@ LLM_NAME="cjvt/GaMS-1B"
 TOKENIZER_NAME="cjvt/GaMS-1B"
 
 BEAM_SIZES="5 10 50 100"
-BEAM_SIZES_ARRAY=("5" "10" "50" "100")
 ALPHAS="0.576 0.595 0.65 0.586"
 BETAS="0.080 0.092 0.49 0.201"
 
@@ -28,6 +27,20 @@ TEST_DATASETS=(
   "Sofes/v1.0/nemo/all"
   "voxpopuli/nemo/clean/all"
 )
+
+BASE_CONTAINER_RESULTS_PATH="/exp/results"
+RESULT_DIR_PATHS_ARRAY=()
+MANIFEST_FILE_PATHS_ARRAY=()
+BEAM_FILE_PATHS_ARRAY=()
+for DATASET in "${TEST_DATASETS[@]}"; do
+  RESULT_DIR_PATHS_ARRAY+=("$BASE_CONTAINER_RESULTS_PATH/$DATASET")
+  MANIFEST_FILE_PATHS_ARRAY+=("/dataset/$DATASET.nemo")
+  for SIZE in $BEAM_SIZES; do
+      BEAM_FILE_PATHS_ARRAY+=("/beams/original/${DATASET}/preds_out_width${SIZE}_alpha1.0_beta0.0.tsv")
+  done
+done
+
+
 
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
@@ -76,28 +89,17 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
-DATASETS_STRING=\"${TEST_DATASETS[*]}\"
-BEAM_SIZES_STRING=\"${BEAM_SIZES_ARRAY[*]}\"
-
-for DATASET in \$DATASETS_STRING; do
-  echo \"Processing dataset: '\$DATASET' ...\"
-  MANIFEST_PATH=\"/dataset/\$DATASET.nemo\"
-  BEAM_FILE_PATHS_ARRAY=()
-  for SIZE in \$BEAM_SIZES_STRING; do
-      BEAM_FILE_PATHS_ARRAY+=(\"/beams/original/\${DATASET}/preds_out_width\${SIZE}_alpha1.0_beta0.0.tsv\")
-  done
-
-  python /slollmasr/main.py \
-     --method causal-rescorer \
-     --llm_name $LLM_NAME \
-     --tokenizer_name $TOKENIZER_NAME \
-     --manifest_file_path \$MANIFEST_PATH \
-     --beams_file_paths \${BEAM_FILE_PATHS_ARRAY[*]} \
-     --beam_sizes $BEAM_SIZES \
-     --alphas $ALPHAS \
-     --betas $BETAS \
-     --results_dir_path /beams/rescored/\$DATASET
-done
+python /slollmasr/main.py \
+   --method causal-rescorer \
+   --llm_name $LLM_NAME \
+   --tokenizer_name $TOKENIZER_NAME \
+   --manifest_file_paths ${MANIFEST_FILE_PATHS_ARRAY[*]} \
+   --beams_file_paths ${BEAM_FILE_PATHS_ARRAY[*]} \
+   --beam_sizes $BEAM_SIZES \
+   --alphas $ALPHAS \
+   --betas $BETAS \
+   --results_dir_paths ${RESULT_DIR_PATHS_ARRAY[*]} \
+   --evaluation_dir_path $BASE_CONTAINER_RESULTS_PATH
 
 echo -e \"\"\"
 # finished at \$(date)
@@ -106,8 +108,7 @@ echo -e \"\"\"
 
 CONTAINER_IMAGE="nvcr.io/nvidia/nemo:24.12"
 
-EXPERIMENTS="$HOME/exp:/exp"
-CONTAINER_EXPERIMENTS_DIR="/exp/$EXPERIMENT_DIR"
+EXPERIMENTS="$LOCAL_EXPERIMENT_DIR:/exp"
 
 DATASETS_ARRAY="/shared/workspace/lpt-llm/datasets:/dataset:ro"
 MANIFESTS="$HOME/manifests:/manifests:ro"
@@ -126,4 +127,4 @@ srun \
   --container-mounts="$CONTAINER_MOUNTS" \
   --output="$LOCAL_EXPERIMENT_DIR/output.log" \
   --container-workdir="/exp" \
-  "$CONTAINER_EXPERIMENTS_DIR/$SCRIPT_FILE_NAME"
+  "/exp/$SCRIPT_FILE_NAME"
