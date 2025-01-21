@@ -11,7 +11,7 @@
 #SBATCH --error=/shared/home/anton.klemen/logs/causal_rescore/error_%x_%j.txt
 
 # Check if all required environment variables are set
-required_vars=(LLM_NAME TOKENIZER_NAME ALPHAS BETAS BATCH_SIZE)
+required_vars=(LLM_NAME TOKENIZER_NAME BATCH_SIZE)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
@@ -22,22 +22,38 @@ done
 EXPERIMENT_NAME=$(echo "$LLM_NAME" | sed 's/\//_/g')
 
 BEAM_SIZES="5 10 50 100"
-TEST_DATASETS=(
-  "artur/v1.0/nemo/test"
-  "commonvoice/v18.0/nemo/clean/all"
-  "fleurs/nemo/clean/all"
-  "GVL/v4.2/nemo/all"
-  "Sofes/v1.0/nemo/all"
-  "voxpopuli/nemo/clean/all"
-)
+
+if [ "$SHOULD_LINEAR_SEARCH_ARTUR_DEV" = true ]; then
+  TEST_DATASETS=("artur/v1.0/nemo/dev_without_utterance_AJO-3114-500056-0202")
+  TEST_MANIFESTS=("/manifests/artur/dev_without_utterance_AJO-3114-500056-0202.nemo")
+else
+  if [ -z "$ALPHAS" ] || [ -z "$BETAS" ]; then
+    echo "Error: ALPHAS and BETAS must be set when SHOULD_LINEAR_SEARCH_ARTUR_DEV=false."
+    exit 1
+  fi
+  TEST_DATASETS=(
+    "artur/v1.0/nemo/test"
+    "commonvoice/v18.0/nemo/clean/all"
+    "fleurs/nemo/clean/all"
+    "GVL/v4.2/nemo/all"
+    "Sofes/v1.0/nemo/all"
+    "voxpopuli/nemo/clean/all"
+  )
+  TEST_MANIFESTS=(
+    "/dataset/artur/v1.0/nemo/test.nemo"
+    "/dataset/commonvoice/v18.0/nemo/clean/all.nemo"
+    "/dataset/fleurs/nemo/clean/all.nemo"
+    "/dataset/GVL/v4.2/nemo/all.nemo"
+    "/dataset/Sofes/v1.0/nemo/all.nemo"
+    "/dataset/voxpopuli/nemo/clean/all.nemo"
+  )
+fi
 
 BASE_CONTAINER_RESULTS_PATH="/exp/results"
 RESULT_DIR_PATHS_ARRAY=()
-MANIFEST_FILE_PATHS_ARRAY=()
 BEAM_FILE_PATHS_ARRAY=()
 for DATASET in "${TEST_DATASETS[@]}"; do
   RESULT_DIR_PATHS_ARRAY+=("$BASE_CONTAINER_RESULTS_PATH/$DATASET")
-  MANIFEST_FILE_PATHS_ARRAY+=("/dataset/$DATASET.nemo")
   for SIZE in $BEAM_SIZES; do
       BEAM_FILE_PATHS_ARRAY+=("/beams/original/${DATASET}/preds_out_width${SIZE}_alpha1.0_beta0.0.tsv")
   done
@@ -56,7 +72,11 @@ fi
 DATETIME=$(date -d "+1 hour" "+%Y-%m-%d___%H-%M")
 
 # experiment dir
-EXPERIMENT_DIR="causal-rescore/$EXPERIMENT_NAME/$DATETIME"
+if [ "$SHOULD_LINEAR_SEARCH_ARTUR_DEV" = true ]; then
+  EXPERIMENT_DIR="causal-rescore/with-search/$EXPERIMENT_NAME/$DATETIME"
+else
+  EXPERIMENT_DIR="causal-rescore/$EXPERIMENT_NAME/$DATETIME"
+fi
 LOCAL_EXPERIMENT_DIR="$HOME/exp/$EXPERIMENT_DIR"
 mkdir -p "$LOCAL_EXPERIMENT_DIR"
 
@@ -96,7 +116,7 @@ python /slollmasr/main.py \
    --method causal-rescorer \
    --llm_name $LLM_NAME \
    --tokenizer_name $TOKENIZER_NAME \
-   --manifest_file_paths ${MANIFEST_FILE_PATHS_ARRAY[*]} \
+   --manifest_file_paths ${TEST_MANIFESTS[*]} \
    --beams_file_paths ${BEAM_FILE_PATHS_ARRAY[*]} \
    --beam_sizes $BEAM_SIZES \
    --alphas $ALPHAS \
