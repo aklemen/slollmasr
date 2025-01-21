@@ -56,7 +56,7 @@ if __name__ == '__main__':
     else:
         raise Exception(f"Method {args.method} is not implemented!")
 
-    wers_df = pd.DataFrame(columns=['beam_size', 'alpha', 'beta', 'old_wer', 'new_wer', 'run_duration'])
+    eval_df = pd.DataFrame(columns=['results_file', 'beam_size', 'alpha', 'beta', 'old_wer', 'new_wer', 'run_duration'])
 
     num_of_beam_sizes = len(args.beam_sizes)
     grouped_beam_file_paths = [
@@ -118,7 +118,8 @@ if __name__ == '__main__':
 
             old_wer_score = calc.calculate_wer(old_best_hypotheses, ground_truths)
             new_wer_score = calc.calculate_wer(new_best_hypotheses, ground_truths)
-            new_wer_df = pd.DataFrame({
+            new_eval_df = pd.DataFrame({
+                'results_file': [results_file_path],
                 'beam_size': [beam_size],
                 'alpha': [used_alpha],
                 'beta': [used_beta],
@@ -126,6 +127,6 @@ if __name__ == '__main__':
                 'new_wer': [new_wer_score],
                 'run_duration': [run_duration],
             })
-            wers_df = pd.concat([wers_df, new_wer_df], ignore_index=True)
-            wers_df.to_csv(f'{args.evaluation_dir_path}/wers.tsv', sep='\t', index=False)
-            print(wers_df.to_string())
+            eval_df = pd.concat([eval_df, new_eval_df], ignore_index=True)
+            eval_df.to_csv(f'{args.evaluation_dir_path}/evaluation.tsv', sep='\t', index=False)
+            print(eval_df.to_string())
