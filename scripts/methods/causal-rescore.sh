@@ -25,23 +25,25 @@ BEAM_SIZES="5 10 50 100"
 # ALPHAS="0.262 0.238 0.327 0.238"
 # BETAS="0.230 0.066 0.243 0.101"
 
-# LLM_NAME="cjvt/GaMS-1B"
-# TOKENIZER_NAME=$LLM_NAME
-# ALPHAS="0.574 0.603 0.649 0.649"
-# BETAS="0.096 0.057 0.616 0.652"
+ LLM_NAME="cjvt/GaMS-1B"
+ TOKENIZER_NAME=$LLM_NAME
+ ALPHAS="0.576 0.595 0.65 0.586"
+ BETAS="0.080 0.092 0.49 0.201"
 
-LLM_NAME="meta-llama/Llama-3.1-70B"
-TOKENIZER_NAME=$LLM_NAME
-ALPHAS="0.262 0.238 0.327 0.238" # same as Llama-3.1-8B
-BETAS="0.230 0.066 0.243 0.101" # same as Llama-3.1-8B
+#LLM_NAME="meta-llama/Llama-3.1-70B"
+#TOKENIZER_NAME=$LLM_NAME
+#ALPHAS="0.262 0.238 0.327 0.238" # same as Llama-3.1-8B
+#BETAS="0.230 0.066 0.243 0.101" # same as Llama-3.1-8B
 
  python /slollmasr/main.py \
      --method "causal-rescorer" \
-     --llm_name $LLM_NAME \
-     --tokenizer_name $TOKENIZER_NAME \
-     --manifest_file_path $MANIFEST_PATH \
-     --beams_file_paths $BEAM_FILE_PATHS \
-     --beam_sizes $BEAM_SIZES \
-     --alphas $ALPHAS \
-     --betas $BETAS \
-     --results_dir_path "/beams/rescored/$DATASET"
+     --llm_name "$LLM_NAME" \
+     --tokenizer_name "$TOKENIZER_NAME" \
+     --manifest_file_paths "$MANIFEST_PATH" \
+     --beams_file_paths "$BEAM_FILE_PATHS" \
+     --beam_sizes "$BEAM_SIZES" \
+     --alphas "$ALPHAS" \
+     --betas "$BETAS" \
+     --results_dir_paths "/beams/rescored/$DATASET" \
+     --evaluation_dir_path "/beams/rescored/$DATASET" \
+     --batch_size 128
