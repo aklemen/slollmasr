@@ -25,8 +25,6 @@ BEAM_SIZES="5 10 50 100"
 
 if [ "$SHOULD_LINEAR_SEARCH_ARTUR_DEV" = true ]; then
   echo "Running linear search on Artur dev dataset."
-  ALPHAS=""
-  BETAS=""
   TEST_DATASETS=("artur/v1.0/nemo/dev_without_utterance_AJO-3114-500056-0202")
   TEST_MANIFESTS=("/manifests/artur/dev_without_utterance_AJO-3114-500056-0202.nemo")
 else
@@ -35,6 +33,7 @@ else
     echo "Error: ALPHAS and BETAS must be set when SHOULD_LINEAR_SEARCH_ARTUR_DEV=false."
     exit 1
   fi
+  WEIGHTS_ARGS="--alphas $ALPHAS --betas $BETAS"
   TEST_DATASETS=(
     "artur/v1.0/nemo/test"
     "commonvoice/v18.0/nemo/clean/all"
@@ -123,11 +122,10 @@ python /slollmasr/main.py \
    --manifest_file_paths ${TEST_MANIFESTS[*]} \
    --beams_file_paths ${BEAM_FILE_PATHS_ARRAY[*]} \
    --beam_sizes $BEAM_SIZES \
-   --alphas $ALPHAS \
-   --betas $BETAS \
    --results_dir_paths ${RESULT_DIR_PATHS_ARRAY[*]} \
    --evaluation_dir_path $BASE_CONTAINER_RESULTS_PATH \
-   --batch_size $BATCH_SIZE
+   --batch_size $BATCH_SIZE \
+   $WEIGHTS_ARGS
 
 echo -e \"\"\"
 # finished at \$(date)
