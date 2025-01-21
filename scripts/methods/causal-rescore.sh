@@ -41,9 +41,9 @@ BEAM_SIZES="5 10 50 100"
      --tokenizer_name "$TOKENIZER_NAME" \
      --manifest_file_paths "$MANIFEST_PATH" \
      --beams_file_paths "$BEAM_FILE_PATHS" \
-     --beam_sizes "$BEAM_SIZES" \
-     --alphas "$ALPHAS" \
-     --betas "$BETAS" \
+     --beam_sizes $BEAM_SIZES \
+     --alphas $ALPHAS \
+     --betas $BETAS \
      --results_dir_paths "/beams/rescored/$DATASET" \
      --evaluation_dir_path "/beams/rescored/$DATASET" \
      --batch_size 128
