@@ -4,4 +4,4 @@ export ALPHAS="0.576 0.595 0.65 0.586"
 export BETAS="0.080 0.092 0.49 0.201"
 export BATCH_SIZE="128"
 
-sbatch causal-rescore-gams.sbatch
+sbatch causal-rescore.sbatch
