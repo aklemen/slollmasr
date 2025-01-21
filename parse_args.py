@@ -15,6 +15,6 @@ def parse_args():
     parser.add_argument('--alphas', nargs='+', type=float, required=False)
     parser.add_argument('--betas', nargs='+', type=float, required=False)
 
-    parser.add_argument('--batch_size', type=int, required=False)
+    parser.add_argument('--batch_size', type=int, required=True)
 
     return parser.parse_args()

@@ -95,8 +95,7 @@ if __name__ == '__main__':
             if isinstance(method, CausalReScorer):
                 new_scores, used_alpha, used_beta = method.run(dataset, alpha, beta)
                 run_duration = time.time() - start_time
-                new_best_hypotheses, new_best_scores, new_best_indices = BestHypothesesSelector.select(dataset,
-                                                                                                       new_scores)
+                new_best_hypotheses, new_best_scores, new_best_indices = BestHypothesesSelector.select(dataset, new_scores)
                 results_dictionary.update({
                     'asr+llm_score': new_best_scores,
                     'asr+llm_best_index': new_best_indices,
