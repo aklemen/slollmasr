@@ -37,10 +37,10 @@ BEAM_SIZES="5 10 50 100"
 
  python /slollmasr/main.py \
      --method "causal-rescorer" \
-     --llm_name "$LLM_NAME" \
-     --tokenizer_name "$TOKENIZER_NAME" \
-     --manifest_file_paths "$MANIFEST_PATH" \
-     --beams_file_paths "$BEAM_FILE_PATHS" \
+     --llm_name $LLM_NAME \
+     --tokenizer_name $TOKENIZER_NAME \
+     --manifest_file_paths $MANIFEST_PATH \
+     --beams_file_paths $BEAM_FILE_PATHS \
      --beam_sizes $BEAM_SIZES \
      --alphas $ALPHAS \
      --betas $BETAS \
