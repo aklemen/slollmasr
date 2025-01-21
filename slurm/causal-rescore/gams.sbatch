@@ -14,10 +14,10 @@ EXPERIMENT_NAME=causal-rescore-gams
 
 LLM_NAME="cjvt/GaMS-1B"
 TOKENIZER_NAME="cjvt/GaMS-1B"
-
 BEAM_SIZES="5 10 50 100"
 ALPHAS="0.576 0.595 0.65 0.586"
 BETAS="0.080 0.092 0.49 0.201"
+BATCH_SIZE=128
 
 TEST_DATASETS=(
   "artur/v1.0/nemo/test"
@@ -99,7 +99,8 @@ python /slollmasr/main.py \
    --alphas $ALPHAS \
    --betas $BETAS \
    --results_dir_paths ${RESULT_DIR_PATHS_ARRAY[*]} \
-   --evaluation_dir_path $BASE_CONTAINER_RESULTS_PATH
+   --evaluation_dir_path $BASE_CONTAINER_RESULTS_PATH \
+   --batch_size $BATCH_SIZE
 
 echo -e \"\"\"
 # finished at \$(date)
