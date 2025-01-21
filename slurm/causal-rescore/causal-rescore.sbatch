@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=causal-rescore-gams
+#SBATCH --job-name=causal-rescore
 #SBATCH --partition=frida
 #SBATCH --time=2-00:00:00
 #SBATCH --nodes=1
@@ -10,14 +10,16 @@
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/causal_rescore/error_%x_%j.txt
 
-EXPERIMENT_NAME=causal-rescore-gams
+# Check if all required environment variables are set
+required_vars=(LLM_NAME TOKENIZER_NAME BEAM_SIZES ALPHAS BETAS BATCH_SIZE)
+for var in "${required_vars[@]}"; do
+  if [ -z "${!var}" ]; then
+    echo "Error: $var is not set."
+    exit 1
+  fi
+done
 
-LLM_NAME="cjvt/GaMS-1B"
-TOKENIZER_NAME="cjvt/GaMS-1B"
-BEAM_SIZES="5 10 50 100"
-ALPHAS="0.576 0.595 0.65 0.586"
-BETAS="0.080 0.092 0.49 0.201"
-BATCH_SIZE=128
+EXPERIMENT_NAME=$(echo "$LLM_NAME" | sed 's/\//_/g')
 
 TEST_DATASETS=(
   "artur/v1.0/nemo/test"
@@ -53,7 +55,7 @@ fi
 DATETIME=$(date -d "+1 hour" "+%Y-%m-%d___%H-%M")
 
 # experiment dir
-EXPERIMENT_DIR="$EXPERIMENT_NAME/$DATETIME"
+EXPERIMENT_DIR="causal-rescore/$EXPERIMENT_NAME/$DATETIME"
 LOCAL_EXPERIMENT_DIR="$HOME/exp/$EXPERIMENT_DIR"
 mkdir -p "$LOCAL_EXPERIMENT_DIR"
 
