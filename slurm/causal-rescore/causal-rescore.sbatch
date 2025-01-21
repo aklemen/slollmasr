@@ -24,9 +24,13 @@ EXPERIMENT_NAME=$(echo "$LLM_NAME" | sed 's/\//_/g')
 BEAM_SIZES="5 10 50 100"
 
 if [ "$SHOULD_LINEAR_SEARCH_ARTUR_DEV" = true ]; then
+  echo "Running linear search on Artur dev dataset."
+  ALPHAS=""
+  BETAS=""
   TEST_DATASETS=("artur/v1.0/nemo/dev_without_utterance_AJO-3114-500056-0202")
   TEST_MANIFESTS=("/manifests/artur/dev_without_utterance_AJO-3114-500056-0202.nemo")
 else
+  echo "Running causal rescoring on test datasets."
   if [ -z "$ALPHAS" ] || [ -z "$BETAS" ]; then
     echo "Error: ALPHAS and BETAS must be set when SHOULD_LINEAR_SEARCH_ARTUR_DEV=false."
     exit 1
@@ -73,7 +77,7 @@ DATETIME=$(date -d "+1 hour" "+%Y-%m-%d___%H-%M")
 
 # experiment dir
 if [ "$SHOULD_LINEAR_SEARCH_ARTUR_DEV" = true ]; then
-  EXPERIMENT_DIR="causal-rescore/with-search/$EXPERIMENT_NAME/$DATETIME"
+  EXPERIMENT_DIR="causal-rescore/linear-search/$EXPERIMENT_NAME/$DATETIME"
 else
   EXPERIMENT_DIR="causal-rescore/$EXPERIMENT_NAME/$DATETIME"
 fi
