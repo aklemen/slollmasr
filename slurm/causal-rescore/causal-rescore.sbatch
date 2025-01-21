@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=causal-rescore
 #SBATCH --partition=frida
-#SBATCH --time=2-00:00:00
+#SBATCH --time=12:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --gpus-per-node=A100_80GB:2
