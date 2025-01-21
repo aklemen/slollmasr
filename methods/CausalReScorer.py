@@ -6,6 +6,7 @@ from tqdm import tqdm
 from transformers import AutoModelForCausalLM
 
 from BestHypothesesSelector import BestHypothesesSelector
+from Logger import Logger
 from methods.Method import Method
 from torch_datasets.HypothesesDataset import HypothesesDataset
 from torch_datasets.HypothesesWithIdsDataset import HypothesesWithIdsDataset
@@ -34,10 +35,10 @@ class CausalReScorer(Method):
         data_loader = torch.utils.data.DataLoader(dataset=with_ids_dataset, batch_size=self.batch_size, pin_memory=True)
 
         if "attention_mask" in inspect.getfullargspec(self.llm.forward).args:
-            print(f'Attention mask is supported by "{self.llm_name}" and will be used.')
+            Logger.info(f'Attention mask is supported by "{self.llm_name}" and will be used.')
             support_attention_mask = True
         else:
-            print(f'Attention mask NOT supported by "{self.llm_name}" and will NOT be used.')
+            Logger.info(f'Attention mask NOT supported by "{self.llm_name}" and will NOT be used.')
             support_attention_mask = False
 
         with torch.amp.autocast('cuda'):
@@ -83,18 +84,18 @@ class CausalReScorer(Method):
         distances = torch.cat(distances)
 
         if alpha_weight is None:
-            print("Alpha weight was not provided. Executing linear search for it...")
+            Logger.info("Alpha weight was not provided. Executing linear search for it...")
             alpha_weight, best_wer = self._find_best_coefficient(with_ids_dataset, asr_scores, llm_scores, distances)
             alpha_weight = np.round(alpha_weight, 3)
-            print(f"alpha_weight={alpha_weight} achieved the best WER ({best_wer}).")
+            Logger.info(f"alpha_weight={alpha_weight} achieved the best WER ({best_wer}).")
 
         scores_with_llm = asr_scores + alpha_weight * llm_scores
 
         if beta_weight is None:
-            print("Beta weight was not provided. Executing linear search for it...")
+            Logger.info("Beta weight was not provided. Executing linear search for it...")
             beta_weight, best_wer = self._find_best_coefficient(with_ids_dataset, scores_with_llm, char_lengths, distances)
             beta_weight = np.round(beta_weight, 3)
-            print(f"beta_weight={beta_weight} achieved the best WER ({best_wer}).")
+            Logger.info(f"beta_weight={beta_weight} achieved the best WER ({best_wer}).")
 
         new_scores = scores_with_llm + beta_weight * char_lengths
 
@@ -121,9 +122,9 @@ class CausalReScorer(Method):
         coefficient_range = [-10, 10]
         coefficient_steps = 10000
         if scores1.isnan().any():
-            print("WARNING: scores1 contain NaNs at indices: ", torch.where(scores1.isnan()))
+            Logger.warn("scores1 contain NaNs at indices: ", torch.where(scores1.isnan()))
         if scores2.isnan().any():
-            print("WARNING: scores2 contain NaNs at indices: ", torch.where(scores2.isnan()))
+            Logger.warn("scores2 contain NaNs at indices: ", torch.where(scores2.isnan()))
         scores1_mean = scores1.nanmean().abs().item()
         scores2_mean = scores2.nanmean().abs().item()
         normalization_scale = scores1_mean / scores2_mean

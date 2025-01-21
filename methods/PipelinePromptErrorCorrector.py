@@ -3,6 +3,7 @@ import string
 from tqdm import tqdm
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 
+from Logger import Logger
 from methods.Method import Method
 from torch_datasets.PromptsDataset import PromptsDataset
 from torch_datasets.HypothesesDataset import HypothesesDataset
@@ -33,7 +34,7 @@ class PipelinePromptErrorCorrector(Method):
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
         prompts_dataset = self._build_prompts_dataset(dataset)
-        print(f"{len(prompts_dataset)} prompts built. Generating ...")
+        Logger.info(f"{len(prompts_dataset)} prompts built. Generating ...")
         best_hypotheses = []
         for sequences in tqdm(
                 self._generator(

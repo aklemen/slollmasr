@@ -2,6 +2,8 @@ import json
 import matplotlib.pyplot as plt
 from argparse import ArgumentParser
 
+from Logger import Logger
+
 parser = ArgumentParser()
 parser.add_argument('--manifest_file_path', type=str, required=True, help='Path to the manifest file')
 args = parser.parse_args()
@@ -12,12 +14,12 @@ with open(args.manifest_file_path, 'r') as file:
         entry = json.loads(line)
         durations.append(entry['duration'])
 
-print(f'Total number of audio clips: {len(durations)}')
-print(f'Minimum duration: {min(durations)} seconds')
-print(f'Maximum duration: {max(durations)} seconds')
-print(f'Average duration: {sum(durations) / len(durations)} seconds')
-print(f'Sum of all durations in seconds: {sum(durations)}')
-print(f'Sum of all durations in hours: {sum(durations) / 3600}')
+Logger.info(f'Total number of audio clips: {len(durations)}')
+Logger.info(f'Minimum duration: {min(durations)} seconds')
+Logger.info(f'Maximum duration: {max(durations)} seconds')
+Logger.info(f'Average duration: {sum(durations) / len(durations)} seconds')
+Logger.info(f'Sum of all durations in seconds: {sum(durations)}')
+Logger.info(f'Sum of all durations in hours: {sum(durations) / 3600}')
 
 plt.figure(figsize=(10, 6))
 plt.hist(durations, bins=50, edgecolor='black')

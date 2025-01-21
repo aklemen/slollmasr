@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 from BestHypothesesSelector import BestHypothesesSelector
+from Logger import Logger
 from MetricsCalculator import MetricsCalculator
 from methods.CausalReScorer import CausalReScorer
 from methods.PipelinePromptErrorCorrector import PipelinePromptErrorCorrector
@@ -14,12 +15,12 @@ from torch_datasets.ManifestDataset import ManifestDataset
 
 if __name__ == '__main__':
     args = parse_args()
-    print("=" * 20, " ARGUMENTS ", "=" * 20)
-    print(args)
-    print("=" * 51)
+    Logger.info("============ ARGUMENTS ============")
+    Logger.info(args)
+    Logger.info("===================================")
 
     if args.tokenizer_name is None:
-        print(f"Tokenizer name was not given, using LLM name '{args.llm_name}'")
+        Logger.info(f"Tokenizer name was not given, using LLM name '{args.llm_name}'")
         args.tokenizer_name = args.llm_name
 
     if args.alphas is None:
@@ -68,15 +69,15 @@ if __name__ == '__main__':
             args.results_dir_paths,
             grouped_beam_file_paths
     ):
-        print(f"Processing manifest file {manifest_file_path} ...")
+        Logger.info(f"Processing manifest file {manifest_file_path} ...")
         manifest = ManifestDataset(manifest_file_path)
         ground_truths = manifest.get_transcripts()
 
         Path(results_dir_path).mkdir(parents=True, exist_ok=True)
-        print(f"Created results directory {results_dir_path}.")
+        Logger.info(f"Created results directory {results_dir_path}.")
 
         for beams_file_path, beam_size, alpha, beta in zip(beams_file_paths, args.beam_sizes, args.alphas, args.betas):
-            print(f"Processing beam size {beam_size} and beams file {beams_file_path} ...")
+            Logger.info(f"Processing beam size {beam_size} and beams file {beams_file_path} ...")
 
             hypotheses = pd.read_csv(beams_file_path, delimiter="\t", header=None, names=["text", "score"])
             dataset = HypothesesDataset(hypotheses, ground_truths)
@@ -115,7 +116,7 @@ if __name__ == '__main__':
             results_file_path = f'{results_dir_path}/{results_file_name}.tsv'
             results_df = pd.DataFrame(results_dictionary)
             results_df.to_csv(results_file_path, sep='\t', index=False)
-            print(f"Results saved to {results_file_path}!")
+            Logger.info(f"Results saved to {results_file_path}!")
 
             old_wer_score = calc.calculate_wer(old_best_hypotheses, ground_truths)
             new_wer_score = calc.calculate_wer(new_best_hypotheses, ground_truths)
@@ -131,4 +132,4 @@ if __name__ == '__main__':
             })
             eval_df = pd.concat([eval_df, new_eval_df], ignore_index=True)
             eval_df.to_csv(f'{args.evaluation_dir_path}/evaluation.tsv', sep='\t', index=False)
-            print(eval_df.to_string())
+            Logger.info(eval_df.to_string())

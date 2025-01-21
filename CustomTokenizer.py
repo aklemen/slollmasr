@@ -1,5 +1,7 @@
 from transformers import AutoTokenizer
 
+from Logger import Logger
+
 
 class CustomTokenizer:
     def __init__(self, name: str):
@@ -32,10 +34,10 @@ class CustomTokenizer:
         if hasattr(self.tokenizer, "pad_token") and self.tokenizer.pad_token is not None:
             return self._tokens_to_ids([self.tokenizer.pad_token])[0]
         elif hasattr(self.tokenizer, "eos_token") and self.tokenizer.eos_token is not None:
-            print(f"Using eos_id as pad_id as the tokenizer has no pad_token.")
+            Logger.info(f"Using eos_id as pad_id as the tokenizer has no pad_token.")
             return self._tokens_to_ids([self.tokenizer.eos_token])[0]
         else:
-            print(f"Using 0 as pad_id as the tokenizer has no pad_token or eos_token.")
+            Logger.info(f"Using 0 as pad_id as the tokenizer has no pad_token or eos_token.")
             return 0
 
     def _get_bos_id(self):
