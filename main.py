@@ -73,9 +73,6 @@ if __name__ == '__main__':
         manifest = ManifestDataset(manifest_file_path)
         ground_truths = manifest.get_transcripts()
 
-        Path(results_dir_path).mkdir(parents=True, exist_ok=True)
-        Logger.info(f"Created results directory {results_dir_path}.")
-
         for beams_file_path, beam_size, alpha, beta in zip(beams_file_paths, args.beam_sizes, args.alphas, args.betas):
             Logger.info(f"Processing beam size {beam_size} and beams file {beams_file_path} ...")
 
@@ -111,6 +108,8 @@ if __name__ == '__main__':
             results_dictionary.update({
                 'asr+llm_best_hypothesis': new_best_hypotheses,
             })
+
+            Path(results_dir_path).mkdir(parents=True, exist_ok=True)
 
             results_file_name = f'{args.llm_name}_{beam_size}'.replace('/', '_')
             results_file_path = f'{results_dir_path}/{results_file_name}.tsv'
