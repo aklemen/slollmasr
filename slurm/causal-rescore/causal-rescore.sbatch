@@ -111,6 +111,11 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
+# Fix for bug causing Gemma 2 to not work with multiple GPUs - https://github.com/huggingface/transformers/issues/34706
+if [[ "$LLM_NAME" == \"google/gemma-2\"* ]]; then
+  pip install transformers==4.43.4
+fi
+
 python /slollmasr/main.py \
    --method causal-rescorer \
    --llm_name $LLM_NAME \
