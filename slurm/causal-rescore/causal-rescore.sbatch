@@ -42,14 +42,10 @@ else
     "Sofes/v1.0/nemo/all"
     "voxpopuli/nemo/clean/all"
   )
-  TEST_MANIFESTS=(
-    "/dataset/artur/v1.0/nemo/test.nemo"
-    "/dataset/commonvoice/v18.0/nemo/clean/all.nemo"
-    "/dataset/fleurs/nemo/clean/all.nemo"
-    "/dataset/GVL/v4.2/nemo/all.nemo"
-    "/dataset/Sofes/v1.0/nemo/all.nemo"
-    "/dataset/voxpopuli/nemo/clean/all.nemo"
-  )
+  TEST_MANIFESTS=()
+  for DATASET in "${TEST_DATASETS[@]}"; do
+    TEST_MANIFESTS+=("/dataset/$DATASET.nemo")
+  done
 fi
 
 BASE_CONTAINER_RESULTS_PATH="/exp/results"
