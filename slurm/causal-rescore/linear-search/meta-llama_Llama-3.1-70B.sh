@@ -4,4 +4,4 @@ export BATCH_SIZE="32"
 
 export SHOULD_LINEAR_SEARCH_ARTUR_DEV=true
 
-sbatch ../causal-rescore.sbatch
+sbatch --job-name=causal-rescore-search-llama-31-70b ../causal-rescore.sbatch

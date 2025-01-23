@@ -4,4 +4,4 @@ export ALPHAS="0.797 0.702 0.822 0.826"
 export BETAS="-0.037 0.134 0.415 0.520"
 export BATCH_SIZE="128"
 
-sbatch causal-rescore.sbatch --job-name=causal-rescore-sloveniangpt
+sbatch --job-name=causal-rescore-sloveniangpt causal-rescore.sbatch
