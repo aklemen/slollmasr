@@ -54,7 +54,7 @@ else
 fi
 
 # time of running script
-DATETIME=$(date -d "+1 hour" "+%Y-%m-%d___%H-%M")
+DATETIME=$(date -d "+1 hour" "+%Y-%m-%d___%H-%M-%S")
 
 # experiment dir
 EXPERIMENT_DIR="prompt-error-correct/$EXPERIMENT_NAME/$DATETIME"

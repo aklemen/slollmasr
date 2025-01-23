@@ -68,7 +68,7 @@ else
 fi
 
 # time of running script
-DATETIME=$(date -d "+1 hour" "+%Y-%m-%d___%H-%M")
+DATETIME=$(date -d "+1 hour" "+%Y-%m-%d___%H-%M-%S")
 
 # experiment dir
 if [ "$SHOULD_LINEAR_SEARCH_ARTUR_DEV" = true ]; then
