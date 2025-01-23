@@ -34,36 +34,26 @@ class PipelinePromptErrorCorrector(Method):
         self._should_use_chat_templates = are_chat_templates_supported(self._tokenizer)
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
-        prompts = self._build_prompts(dataset)
-        Logger.info(f"{len(prompts)} prompts built.")
-        Logger.info(f"Example prompt: {prompts[0]}")
-        Logger.info(f"Example response: {self._generator(prompts[0])[-1]['generated_text']}")
+        prompts_dataset = self._build_prompts_dataset(dataset)
+        Logger.info(f"{len(prompts_dataset)} prompts built.")
+        Logger.info(f"Example prompt: {prompts_dataset[0]}")
+        Logger.info(f"Example response: {self._generator(prompts_dataset[0])[-1]['generated_text']}")
         Logger.info("Correcting hypotheses ...")
-
-        sorted_prompts_with_indexes = sorted(enumerate(prompts), key=lambda x: len(x[1]))
-        sorted_prompts = [prompt for _, prompt in sorted_prompts_with_indexes]
-        original_indices = [idx for idx, _ in sorted_prompts_with_indexes]
-
-        best_hypotheses = [""] * len(prompts)
-        for idx, sequences in enumerate(tqdm(
+        best_hypotheses = []
+        for sequences in tqdm(
                 self._generator(
-                    sorted_prompts,
+                    prompts_dataset,
                     padding=True,  # Pad to the longest sequence in the batch
                     batch_size=self._batch_size
                 ),
-                total=len(prompts)
-        )):
+                total=len(prompts_dataset)
+        ):
             generated_text = sequences[-1]["generated_text"]
             sanitized_text = self._sanitize_llm_output(generated_text)
-            best_hypotheses[original_indices[idx]] = sanitized_text
+            best_hypotheses.append(sanitized_text)
         return best_hypotheses
 
-    # TODO - remove if not needed
     def _build_prompts_dataset(self, dataset):
-        prompts = self._build_prompts(dataset)
-        return PromptsDataset(prompts)
-
-    def _build_prompts(self, dataset):
         pre_prompt = (
             f"Izvedi popravljanje napak na najboljših {dataset.get_beam_size()} izhodih, ki jih je generiral sistem za samodejno razpoznavanje govora (Automatic Speech Recognition). "
             f"Hipoteze, navedene po vrstnem redu glede na njihovo posteriorno verjetnost sistema ASR, so naslednje:\n\n"
@@ -75,7 +65,7 @@ class PipelinePromptErrorCorrector(Method):
             hypotheses_list = self._generate_hypotheses_list_for_prompt(dataset, sample_idx)
             prompt = self._transform_prompt_to_chat_if_supported(pre_prompt + hypotheses_list + post_prompt)
             prompts.append(prompt)
-        return prompts
+        return PromptsDataset(prompts)
 
     def _generate_hypotheses_list_for_prompt(self, dataset, sample_idx):
         beam_size = dataset.get_beam_size()
