@@ -85,5 +85,5 @@ class PipelinePromptErrorCorrector(Method):
             )
         return prompt
 
-    def _sanitize_llm_output(self, output):
-        return output.translate(str.maketrans('', '', string.punctuation)).lower()
+    def _sanitize_llm_output(self, text: str) -> str:
+        return text.strip().translate(str.maketrans('', '', string.punctuation)).lower()
