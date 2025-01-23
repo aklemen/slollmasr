@@ -37,6 +37,7 @@ class PipelinePromptErrorCorrector(Method):
         prompts_dataset = self._build_prompts_dataset(dataset)
         Logger.info(f"{len(prompts_dataset)} prompts built.")
         Logger.info(f"Example prompt: {prompts_dataset[0]}")
+        Logger.info(f"Example response: {self._generator(prompts_dataset[0])[-1]['generated_text']}")
         Logger.info("Correcting hypotheses ...")
         best_hypotheses = []
         for sequences in tqdm(
