@@ -1,5 +1,4 @@
 #!/bin/bash
-#SBATCH --job-name=causal-rescore
 #SBATCH --partition=frida
 #SBATCH --time=2-00:00:00
 #SBATCH --nodes=1
