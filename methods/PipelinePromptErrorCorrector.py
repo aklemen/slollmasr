@@ -125,8 +125,6 @@ class PipelinePromptErrorCorrector(Method):
 
     def _release_gpu_memory(self):
         Logger.info("Freeing GPU memory ...")
-        del self._generator
-        del self._tokenizer
+        self._generator, self._tokenizer = self._create_generator_and_tokenizer(self._llm_name, self._tokenizer_name)
         gc.collect()
         torch.cuda.empty_cache()
-        self._generator, self._tokenizer = self._create_generator_and_tokenizer(self._llm_name, self._tokenizer_name)
