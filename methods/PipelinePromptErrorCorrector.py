@@ -1,3 +1,4 @@
+import gc
 import string
 
 import torch
@@ -13,24 +14,9 @@ from utils.are_chat_templates_supported import are_chat_templates_supported
 
 class PipelinePromptErrorCorrector(Method):
     def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 8):
-        llm = AutoModelForCausalLM.from_pretrained(
-            pretrained_model_name_or_path=llm_name,
-            attn_implementation="flash_attention_2",
-            device_map="auto",
-            torch_dtype="auto",
-        )
-        self._tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True, padding_side="left")
-        self._tokenizer.pad_token = self._tokenizer.eos_token
-        self._generator = pipeline(
-            "text-generation",
-            model=llm,
-            tokenizer=self._tokenizer,
-            device_map="auto",
-            torch_dtype="auto",
-            num_return_sequences=1,
-            max_new_tokens=256,
-            return_full_text=False,
-        )
+        self._llm_name = llm_name
+        self._tokenizer_name = tokenizer_name
+        self._generator, self._tokenizer = self._create_generator_and_tokenizer(llm_name, tokenizer_name)
         self._batch_size = batch_size
         self._should_use_chat_templates = are_chat_templates_supported(self._tokenizer)
 
@@ -52,8 +38,8 @@ class PipelinePromptErrorCorrector(Method):
                 best_hypotheses[original_index] = sanitized_text
         except RuntimeError as e:
             if 'out of memory' in str(e):
-                Logger.warn("Ran out of GPU memory! Emptying cache ...")
-                torch.cuda.empty_cache()
+                Logger.warn("Ran out of GPU memory!")
+                self._release_gpu_memory()
                 new_batch_size = batch_size // 2
                 if new_batch_size == 0:
                     Logger.warn("Cannot retry as batch size is already 0.")
@@ -118,3 +104,32 @@ class PipelinePromptErrorCorrector(Method):
 
     def _sanitize_llm_output(self, text: str) -> str:
         return text.strip().translate(str.maketrans('', '', string.punctuation)).lower()
+
+    def _create_generator_and_tokenizer(self, llm_name: str, tokenizer_name: str):
+        llm = AutoModelForCausalLM.from_pretrained(
+            pretrained_model_name_or_path=llm_name,
+            attn_implementation="flash_attention_2",
+            device_map="auto",
+            torch_dtype="auto",
+        )
+        tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True, padding_side="left")
+        tokenizer.pad_token = tokenizer.eos_token
+        generator = pipeline(
+            "text-generation",
+            model=llm,
+            tokenizer=tokenizer,
+            device_map="auto",
+            torch_dtype="auto",
+            num_return_sequences=1,
+            max_new_tokens=256,
+            return_full_text=False,
+        )
+        return generator, tokenizer
+
+    def _release_gpu_memory(self):
+        Logger.info("Freeing GPU memory ...")
+        del self._generator
+        del self._tokenizer
+        gc.collect()
+        torch.cuda.empty_cache()
+        self._generator = self._create_generator_and_tokenizer(self._llm_name, self._tokenizer_name)
