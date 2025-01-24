@@ -129,4 +129,4 @@ class PipelinePromptErrorCorrector(Method):
         del self._tokenizer
         gc.collect()
         torch.cuda.empty_cache()
-        self._generator, _ = self._create_generator_and_tokenizer(self._llm_name, self._tokenizer_name)
+        self._generator, self._tokenizer = self._create_generator_and_tokenizer(self._llm_name, self._tokenizer_name)
