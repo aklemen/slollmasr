@@ -14,39 +14,75 @@ from utils.are_chat_templates_supported import are_chat_templates_supported
 
 class PipelinePromptErrorCorrector(Method):
     def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 8):
-        self._llm_name = llm_name
-        self._tokenizer_name = tokenizer_name
-        self._generator, self._tokenizer = self._create_generator_and_tokenizer(llm_name, tokenizer_name)
+        llm = AutoModelForCausalLM.from_pretrained(
+            pretrained_model_name_or_path=llm_name,
+            attn_implementation="flash_attention_2",
+            device_map="auto",
+            torch_dtype="auto",
+        )
+        self._tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True, padding_side="left")
+        self._tokenizer.pad_token = self._tokenizer.eos_token
+        self._generator = pipeline(
+            "text-generation",
+            model=llm,
+            tokenizer=self._tokenizer,
+            device_map="auto",
+            torch_dtype="auto",
+            num_return_sequences=1,
+            max_new_tokens=256,
+            return_full_text=False,
+        )
         self._batch_size = batch_size
         self._should_use_chat_templates = are_chat_templates_supported(self._tokenizer)
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
         original_indices, sorted_dataset = self._build_prompts_dataset(dataset)
-        return self._generate_hypotheses(sorted_dataset, original_indices, self._batch_size)
+        last_best_hypotheses = [""] * len(sorted_dataset)
+        last_processed_idx = 0
+        return self._generate_hypotheses(
+            sorted_dataset,
+            original_indices,
+            self._batch_size,
+            last_best_hypotheses,
+            last_processed_idx,
+        )
 
-    def _generate_hypotheses(self, sorted_dataset: PromptsDataset, original_indices: list[int], batch_size: int) -> list[str]:
+    def _generate_hypotheses(
+            self,
+            sorted_dataset: PromptsDataset,
+            original_indices,
+            batch_size: int,
+            last_best_hypotheses: list[str],
+            last_processed_idx: int
+    ) -> list[str]:
         Logger.info("Generating corrected hypotheses ...")
-        best_hypotheses = [""] * len(sorted_dataset)
-        with torch.no_grad():
-            try:
-                for idx, output in enumerate(tqdm(
-                    self._generator(sorted_dataset, padding=True, batch_size=batch_size),
-                    total=len(sorted_dataset)
-                )):
-                    generated_text = output[-1]["generated_text"]
-                    sanitized_text = self._sanitize_llm_output(generated_text)
-                    original_index = original_indices[idx]
-                    best_hypotheses[original_index] = sanitized_text
-            except torch.cuda.OutOfMemoryError as e:
-                Logger.warn("Ran out of GPU memory!")
-                self._release_gpu_memory()
+        unprocessed_sorted_dataset = sorted_dataset[last_processed_idx:]
+        unprocessed_original_indices = original_indices[last_processed_idx:]
+        try:
+            for idx, output in enumerate(tqdm(
+                self._generator(unprocessed_sorted_dataset, padding=True, batch_size=batch_size),
+                total=len(sorted_dataset)
+            )):
+                generated_text = output[-1]["generated_text"]
+                sanitized_text = self._sanitize_llm_output(generated_text)
+                original_index = unprocessed_original_indices[idx]
+                last_best_hypotheses[original_index] = sanitized_text
+                last_processed_idx = idx
+        except torch.cuda.OutOfMemoryError as e:
+            Logger.warn("Ran out of GPU memory! Freeing GPU memory ...")
+            gc.collect()
+            torch.cuda.empty_cache()
+            if batch_size == 1:
+                Logger.warn("Batch size is already 1, cannot reduce it further.")
+                raise e
+            if batch_size == self._batch_size / 2:
+                Logger.info(f"Batch size was already halved once.")
+                new_batch_size = 1
+            else:
                 new_batch_size = batch_size // 2
-                if new_batch_size == 0:
-                    Logger.warn("Cannot retry as batch size is already 0.")
-                    raise e
-                Logger.info(f"Trying again with half the batch size ({new_batch_size}) ...")
-                return self._generate_hypotheses(sorted_dataset, original_indices, new_batch_size)
-        return best_hypotheses
+            Logger.info(f"Trying again with half the batch size {new_batch_size} ...")
+            return self._generate_hypotheses(sorted_dataset, original_indices, new_batch_size, last_best_hypotheses, last_processed_idx)
+        return last_best_hypotheses
 
     def _build_prompts_dataset(self, dataset):
         prompts = self._build_prompts(dataset)
@@ -102,30 +138,3 @@ class PipelinePromptErrorCorrector(Method):
 
     def _sanitize_llm_output(self, text: str) -> str:
         return text.strip().translate(str.maketrans('', '', string.punctuation)).lower()
-
-    def _create_generator_and_tokenizer(self, llm_name: str, tokenizer_name: str):
-        llm = AutoModelForCausalLM.from_pretrained(
-            pretrained_model_name_or_path=llm_name,
-            attn_implementation="flash_attention_2",
-            device_map="auto",
-            torch_dtype="auto",
-        )
-        tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True, padding_side="left")
-        tokenizer.pad_token = tokenizer.eos_token
-        generator = pipeline(
-            "text-generation",
-            model=llm,
-            tokenizer=tokenizer,
-            device_map="auto",
-            torch_dtype="auto",
-            num_return_sequences=1,
-            max_new_tokens=256,
-            return_full_text=False,
-        )
-        return generator, tokenizer
-
-    def _release_gpu_memory(self):
-        Logger.info("Freeing GPU memory ...")
-        self._generator, self._tokenizer = self._create_generator_and_tokenizer(self._llm_name, self._tokenizer_name)
-        gc.collect()
-        torch.cuda.empty_cache()
