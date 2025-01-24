@@ -27,24 +27,25 @@ class PipelinePromptErrorCorrector(Method):
     def _generate_hypotheses(self, sorted_dataset: PromptsDataset, original_indices: list[int], batch_size: int) -> list[str]:
         Logger.info("Generating corrected hypotheses ...")
         best_hypotheses = [""] * len(sorted_dataset)
-        try:
-            for idx, output in enumerate(tqdm(
-                self._generator(sorted_dataset, padding=True, batch_size=batch_size),
-                total=len(sorted_dataset)
-            )):
-                generated_text = output[-1]["generated_text"]
-                sanitized_text = self._sanitize_llm_output(generated_text)
-                original_index = original_indices[idx]
-                best_hypotheses[original_index] = sanitized_text
-        except torch.cuda.OutOfMemoryError as e:
-            Logger.warn("Ran out of GPU memory!")
-            self._release_gpu_memory()
-            new_batch_size = batch_size // 2
-            if new_batch_size == 0:
-                Logger.warn("Cannot retry as batch size is already 0.")
-                raise e
-            Logger.info(f"Trying again with half the batch size ({new_batch_size}) ...")
-            return self._generate_hypotheses(sorted_dataset, original_indices, new_batch_size)
+        with torch.no_grad():
+            try:
+                for idx, output in enumerate(tqdm(
+                    self._generator(sorted_dataset, padding=True, batch_size=batch_size),
+                    total=len(sorted_dataset)
+                )):
+                    generated_text = output[-1]["generated_text"]
+                    sanitized_text = self._sanitize_llm_output(generated_text)
+                    original_index = original_indices[idx]
+                    best_hypotheses[original_index] = sanitized_text
+            except torch.cuda.OutOfMemoryError as e:
+                Logger.warn("Ran out of GPU memory!")
+                self._release_gpu_memory()
+                new_batch_size = batch_size // 2
+                if new_batch_size == 0:
+                    Logger.warn("Cannot retry as batch size is already 0.")
+                    raise e
+                Logger.info(f"Trying again with half the batch size ({new_batch_size}) ...")
+                return self._generate_hypotheses(sorted_dataset, original_indices, new_batch_size)
         return best_hypotheses
 
     def _build_prompts_dataset(self, dataset):
