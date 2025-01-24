@@ -20,7 +20,7 @@ done
 
 EXPERIMENT_NAME=$(echo "$LLM_NAME" | sed 's/\//_/g')
 
-BEAM_SIZES="5 10 50 100"
+BEAM_SIZES="5 10"
 
 TEST_DATASETS=(
   "artur/v1.0/nemo/test"
