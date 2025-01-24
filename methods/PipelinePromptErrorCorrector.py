@@ -91,7 +91,7 @@ class PipelinePromptErrorCorrector(Method):
         Logger.info(f"First response: {self._generator(prompts[0])[-1]['generated_text']}")
         Logger.info("Sorting prompts ...")
 
-        sorted_prompts_with_indices = sorted(enumerate(prompts), key=lambda x: len(x[1]), reverse=True)
+        sorted_prompts_with_indices = sorted(enumerate(prompts), key=lambda x: len(x[1]))
         original_indices = [prompt[0] for prompt in sorted_prompts_with_indices]
         sorted_prompts = [prompt[1] for prompt in sorted_prompts_with_indices]
 
