@@ -1,5 +1,6 @@
 import string
 
+import torch
 from tqdm import tqdm
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 
@@ -34,26 +35,52 @@ class PipelinePromptErrorCorrector(Method):
         self._should_use_chat_templates = are_chat_templates_supported(self._tokenizer)
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
-        prompts_dataset = self._build_prompts_dataset(dataset)
-        Logger.info(f"{len(prompts_dataset)} prompts built.")
-        Logger.info(f"Example prompt: {prompts_dataset[0]}")
-        Logger.info(f"Example response: {self._generator(prompts_dataset[0])[-1]['generated_text']}")
-        Logger.info("Correcting hypotheses ...")
-        best_hypotheses = []
-        for sequences in tqdm(
-                self._generator(
-                    prompts_dataset,
-                    padding=True,  # Pad to the longest sequence in the batch
-                    batch_size=self._batch_size
-                ),
-                total=len(prompts_dataset)
-        ):
-            generated_text = sequences[-1]["generated_text"]
-            sanitized_text = self._sanitize_llm_output(generated_text)
-            best_hypotheses.append(sanitized_text)
+        original_indices, sorted_dataset = self._build_prompts_dataset(dataset)
+        return self._generate_hypotheses(sorted_dataset, original_indices, self._batch_size)
+
+    def _generate_hypotheses(self, sorted_dataset: PromptsDataset, original_indices: list[int], batch_size: int) -> list[str]:
+        Logger.info("Generating corrected hypotheses ...")
+        best_hypotheses = [""] * len(sorted_dataset)
+        try:
+            for idx, output in enumerate(tqdm(
+                self._generator(sorted_dataset, padding=True, batch_size=batch_size),
+                total=len(sorted_dataset)
+            )):
+                generated_text = output[-1]["generated_text"]
+                sanitized_text = self._sanitize_llm_output(generated_text)
+                original_index = original_indices[idx]
+                best_hypotheses[original_index] = sanitized_text
+        except RuntimeError as e:
+            if 'out of memory' in str(e):
+                Logger.warn("Ran out of GPU memory! Emptying cache ...")
+                torch.cuda.empty_cache()
+                new_batch_size = batch_size // 2
+                Logger.info(f"Trying again with half the batch size ({new_batch_size}) ...")
+                return self._generate_hypotheses(sorted_dataset, original_indices, new_batch_size)
+            else:
+                raise e
         return best_hypotheses
 
     def _build_prompts_dataset(self, dataset):
+        prompts = self._build_prompts(dataset)
+        Logger.info(f"{len(prompts)} prompts built.")
+        Logger.info(f"First prompt: {prompts[0]}")
+        Logger.info(f"First response: {self._generator(prompts[0])[-1]['generated_text']}")
+        Logger.info("Sorting prompts ...")
+
+        sorted_prompts_with_indices = sorted(enumerate(prompts), key=lambda x: len(x[1]))
+        original_indices = [prompt[0] for prompt in sorted_prompts_with_indices]
+        sorted_prompts = [prompt[1] for prompt in sorted_prompts_with_indices]
+
+        Logger.info(f"First sorted prompt: {sorted_prompts[0]}")
+        Logger.info(f"First sorted response: {self._generator(sorted_prompts[0])[-1]['generated_text']}")
+        Logger.info("Creating prompts dataset ...")
+
+        sorted_prompts_dataset = PromptsDataset(sorted_prompts)
+
+        return original_indices, sorted_prompts_dataset
+
+    def _build_prompts(self, dataset):
         pre_prompt = (
             f"Izvedi popravljanje napak na najboljših {dataset.get_beam_size()} izhodih, ki jih je generiral sistem za samodejno razpoznavanje govora (Automatic Speech Recognition). "
             f"Hipoteze, navedene po vrstnem redu glede na njihovo posteriorno verjetnost sistema ASR, so naslednje:\n\n"
@@ -65,7 +92,7 @@ class PipelinePromptErrorCorrector(Method):
             hypotheses_list = self._generate_hypotheses_list_for_prompt(dataset, sample_idx)
             prompt = self._transform_prompt_to_chat_if_supported(pre_prompt + hypotheses_list + post_prompt)
             prompts.append(prompt)
-        return PromptsDataset(prompts)
+        return prompts
 
     def _generate_hypotheses_list_for_prompt(self, dataset, sample_idx):
         beam_size = dataset.get_beam_size()
