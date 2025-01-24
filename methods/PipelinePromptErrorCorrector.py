@@ -21,7 +21,8 @@ class PipelinePromptErrorCorrector(Method):
             torch_dtype="auto",
         )
         self._tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True, padding_side="left")
-        self._tokenizer.pad_token = self._tokenizer.eos_token
+        if self._tokenizer.pad_token is None:
+            self._tokenizer.pad_token = self._tokenizer.eos_token
         self._generator = pipeline(
             "text-generation",
             model=llm,
