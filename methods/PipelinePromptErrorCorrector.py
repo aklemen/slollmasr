@@ -36,18 +36,15 @@ class PipelinePromptErrorCorrector(Method):
                 sanitized_text = self._sanitize_llm_output(generated_text)
                 original_index = original_indices[idx]
                 best_hypotheses[original_index] = sanitized_text
-        except RuntimeError as e:
-            if 'out of memory' in str(e):
-                Logger.warn("Ran out of GPU memory!")
-                self._release_gpu_memory()
-                new_batch_size = batch_size // 2
-                if new_batch_size == 0:
-                    Logger.warn("Cannot retry as batch size is already 0.")
-                    raise e
-                Logger.info(f"Trying again with half the batch size ({new_batch_size}) ...")
-                return self._generate_hypotheses(sorted_dataset, original_indices, new_batch_size)
-            else:
+        except torch.cuda.OutOfMemoryError:
+            Logger.warn("Ran out of GPU memory!")
+            self._release_gpu_memory()
+            new_batch_size = batch_size // 2
+            if new_batch_size == 0:
+                Logger.warn("Cannot retry as batch size is already 0.")
                 raise e
+            Logger.info(f"Trying again with half the batch size ({new_batch_size}) ...")
+            return self._generate_hypotheses(sorted_dataset, original_indices, new_batch_size)
         return best_hypotheses
 
     def _build_prompts_dataset(self, dataset):
