@@ -36,7 +36,7 @@ class PipelinePromptErrorCorrector(Method):
                 sanitized_text = self._sanitize_llm_output(generated_text)
                 original_index = original_indices[idx]
                 best_hypotheses[original_index] = sanitized_text
-        except torch.cuda.OutOfMemoryError:
+        except torch.cuda.OutOfMemoryError as e:
             Logger.warn("Ran out of GPU memory!")
             self._release_gpu_memory()
             new_batch_size = batch_size // 2
