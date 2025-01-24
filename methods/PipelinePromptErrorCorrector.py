@@ -36,11 +36,11 @@ class PipelinePromptErrorCorrector(Method):
         self._should_use_chat_templates = are_chat_templates_supported(self._tokenizer)
 
     def run(self, dataset: HypothesesDataset) -> list[str]:
-        original_indices, sorted_dataset = self._build_prompts_dataset(dataset)
-        last_best_hypotheses = [""] * len(sorted_dataset)
+        original_indices, sorted_prompts = self._build_prompts_list(dataset)
+        last_best_hypotheses = [""] * len(sorted_prompts)
         last_processed_idx = 0
         return self._generate_hypotheses(
-            sorted_dataset,
+            sorted_prompts,
             original_indices,
             self._batch_size,
             last_best_hypotheses,
@@ -49,19 +49,19 @@ class PipelinePromptErrorCorrector(Method):
 
     def _generate_hypotheses(
             self,
-            sorted_dataset: PromptsDataset,
-            original_indices,
+            sorted_prompts: list[str],
+            original_indices: list[int],
             batch_size: int,
             last_best_hypotheses: list[str],
             last_processed_idx: int
     ) -> list[str]:
         Logger.info("Generating corrected hypotheses ...")
-        unprocessed_sorted_dataset = sorted_dataset[last_processed_idx:]
+        unprocessed_sorted_dataset = PromptsDataset(sorted_prompts[last_processed_idx:])
         unprocessed_original_indices = original_indices[last_processed_idx:]
         try:
             for idx, output in enumerate(tqdm(
                 self._generator(unprocessed_sorted_dataset, padding=True, batch_size=batch_size),
-                total=len(sorted_dataset)
+                total=len(unprocessed_sorted_dataset)
             )):
                 generated_text = output[-1]["generated_text"]
                 sanitized_text = self._sanitize_llm_output(generated_text)
@@ -81,10 +81,10 @@ class PipelinePromptErrorCorrector(Method):
             else:
                 new_batch_size = batch_size // 2
             Logger.info(f"Trying again with half the batch size {new_batch_size} ...")
-            return self._generate_hypotheses(sorted_dataset, original_indices, new_batch_size, last_best_hypotheses, last_processed_idx)
+            return self._generate_hypotheses(sorted_prompts, original_indices, new_batch_size, last_best_hypotheses, last_processed_idx)
         return last_best_hypotheses
 
-    def _build_prompts_dataset(self, dataset):
+    def _build_prompts_list(self, dataset):
         prompts = self._build_prompts(dataset)
         Logger.info(f"{len(prompts)} prompts built.")
         Logger.info(f"First prompt: {prompts[0]}")
@@ -99,9 +99,7 @@ class PipelinePromptErrorCorrector(Method):
         Logger.info(f"First sorted response: {self._generator(sorted_prompts[0])[-1]['generated_text']}")
         Logger.info("Creating prompts dataset ...")
 
-        sorted_prompts_dataset = PromptsDataset(sorted_prompts)
-
-        return original_indices, sorted_prompts_dataset
+        return original_indices, sorted_prompts
 
     def _build_prompts(self, dataset):
         pre_prompt = (
