@@ -6,14 +6,13 @@ from tqdm import tqdm
 from transformers import AutoModelForCausalLM
 
 from BestHypothesesSelector import BestHypothesesSelector
+from CustomTokenizer import CustomTokenizer
 from Logger import Logger
-from methods.Method import Method
 from torch_datasets.HypothesesDataset import HypothesesDataset
 from torch_datasets.HypothesesWithIdsDataset import HypothesesWithIdsDataset
-from CustomTokenizer import CustomTokenizer
 
 
-class CausalReScorer(Method):
+class CausalReScorer():
     def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 128):
         self.llm_name = llm_name
         self.llm = (

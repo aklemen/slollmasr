@@ -1,12 +1,11 @@
 from transformers import pipeline, AutoTokenizer
 
-from methods.Method import Method
 from torch_datasets.HypothesesDataset import HypothesesDataset
 from utils.are_chat_templates_supported import are_chat_templates_supported
 
 
 # !!! - WIP
-class PromptRescorer(Method):
+class PromptRescorer():
     def __init__(self, llm_name: str, tokenizer_name: str):
         self._generator = pipeline(
             "text-generation",

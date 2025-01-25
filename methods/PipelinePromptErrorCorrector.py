@@ -6,13 +6,12 @@ from tqdm import tqdm
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 
 from Logger import Logger
-from methods.Method import Method
-from torch_datasets.PromptsDataset import PromptsDataset
 from torch_datasets.HypothesesDataset import HypothesesDataset
+from torch_datasets.PromptsDataset import PromptsDataset
 from utils.are_chat_templates_supported import are_chat_templates_supported
 
 
-class PipelinePromptErrorCorrector(Method):
+class PipelinePromptErrorCorrector():
     def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 8):
         llm = AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=llm_name,
