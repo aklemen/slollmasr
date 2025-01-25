@@ -9,6 +9,7 @@ from BestHypothesesSelector import BestHypothesesSelector
 from Logger import Logger
 from MetricsCalculator import MetricsCalculator
 from methods.CausalReScorer import CausalReScorer
+from methods.OneShotGer import OneShotGer
 from methods.ZeroShotGer import ZeroShotGer
 from torch_datasets.HypothesesDataset import HypothesesDataset
 from torch_datasets.ManifestDataset import ManifestDataset
@@ -74,6 +75,8 @@ if __name__ == '__main__':
         method = CausalReScorer(args.llm_name, args.tokenizer_name, args.batch_size)
     elif args.method == 'zero-shot-ger':
         method = ZeroShotGer(args.llm_name, args.tokenizer_name, args.batch_size)
+    elif args.method == 'one-shot-ger':
+        method = OneShotGer(args.llm_name, args.tokenizer_name, args.batch_size)
     else:
         raise Exception(f"Method {args.method} is not implemented!")
 
@@ -118,7 +121,7 @@ if __name__ == '__main__':
                     'asr+llm_score': new_best_scores,
                     'asr+llm_best_index': new_best_indices,
                 })
-            elif isinstance(method, ZeroShotGer):
+            elif isinstance(method, ZeroShotGer) or isinstance(method, OneShotGer):
                 new_best_hypotheses = method.run(dataset)
                 run_duration = time.time() - start_time
             else:
