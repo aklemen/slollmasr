@@ -84,8 +84,11 @@ class GenerativeErrorCorrector:
             return self._generate_hypotheses(sorted_prompts, original_indices, new_batch_size, last_best_hypotheses, last_processed_idx)
         return last_best_hypotheses
 
-    def _build_prompts_list(self, dataset):
+    def _build_prompts_list(self, dataset: HypothesesDataset):
         prompts = self._build_prompts(dataset)
+        if self._should_use_chat_templates:
+            Logger.info("Chat templates are supported by the tokenizer. Transforming prompts to chat prompts ...")
+            prompts = [self._transform_prompt_to_chat(prompt) for prompt in prompts]
         Logger.info(f"{len(prompts)} prompts built.")
         Logger.info(f"First prompt: {prompts[0]}")
         Logger.info(f"First response: {self._generator(prompts[0])[-1]['generated_text']}")
@@ -101,7 +104,14 @@ class GenerativeErrorCorrector:
 
         return original_indices, sorted_prompts
 
-    def _build_prompts(self, dataset):
+    def _transform_prompt_to_chat(self, prompt):
+        return self._tokenizer.apply_chat_template(
+            [{"role": "user", "content": prompt}],
+            tokenize=False,
+            add_generation_prompt=True
+        )
+
+    def _build_prompts(self, dataset: HypothesesDataset):
         pre_prompt = (
             f"Izvedi popravljanje napak na najboljših {dataset.get_beam_size()} izhodih, ki jih je generiral sistem za samodejno razpoznavanje govora (Automatic Speech Recognition). "
             f"Hipoteze, navedene po vrstnem redu glede na njihovo posteriorno verjetnost sistema ASR, so naslednje:\n\n"
@@ -111,11 +121,10 @@ class GenerativeErrorCorrector:
         prompts = []
         for sample_idx in range(dataset.get_num_of_samples()):
             hypotheses_list = self._generate_hypotheses_list_for_prompt(dataset, sample_idx)
-            prompt = self._transform_prompt_to_chat_if_supported(pre_prompt + hypotheses_list + post_prompt)
-            prompts.append(prompt)
+            prompts.append(pre_prompt + hypotheses_list + post_prompt)
         return prompts
 
-    def _generate_hypotheses_list_for_prompt(self, dataset, sample_idx):
+    def _generate_hypotheses_list_for_prompt(self, dataset: HypothesesDataset, sample_idx):
         beam_size = dataset.get_beam_size()
         from_dataset_idx = sample_idx * beam_size
         to_dataset_idx = (sample_idx + 1) * beam_size
@@ -124,15 +133,6 @@ class GenerativeErrorCorrector:
             for i, dataset_idx in enumerate(range(from_dataset_idx, to_dataset_idx))
         ]
         return "\n".join(hypotheses_list)
-
-    def _transform_prompt_to_chat_if_supported(self, prompt):
-        if self._should_use_chat_templates:
-            return self._tokenizer.apply_chat_template(
-                [{"role": "user", "content": prompt}],
-                tokenize=False,
-                add_generation_prompt=True
-            )
-        return prompt
 
     def _sanitize_llm_output(self, text: str) -> str:
         return text.strip().translate(str.maketrans('', '', string.punctuation)).lower()
