@@ -116,7 +116,7 @@ if [[ "$LLM_NAME" == \"google/gemma-2\"* ]]; then
 fi
 
 python /slollmasr/main.py \
-   --method causal-rescorer \
+   --method causal-rescore \
    --llm_name $LLM_NAME \
    --tokenizer_name $TOKENIZER_NAME \
    --manifest_file_paths ${TEST_MANIFESTS[*]} \

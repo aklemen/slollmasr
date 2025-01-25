@@ -9,7 +9,7 @@ from BestHypothesesSelector import BestHypothesesSelector
 from Logger import Logger
 from MetricsCalculator import MetricsCalculator
 from methods.CausalReScorer import CausalReScorer
-from methods.PromptErrorCorrector import PromptErrorCorrector
+from methods.GenerativeErrorCorrector import GenerativeErrorCorrector
 from torch_datasets.HypothesesDataset import HypothesesDataset
 from torch_datasets.ManifestDataset import ManifestDataset
 
@@ -70,10 +70,10 @@ if __name__ == '__main__':
     calc = MetricsCalculator()
 
     method = None
-    if args.method == 'causal-rescorer':
+    if args.method == 'causal-rescore':
         method = CausalReScorer(args.llm_name, args.tokenizer_name, args.batch_size)
-    elif args.method == 'prompt-error-corrector':
-        method = PromptErrorCorrector(args.llm_name, args.tokenizer_name, args.batch_size)
+    elif args.method == 'zero-shot-ger':
+        method = GenerativeErrorCorrector(args.llm_name, args.tokenizer_name, args.batch_size)
     else:
         raise Exception(f"Method {args.method} is not implemented!")
 
@@ -118,7 +118,7 @@ if __name__ == '__main__':
                     'asr+llm_score': new_best_scores,
                     'asr+llm_best_index': new_best_indices,
                 })
-            elif isinstance(method, PromptErrorCorrector):
+            elif isinstance(method, GenerativeErrorCorrector):
                 new_best_hypotheses = method.run(dataset)
                 run_duration = time.time() - start_time
             else:

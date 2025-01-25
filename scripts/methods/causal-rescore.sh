@@ -36,7 +36,7 @@ BEAM_SIZES="5 10 50 100"
 #BETAS="0.230 0.066 0.243 0.101" # same as Llama-3.1-8B
 
  python /slollmasr/main.py \
-     --method "causal-rescorer" \
+     --method "causal-rescore" \
      --llm_name $LLM_NAME \
      --tokenizer_name $TOKENIZER_NAME \
      --manifest_file_paths $MANIFEST_PATH \

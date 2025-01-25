@@ -20,7 +20,7 @@ LLM_NAME="meta-llama/Llama-3.1-8B-Instruct"
 # LLM_NAME="cjvt/GaMS-1B"
 
  python /slollmasr/main.py \
-     --method "prompt-error-corrector" \
+     --method "zero-shot-ger" \
      --llm_name $LLM_NAME \
      --manifest_file_path $MANIFEST_PATH \
      --beams_file_paths $BEAM_FILE_PATHS \
