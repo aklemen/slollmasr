@@ -18,7 +18,7 @@ class PipelinePromptErrorCorrector(Method):
             pretrained_model_name_or_path=llm_name,
             attn_implementation="flash_attention_2",
             device_map="auto",
-            torch_dtype="auto",
+            torch_dtype=torch.bfloat16,
         )
         self._tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True, padding_side="left")
         if self._tokenizer.pad_token is None:
