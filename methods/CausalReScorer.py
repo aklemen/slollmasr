@@ -12,7 +12,7 @@ from torch_datasets.HypothesesDataset import HypothesesDataset
 from torch_datasets.HypothesesWithIdsDataset import HypothesesWithIdsDataset
 
 
-class CausalReScorer():
+class CausalReScorer:
     def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 128):
         self.llm_name = llm_name
         self.llm = (
