@@ -6,12 +6,11 @@ from tqdm import tqdm
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 
 from Logger import Logger
-from torch_datasets.HypothesesDataset import HypothesesDataset
 from torch_datasets.PromptsDataset import PromptsDataset
 from utils.are_chat_templates_supported import are_chat_templates_supported
 
 
-class GenerativeErrorCorrector:
+class Prompter:
     def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 8):
         llm = AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=llm_name,
@@ -35,8 +34,9 @@ class GenerativeErrorCorrector:
         self._batch_size = batch_size
         self._should_use_chat_templates = are_chat_templates_supported(self._tokenizer)
 
-    def run(self, dataset: HypothesesDataset) -> list[str]:
-        original_indices, sorted_prompts = self._build_prompts_list(dataset)
+    def execute_prompts(self, prompts: list[str]) -> list[str]:
+        transformed_prompts = self._transform_prompts_to_chats_if_supported(prompts)
+        original_indices, sorted_prompts = self._sort_prompts(transformed_prompts)
         last_best_hypotheses = [""] * len(sorted_prompts)
         last_processed_idx = 0
         return self._generate_hypotheses(
@@ -80,27 +80,27 @@ class GenerativeErrorCorrector:
                 new_batch_size = 1
             else:
                 new_batch_size = batch_size // 2
-            Logger.info(f"Trying again with half the batch size {new_batch_size} ...")
+            Logger.info(f"Trying again with new batch size {new_batch_size} ...")
             return self._generate_hypotheses(sorted_prompts, original_indices, new_batch_size, last_best_hypotheses, last_processed_idx)
         return last_best_hypotheses
 
-    def _build_prompts_list(self, dataset: HypothesesDataset):
-        prompts = self._build_prompts(dataset)
+    def _transform_prompts_to_chats_if_supported(self, prompts):
         if self._should_use_chat_templates:
             Logger.info("Chat templates are supported by the tokenizer. Transforming prompts to chat prompts ...")
-            prompts = [self._transform_prompt_to_chat(prompt) for prompt in prompts]
-        Logger.info(f"{len(prompts)} prompts built.")
+            return [self._transform_prompt_to_chat(prompt) for prompt in prompts]
+        return prompts
+
+    def _sort_prompts(self, prompts: list[str]) -> [list[int], list[str]]:
         Logger.info(f"First prompt: {prompts[0]}")
         Logger.info(f"First response: {self._generator(prompts[0])[-1]['generated_text']}")
-        Logger.info("Sorting prompts ...")
 
+        Logger.info("Sorting prompts ...")
         sorted_prompts_with_indices = sorted(enumerate(prompts), key=lambda x: len(x[1]))
         original_indices = [prompt[0] for prompt in sorted_prompts_with_indices]
         sorted_prompts = [prompt[1] for prompt in sorted_prompts_with_indices]
 
         Logger.info(f"First sorted prompt: {sorted_prompts[0]}")
         Logger.info(f"First sorted response: {self._generator(sorted_prompts[0])[-1]['generated_text']}")
-        Logger.info("Creating prompts dataset ...")
 
         return original_indices, sorted_prompts
 
@@ -110,29 +110,6 @@ class GenerativeErrorCorrector:
             tokenize=False,
             add_generation_prompt=True
         )
-
-    def _build_prompts(self, dataset: HypothesesDataset):
-        pre_prompt = (
-            f"Izvedi popravljanje napak na najboljših {dataset.get_beam_size()} izhodih, ki jih je generiral sistem za samodejno razpoznavanje govora (Automatic Speech Recognition). "
-            f"Hipoteze, navedene po vrstnem redu glede na njihovo posteriorno verjetnost sistema ASR, so naslednje:\n\n"
-        )
-        post_prompt = "\n\nProsim, izpiši le popravljen najboljši transkript danega govora, brez dodatnih razlag ali besed."
-
-        prompts = []
-        for sample_idx in range(dataset.get_num_of_samples()):
-            hypotheses_list = self._generate_hypotheses_list_for_prompt(dataset, sample_idx)
-            prompts.append(pre_prompt + hypotheses_list + post_prompt)
-        return prompts
-
-    def _generate_hypotheses_list_for_prompt(self, dataset: HypothesesDataset, sample_idx):
-        beam_size = dataset.get_beam_size()
-        from_dataset_idx = sample_idx * beam_size
-        to_dataset_idx = (sample_idx + 1) * beam_size
-        hypotheses_list = [
-            f'<hipoteza{i + 1}> {dataset[dataset_idx][0]} </hipoteza{i + 1}>'
-            for i, dataset_idx in enumerate(range(from_dataset_idx, to_dataset_idx))
-        ]
-        return "\n".join(hypotheses_list)
 
     def _sanitize_llm_output(self, text: str) -> str:
         return text.strip().translate(str.maketrans('', '', string.punctuation)).lower()
