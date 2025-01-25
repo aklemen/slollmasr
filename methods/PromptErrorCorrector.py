@@ -11,7 +11,7 @@ from torch_datasets.PromptsDataset import PromptsDataset
 from utils.are_chat_templates_supported import are_chat_templates_supported
 
 
-class PipelinePromptErrorCorrector:
+class PromptErrorCorrector:
     def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 8):
         llm = AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=llm_name,
