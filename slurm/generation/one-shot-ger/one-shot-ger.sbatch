@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --mem-per-gpu=128G
 #SBATCH --output=/dev/null
-#SBATCH --error=/shared/home/anton.klemen/logs/zero-shot-ger/error_%x_%j.txt
+#SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
 required_vars=(LLM_NAME TOKENIZER_NAME BATCH_SIZE)
@@ -56,7 +56,7 @@ fi
 DATETIME=$(date -d "+1 hour" "+%Y-%m-%d___%H-%M-%S_%3N")
 
 # experiment dir
-EXPERIMENT_DIR="zero-shot-ger/$EXPERIMENT_NAME/$DATETIME"
+EXPERIMENT_DIR="one-shot-ger/$EXPERIMENT_NAME/$DATETIME"
 LOCAL_EXPERIMENT_DIR="$HOME/exp/$EXPERIMENT_DIR"
 mkdir -p "$LOCAL_EXPERIMENT_DIR"
 
@@ -93,7 +93,7 @@ export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
 python /slollmasr/main.py \
-   --method zero-shot-ger \
+   --method one-shot-ger \
    --llm_name $LLM_NAME \
    --tokenizer_name $TOKENIZER_NAME \
    --manifest_file_paths ${TEST_MANIFESTS[*]} \
