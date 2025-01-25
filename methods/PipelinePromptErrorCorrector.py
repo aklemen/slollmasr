@@ -28,7 +28,7 @@ class PipelinePromptErrorCorrector(Method):
             model=llm,
             tokenizer=self._tokenizer,
             device_map="auto",
-            torch_dtype="auto",
+            torch_dtype=torch.bfloat16,
             num_return_sequences=1,
             max_new_tokens=256,
             return_full_text=False,
