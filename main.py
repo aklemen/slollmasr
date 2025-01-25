@@ -1,5 +1,6 @@
-import time
+import argparse
 import datetime
+import time
 from pathlib import Path
 
 import pandas as pd
@@ -9,9 +10,27 @@ from Logger import Logger
 from MetricsCalculator import MetricsCalculator
 from methods.CausalReScorer import CausalReScorer
 from methods.PipelinePromptErrorCorrector import PipelinePromptErrorCorrector
-from parse_args import parse_args
 from torch_datasets.HypothesesDataset import HypothesesDataset
 from torch_datasets.ManifestDataset import ManifestDataset
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--method', type=str, required=True)
+    parser.add_argument('--llm_name', type=str, required=True)
+    parser.add_argument('--tokenizer_name', type=str, required=False)
+    parser.add_argument('--manifest_file_paths', nargs='+', type=str, required=True)
+    parser.add_argument('--beams_file_paths', nargs='+', type=str, required=True)
+    parser.add_argument('--beam_sizes', nargs='+', type=int, required=True)
+    parser.add_argument('--results_dir_paths', nargs='+', type=str, required=True)
+    parser.add_argument('--evaluation_dir_path', type=str, required=True)
+
+    parser.add_argument('--alphas', nargs='+', type=float, required=False)
+    parser.add_argument('--betas', nargs='+', type=float, required=False)
+
+    parser.add_argument('--batch_size', type=int, required=True)
+
+    return parser.parse_args()
 
 if __name__ == '__main__':
     args = parse_args()
