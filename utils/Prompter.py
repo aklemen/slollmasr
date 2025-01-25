@@ -55,7 +55,7 @@ class Prompter:
             last_best_hypotheses: list[str],
             last_processed_idx: int
     ) -> list[str]:
-        Logger.info("Generating corrected hypotheses ...")
+        Logger.info("Generating new best hypotheses ...")
         unprocessed_sorted_dataset = PromptsDataset(sorted_prompts[last_processed_idx:])
         unprocessed_original_indices = original_indices[last_processed_idx:]
         try:
