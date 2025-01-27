@@ -1,4 +1,5 @@
 #!/bin/bash
+#SBATCH --job-name=beam-search
 #SBATCH --partition=frida
 #SBATCH --time=2-00:00:00
 #SBATCH --nodes=1
