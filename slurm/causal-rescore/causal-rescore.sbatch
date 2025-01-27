@@ -136,7 +136,7 @@ CONTAINER_IMAGE="nvcr.io/nvidia/nemo:24.12"
 
 EXPERIMENTS="$LOCAL_EXPERIMENT_DIR:/exp"
 
-DATASETS_ARRAY="/shared/workspace/lpt-llm/datasets:/dataset:ro"
+DATASETS="/shared/workspace/lpt-llm/datasets:/dataset:ro"
 MANIFESTS="$HOME/manifests:/manifests:ro"
 MODELS="$HOME/models:/models:ro"
 SLOLLMASR="$HOME/slollmasr:/slollmasr:ro"
@@ -145,7 +145,7 @@ BEAMS="$HOME/beams:/beams"
 TESTING="$HOME/testing:/testing"
 HF_HOME="$HOME/.cache/huggingface:/hf-home"
 
-CONTAINER_MOUNTS="$EXPERIMENTS,$DATASETS_ARRAY,$MANIFESTS,$MODELS,$SLOLLMASR,$BEAMS,$TESTING,$HF_HOME"
+CONTAINER_MOUNTS="$EXPERIMENTS,$DATASETS,$MANIFESTS,$MODELS,$SLOLLMASR,$BEAMS,$TESTING,$HF_HOME"
 
 srun \
   --container-image="$CONTAINER_IMAGE" \
