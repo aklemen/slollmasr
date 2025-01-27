@@ -15,6 +15,7 @@ EXPERIMENT_NAME="beam-search"
 BATCH_SIZE=512
 
 TEST_DATASETS=(
+  "artur/v1.0/nemo/clean/train"
   "artur/v1.0/nemo/test"
   "commonvoice/v18.0/nemo/clean/all"
   "fleurs/nemo/clean/all"
