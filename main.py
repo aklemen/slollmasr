@@ -83,7 +83,16 @@ if __name__ == '__main__':
     else:
         raise Exception(f"Method {args.method} is not implemented!")
 
-    eval_df = pd.DataFrame(columns=['results_file', 'beam_size', 'alpha', 'beta', 'old_wer', 'new_wer', 'run_duration'])
+    eval_df = pd.DataFrame(columns=[
+        'results_file',
+        'beam_size',
+        'alpha',
+        'beta',
+        'old_wer',
+        'new_wer',
+        'run_duration',
+        'run_duration_in_seconds',
+    ])
 
     num_of_beam_sizes = len(args.beam_sizes)
     grouped_beam_file_paths = [
