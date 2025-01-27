@@ -13,8 +13,8 @@ class ZeroShotSelection(Prompter):
 
         prefix = (
             f"Kot jezikovni model izvedi ponovno ocenjevanje najboljših {dataset.get_beam_size()} izhodov, ki jih je generiral sistem za samodejno razpoznavanje govora (ASR). "
-            f"Hipoteze, navedene po vrstnem redu glede na njihovo posteriorno verjetnost iz sistema ASR, so naslednje:\n\n"
+            f"Hipoteze, navedene po vrstnem redu glede na njihovo posteriorno verjetnost iz sistema ASR, so naslednje:"
         )
-        postfix = "\n\nProsim, izpiši le izbrano najboljšo hipotezo iz sistema ASR, brez dodatnih razlag ali besed."
+        postfix = "Prosim, izpiši le izbrano najboljšo hipotezo iz sistema ASR, brez dodatnih razlag ali besed."
 
         return prompt_builder.build(prefix, "hipoteza", postfix)
