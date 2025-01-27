@@ -104,10 +104,10 @@ for DATASET in \"\${TEST_DATASETS_ARRAY[@]}\"; do
   mkdir -p \$RESULT_DIR
 
   python /opt/NeMo/scripts/asr_language_modeling/ngram_lm/eval_beamsearch_ngram_ctc.py \
-      nemo_model_file=\$MODEL_PATH \
-      input_manifest=\$MANIFEST \
-      preds_output_folder=\$RESULT_DIR \
-      probs_cache_file=$CACHE_FILE_PATH \
+      nemo_model_file=\"\$MODEL_PATH\" \
+      input_manifest=\"\$MANIFEST\" \
+      preds_output_folder=\"\$RESULT_DIR\" \
+      probs_cache_file=\"$CACHE_FILE_PATH\" \
       decoding_mode=beamsearch \
       decoding_strategy=beam \
       beam_width=[5,10,50,100] \
