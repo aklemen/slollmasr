@@ -56,7 +56,7 @@ fi
 DATETIME=$(date -d "+1 hour" "+%Y-%m-%d___%H-%M-%S_%3N")
 
 # experiment dir
-EXPERIMENT_DIR="one-shot-ger/$EXPERIMENT_NAME/$DATETIME"
+EXPERIMENT_DIR="one-shot-gec/$EXPERIMENT_NAME/$DATETIME"
 LOCAL_EXPERIMENT_DIR="$HOME/exp/$EXPERIMENT_DIR"
 mkdir -p "$LOCAL_EXPERIMENT_DIR"
 
