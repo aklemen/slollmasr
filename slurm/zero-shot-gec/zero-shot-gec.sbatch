@@ -56,7 +56,7 @@ fi
 DATETIME=$(date -d "+1 hour" "+%Y-%m-%d___%H-%M-%S_%3N")
 
 # experiment dir
-EXPERIMENT_DIR="zero-shot-ger/$EXPERIMENT_NAME/$DATETIME"
+EXPERIMENT_DIR="zero-shot-gec/$EXPERIMENT_NAME/$DATETIME"
 LOCAL_EXPERIMENT_DIR="$HOME/exp/$EXPERIMENT_DIR"
 mkdir -p "$LOCAL_EXPERIMENT_DIR"
 
@@ -93,7 +93,7 @@ export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
 python /slollmasr/main.py \
-   --method zero-shot-ger \
+   --method zero-shot-gec \
    --llm_name $LLM_NAME \
    --tokenizer_name $TOKENIZER_NAME \
    --manifest_file_paths ${TEST_MANIFESTS[*]} \

@@ -3,7 +3,7 @@ from torch_datasets.hypotheses_dataset import HypothesesDataset
 from utils.prompt_builder import PromptBuilder
 
 
-class OneShotGer(Prompter):
+class OneShotGec(Prompter):
     shot = {
         "hypotheses": [
                 "razmere pa me niso dale dihati",

@@ -3,7 +3,7 @@ from torch_datasets.hypotheses_dataset import HypothesesDataset
 from utils.prompt_builder import PromptBuilder
 
 
-class ZeroShotGer(Prompter):
+class ZeroShotGec(Prompter):
     def run(self, dataset: HypothesesDataset):
         prompts = self._build_prompts(dataset)
         return self.execute_prompts(prompts)

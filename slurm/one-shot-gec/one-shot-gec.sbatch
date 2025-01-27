@@ -93,7 +93,7 @@ export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
 python /slollmasr/main.py \
-   --method one-shot-ger \
+   --method one-shot-gec \
    --llm_name $LLM_NAME \
    --tokenizer_name $TOKENIZER_NAME \
    --manifest_file_paths ${TEST_MANIFESTS[*]} \
