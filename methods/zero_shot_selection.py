@@ -1,6 +1,6 @@
-from torch_datasets.HypothesesDataset import HypothesesDataset
-from utils.PromptBuilder import PromptBuilder
-from utils.Prompter import Prompter
+from torch_datasets.hypotheses_dataset import HypothesesDataset
+from utils.prompt_builder import PromptBuilder
+from utils.prompter import Prompter
 
 
 class ZeroShotSelection(Prompter):

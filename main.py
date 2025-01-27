@@ -5,15 +5,15 @@ from pathlib import Path
 
 import pandas as pd
 
-from BestHypothesesSelector import BestHypothesesSelector
-from Logger import Logger
-from MetricsCalculator import MetricsCalculator
-from methods.CausalReScorer import CausalReScorer
-from methods.OneShotGer import OneShotGer
-from methods.ZeroShotGer import ZeroShotGer
-from methods.ZeroShotSelection import ZeroShotSelection
-from torch_datasets.HypothesesDataset import HypothesesDataset
-from torch_datasets.ManifestDataset import ManifestDataset
+from best_hypotheses_selector import BestHypothesesSelector
+from logger import Logger
+from metrics_calculator import MetricsCalculator
+from methods.causal_rescorer import CausalReScorer
+from methods.one_shot_ger import OneShotGer
+from methods.zero_shot_ger import ZeroShotGer
+from methods.zero_shot_selection import ZeroShotSelection
+from torch_datasets.hypotheses_dataset import HypothesesDataset
+from torch_datasets.manifest_dataset import ManifestDataset
 
 
 def parse_args():

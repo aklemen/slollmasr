@@ -1,6 +1,6 @@
 from transformers import AutoTokenizer
 
-from Logger import Logger
+from logger import Logger
 
 
 class CustomTokenizer:

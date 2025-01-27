@@ -5,8 +5,8 @@ import torch
 from tqdm import tqdm
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 
-from Logger import Logger
-from torch_datasets.PromptsDataset import PromptsDataset
+from logger import Logger
+from torch_datasets.prompts_dataset import PromptsDataset
 from utils.are_chat_templates_supported import are_chat_templates_supported
 
 

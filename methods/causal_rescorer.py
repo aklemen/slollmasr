@@ -5,11 +5,11 @@ import torch
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM
 
-from BestHypothesesSelector import BestHypothesesSelector
-from CustomTokenizer import CustomTokenizer
-from Logger import Logger
-from torch_datasets.HypothesesDataset import HypothesesDataset
-from torch_datasets.HypothesesWithIdsDataset import HypothesesWithIdsDataset
+from best_hypotheses_selector import BestHypothesesSelector
+from custom_tokenizer import CustomTokenizer
+from logger import Logger
+from torch_datasets.hypotheses_dataset import HypothesesDataset
+from torch_datasets.hypotheses_with_ids_dataset import HypothesesWithIdsDataset
 
 
 class CausalReScorer:

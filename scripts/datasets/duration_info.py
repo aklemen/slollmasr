@@ -2,7 +2,7 @@ import json
 import matplotlib.pyplot as plt
 from argparse import ArgumentParser
 
-from Logger import Logger
+from logger import Logger
 
 parser = ArgumentParser()
 parser.add_argument('--manifest_file_path', type=str, required=True, help='Path to the manifest file')

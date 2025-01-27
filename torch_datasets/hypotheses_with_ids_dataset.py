@@ -2,7 +2,7 @@ import editdistance
 import pandas as pd
 import numpy as np
 
-from torch_datasets.HypothesesDataset import HypothesesDataset
+from torch_datasets.hypotheses_dataset import HypothesesDataset
 
 
 class HypothesesWithIdsDataset(HypothesesDataset):

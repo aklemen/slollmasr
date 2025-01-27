@@ -1,4 +1,4 @@
-from torch_datasets.HypothesesDataset import HypothesesDataset
+from torch_datasets.hypotheses_dataset import HypothesesDataset
 
 
 class BestHypothesesSelector:

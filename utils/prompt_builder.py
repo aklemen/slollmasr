@@ -1,5 +1,5 @@
-from Logger import Logger
-from torch_datasets.HypothesesDataset import HypothesesDataset
+from logger import Logger
+from torch_datasets.hypotheses_dataset import HypothesesDataset
 
 class PromptBuilder:
     def __init__(self, dataset: HypothesesDataset):
