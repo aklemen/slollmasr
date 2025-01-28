@@ -95,7 +95,7 @@ curl -o /opt/NeMo/nemo/collections/asr/parts/submodules/ctc_beam_decoding.py htt
 # Run beam search
 
 MODEL_PATH=/models/asr/conformer_ctc_bpe.nemo
-TEST_DATASETS_ARRAY=(\"${TEST_DATASETS[*]}\")
+TEST_DATASETS_ARRAY=(${TEST_DATASETS[*]})
 
 for DATASET in \"\${TEST_DATASETS_ARRAY[@]}\"; do
   MANIFEST=\"/dataset/\$DATASET.nemo\"
