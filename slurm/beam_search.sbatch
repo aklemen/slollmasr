@@ -24,8 +24,6 @@ TEST_DATASETS=(
   "voxpopuli/nemo/clean/all"
 )
 
-CACHE_FILE_PATH="/exp/.cache"
-
 
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
@@ -100,6 +98,7 @@ TEST_DATASETS_ARRAY=(${TEST_DATASETS[*]})
 for DATASET in \"\${TEST_DATASETS_ARRAY[@]}\"; do
   MANIFEST=\"/dataset/\$DATASET.nemo\"
   RESULT_DIR=\"/exp/beams/\$DATASET\"
+  CACHE_FILE_PATH=\"/exp/beams/\$DATASET/probs_cache\"
 
   mkdir -p \$RESULT_DIR
 
@@ -107,7 +106,7 @@ for DATASET in \"\${TEST_DATASETS_ARRAY[@]}\"; do
       nemo_model_file=\"\$MODEL_PATH\" \
       input_manifest=\"\$MANIFEST\" \
       preds_output_folder=\"\$RESULT_DIR\" \
-      probs_cache_file=\"$CACHE_FILE_PATH\" \
+      probs_cache_file=\"\$CACHE_FILE_PATH\" \
       decoding_mode=beamsearch \
       decoding_strategy=beam \
       beam_width=[5,10,50,100] \
