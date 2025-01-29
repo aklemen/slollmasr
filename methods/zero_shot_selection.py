@@ -25,5 +25,5 @@ class ZeroShotSelection:
 
     def _stringify_hypotheses(self, hypotheses: list[str]) -> str:
         return "\n".join([
-            f"<izbira{idx}> {hypothesis} </izbira{idx}>" for idx, hypothesis in enumerate(hypotheses)
+            f"<izbira{idx+1}> {hypothesis} </izbira{idx+1}>" for idx, hypothesis in enumerate(hypotheses)
         ])

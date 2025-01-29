@@ -72,5 +72,5 @@ class TaskActivatingGec:
 
     def _stringify_hypotheses(self, hypotheses: list[str]) -> str:
         return '\n'.join([
-            f"   {idx}. {hypothesis}" for idx, hypothesis in enumerate(hypotheses)
+            f"   {idx+1}. {hypothesis}" for idx, hypothesis in enumerate(hypotheses)
         ])

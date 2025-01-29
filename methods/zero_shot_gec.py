@@ -25,5 +25,5 @@ class ZeroShotGec:
 
     def _stringify_hypotheses(self, hypotheses: list[str]) -> str:
         return "\n".join([
-            f"<hipoteza{idx}> {hypothesis} </hipoteza{idx}>" for idx, hypothesis in enumerate(hypotheses)
+            f"<hipoteza{idx+1}> {hypothesis} </hipoteza{idx+1}>" for idx, hypothesis in enumerate(hypotheses)
         ])
