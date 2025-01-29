@@ -21,13 +21,12 @@ class TaskActivatingGec:
             },
             {
                 "role": "assistant",
-                "content": (
+                "content":
                     "Da, vem, kaj je razpoznavanje govora. Razpoznavanje govora, znano tudi kot avtomatsko razpoznavanje govora "
                     "(angl. Automatic Speech Recognition) je postopek pretvorbe govorjenega jezika v besedilo. "
                     "Ta tehnologija vključuje uporabo algoritmov in modelov strojnega učenja za analizo in transkripcijo akustičnih "
                     "značilk izgovorjenih besed in povedi. Razpoznavanje govora se uporablja na različnih področjih, "
                     "kot so govorni pomočniki, avtomatizirani telefonski sistemi in storitve transkripcije."
-                )
             },
             {
                 "role": "user",
@@ -35,8 +34,8 @@ class TaskActivatingGec:
             },
             {
                 "role": "assistant",
-                "content": (
-                    "Da, vem, kaj je ponovno ocenjevanje z jezikovnim modelom v razpoznavanju govora."
+                "content":
+                    "Da, vem, kaj je ponovno ocenjevanje z jezikovnim modelom v razpoznavanju govora. "
                     "Ponovno ocenjevanje z jezikovnim modelom je tehnika, ki se uporablja za izboljšanje natančnosti sistemov za "
                     "razpoznavanje govora. Vključuje uporabo ločenega jezikovnega modela za oceno verjetnosti danega seznama hipotez. "
                     "Ta ločeni model je običajno bolj kompleksen in zmogljiv kot osnovni jezikovni model, uporabljen za transkripcijo, "
@@ -47,7 +46,6 @@ class TaskActivatingGec:
                     "To dosežemo s ponovnim razvrščanjem danih hipotez na podlagi verjetnosti, podanih s strani naprednejšega "
                     "jezikovnega modela. Ponovno ocenjevanje z jezikovnim modelom dokazano izboljša natančnost sistemov za "
                     "razpoznavanje govora, zlasti v hrupnih ali zahtevnih okoljih, kjer začetni jezikovni model morda ne deluje dobro.",
-                )
             },
             {
                 "role": "user",
@@ -55,21 +53,20 @@ class TaskActivatingGec:
             },
             {
                 "role": "assistant",
-                "content": (
+                "content":
                     f"Seveda, tukaj je primer ponovnega ocenjavanja {beam_size} najboljših hipotez z jezikovnim modelom:\n"
                     f"{self._stringify_hypotheses(examples[1]['hypotheses'][:beam_size])}\n"
                     f"Po ponovnem ocenjevanju mislim, da bi moral pravilni transkript tega govora biti: {examples[1]['ground_truth']} ",
-                )
             },
             {
                 "role": "user",
-                "content": (
+                "content":
                     f"Odlično si se odrezal! Zdaj ti bom dal en resničen primer. {beam_size} najboljših hipotez je:\n"
                     f"{self._stringify_hypotheses(examples[0]['hypotheses'][:beam_size])}\n"
                     f"Pričakujem, da je tvoj izhod: {examples[0]['ground_truth']}\n"
                     f"Z uporabo tega primera prosim podaj pravilni transkript za naslednjih {beam_size} hipotez:\n"
-                    f"{self._stringify_hypotheses(hypotheses)}"
-                )
+                    f"{self._stringify_hypotheses(hypotheses)}\n"
+                    "Pravilni transkript je:"
             }
         ]
 
