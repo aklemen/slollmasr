@@ -66,7 +66,7 @@ class TaskActivatingGec:
                     f"Pričakujem, da je tvoj izhod: {examples[0]['ground_truth']}\n"
                     f"Z uporabo tega primera prosim podaj pravilni transkript za naslednjih {beam_size} hipotez:\n"
                     f"{self._stringify_hypotheses(hypotheses)}\n"
-                    "Pravilni transkript je:"
+                    "Prosim, izpiši le transkript, brez dodatnih razlag ali besed."
             }
         ]
 
