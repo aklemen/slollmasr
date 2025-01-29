@@ -7,11 +7,12 @@ import pandas as pd
 
 from best_hypotheses_selector import BestHypothesesSelector
 from logger import Logger
-from metrics_calculator import MetricsCalculator
 from methods.causal_rescorer import CausalReScorer
 from methods.one_shot_gec import OneShotGec
+from methods.task_activating_gec import TaskActivatingGec
 from methods.zero_shot_gec import ZeroShotGec
 from methods.zero_shot_selection import ZeroShotSelection
+from metrics_calculator import MetricsCalculator
 from torch_datasets.hypotheses_dataset import HypothesesDataset
 from torch_datasets.manifest_dataset import ManifestDataset
 
@@ -33,6 +34,7 @@ def parse_args():
     parser.add_argument('--batch_size', type=int, required=True)
 
     return parser.parse_args()
+
 
 if __name__ == '__main__':
     args = parse_args()
@@ -80,6 +82,8 @@ if __name__ == '__main__':
         method = OneShotGec(args.llm_name, args.tokenizer_name, args.batch_size)
     elif args.method == 'zero-shot-selection':
         method = ZeroShotSelection(args.llm_name, args.tokenizer_name, args.batch_size)
+    elif args.method == 'task-activating-gec':
+        method = TaskActivatingGec(args.llm_name, args.tokenizer_name, args.batch_size)
     else:
         raise Exception(f"Method {args.method} is not implemented!")
 
@@ -133,7 +137,12 @@ if __name__ == '__main__':
                     'asr+llm_score': new_best_scores,
                     'asr+llm_best_index': new_best_indices,
                 })
-            elif isinstance(method, ZeroShotGec) or isinstance(method, OneShotGec) or isinstance(method, ZeroShotSelection):
+            elif (
+                    isinstance(method, ZeroShotGec) or
+                    isinstance(method, OneShotGec) or
+                    isinstance(method, ZeroShotSelection) or
+                    isinstance(method, TaskActivatingGec)
+            ):
                 new_best_hypotheses = method.run(dataset)
                 run_duration = time.time() - start_time
             else:
