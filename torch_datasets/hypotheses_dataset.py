@@ -19,6 +19,10 @@ class HypothesesDataset(Dataset):
     def get_hypotheses_texts(self) -> list[str]:
         return self.hypotheses["text"].tolist()
 
+    def get_hypotheses_texts_per_sample(self) -> list[list[str]]:
+        hypotheses_texts = self.get_hypotheses_texts()
+        return [hypotheses_texts[i:i + self.beam_size] for i in range(0, len(hypotheses_texts), self.beam_size)]
+
     def get_hypotheses_scores(self) -> list[float]:
         return self.hypotheses["score"].tolist()
 

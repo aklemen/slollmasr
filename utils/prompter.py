@@ -12,15 +12,17 @@ from utils.are_chat_templates_supported import are_chat_templates_supported
 
 class Prompter:
     def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 8):
+        self._tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True, padding_side="left")
+        if not are_chat_templates_supported(self._tokenizer):
+            raise Exception(f"Chat templates are not supported by the given tokenizer: {tokenizer_name}.")
+        if self._tokenizer.pad_token is None:
+            self._tokenizer.pad_token = self._tokenizer.eos_token
         llm = AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=llm_name,
             attn_implementation="flash_attention_2",
             device_map="auto",
             torch_dtype=torch.bfloat16,
         )
-        self._tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True, padding_side="left")
-        if self._tokenizer.pad_token is None:
-            self._tokenizer.pad_token = self._tokenizer.eos_token
         self._generator = pipeline(
             "text-generation",
             model=llm,
@@ -32,11 +34,10 @@ class Prompter:
             return_full_text=False,
         )
         self._batch_size = batch_size
-        self._should_use_chat_templates = are_chat_templates_supported(self._tokenizer)
 
-    def execute_prompts(self, prompts: list[str]) -> list[str]:
-        transformed_prompts = self._transform_prompts_to_chats_if_supported(prompts)
-        original_indices, sorted_prompts = self._sort_prompts(transformed_prompts)
+    def execute_chats(self, chats: list[list[dict[str, str]]]) -> list[str]:
+        prompts = [self._transform_chat_to_prompt(chat) for chat in chats]
+        original_indices, sorted_prompts = self._sort_prompts(prompts)
         last_best_hypotheses = [""] * len(sorted_prompts)
         last_processed_idx = 0
         return self._generate_hypotheses(
@@ -84,11 +85,8 @@ class Prompter:
             return self._generate_hypotheses(sorted_prompts, original_indices, new_batch_size, last_best_hypotheses, last_processed_idx)
         return last_best_hypotheses
 
-    def _transform_prompts_to_chats_if_supported(self, prompts):
-        if self._should_use_chat_templates:
-            Logger.info("Chat templates are supported by the tokenizer. Transforming prompts to chat prompts ...")
-            return [self._transform_prompt_to_chat(prompt) for prompt in prompts]
-        return prompts
+    def _transform_chat_to_prompt(self, chat: list[dict[str, str]]) -> str:
+        return self._tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
 
     def _sort_prompts(self, prompts: list[str]) -> [list[int], list[str]]:
         Logger.info(f"First prompt: {prompts[0]}")
@@ -103,13 +101,6 @@ class Prompter:
         Logger.info(f"First sorted response: {self._generator(sorted_prompts[0])[-1]['generated_text']}")
 
         return original_indices, sorted_prompts
-
-    def _transform_prompt_to_chat(self, prompt):
-        return self._tokenizer.apply_chat_template(
-            [{"role": "user", "content": prompt}],
-            tokenize=False,
-            add_generation_prompt=True
-        )
 
     def _sanitize_llm_output(self, text: str) -> str:
         return text.strip().translate(str.maketrans('', '', string.punctuation)).lower()
