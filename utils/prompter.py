@@ -16,6 +16,7 @@ class Prompter:
         if not are_chat_templates_supported(self._tokenizer):
             raise Exception(f"Chat templates are not supported by the given tokenizer: {tokenizer_name}.")
         if self._tokenizer.pad_token is None:
+            Logger.info(f"No pad_token available. Setting pad_token to eos_token: {self._tokenizer.eos_token}")
             self._tokenizer.pad_token = self._tokenizer.eos_token
         llm = AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=llm_name,
