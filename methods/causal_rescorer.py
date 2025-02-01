@@ -19,8 +19,9 @@ class CausalReScorer:
             AutoModelForCausalLM.from_pretrained(
                 pretrained_model_name_or_path=llm_name,
                 is_decoder=True,
+                attn_implementation="flash_attention_2",
                 device_map="auto",
-                torch_dtype="auto",
+                torch_dtype=torch.bfloat16,
             )
             .eval()
         )
