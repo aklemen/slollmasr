@@ -10,7 +10,7 @@
 # SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
-required_vars=(LLM_NAME TOKENIZER_NAME BATCH_SIZE)
+required_vars=(LLM_NAME TOKENIZER_NAME)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
@@ -19,6 +19,7 @@ for var in "${required_vars[@]}"; do
 done
 
 EXPERIMENT_NAME=$(echo "$LLM_NAME" | sed 's/\//_/g')
+BATCH_SIZE=64
 
 BEAM_SIZES="5 10 50 100"
 
