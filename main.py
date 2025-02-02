@@ -78,7 +78,7 @@ if __name__ == '__main__':
     if args.method == 'causal-rescore':
         method = CausalReScorer(args.llm_name, args.tokenizer_name, args.batch_size)
     elif args.method == 'simple-causal-rescore':
-        method = ZeroShotGec(args.llm_name, args.tokenizer_name, args.batch_size)
+        method = SimpleCausalReScorer(args.llm_name, args.tokenizer_name, args.batch_size)
     elif args.method == 'zero-shot-gec':
         method = ZeroShotGec(args.llm_name, args.tokenizer_name, args.batch_size)
     elif args.method == 'one-shot-gec':
