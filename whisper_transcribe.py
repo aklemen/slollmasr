@@ -1,25 +1,11 @@
-import whisper
-import os, random, copy
-import numpy as np
-import torch
-import pandas as pd
-import whisper
-import torchaudio
-from tqdm.notebook import tqdm
-import collections, json
-import editdistance
-from num2words import num2words
-import re
-
-from whisper import DecodingResult
-from whisper.normalizers import BasicTextNormalizer
 import argparse
+import json
+
+import pandas as pd
+import torch
+import whisper
 
 from metrics_calculator import MetricsCalculator
-
-
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-
 
 # def get_top_n_hypotheses(results: list[DecodingResult], n: int):
 #     top_n_hypotheses: list[str] = []
@@ -40,7 +26,8 @@ if __name__ == '__main__':
     parser.add_argument('--beam_width', type=int, help='Width of the resulting beams')
     args = parser.parse_args()
 
-    model = whisper.load_model(name="base", device="cuda")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = whisper.load_model(name="base", device=device)
     # normalizer = BasicTextNormalizer()
     calc = MetricsCalculator()
 
