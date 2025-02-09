@@ -4,6 +4,7 @@ import json
 import pandas as pd
 import torch
 import whisper
+from tqdm import tqdm
 
 from metrics_calculator import MetricsCalculator
 
@@ -35,7 +36,7 @@ if __name__ == '__main__':
     wer = 0
     df = pd.DataFrame(columns=["hypotheses", "asr_scores"])
     with open(args.manifest_file_path, "r", encoding="utf-8") as f:
-        for line in f:
+        for line in tqdm(f):
             manifest_entry = json.loads(line)
             audio = whisper.load_audio(manifest_entry["audio_filepath"])
             audio = whisper.pad_or_trim(audio)
