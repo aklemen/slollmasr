@@ -32,29 +32,35 @@ if __name__ == '__main__':
     # normalizer = BasicTextNormalizer()
     calc = MetricsCalculator()
 
+    hypotheses_list = []
+    asr_scores_list = []
     count = 0
     wer = 0
-    df = pd.DataFrame(columns=["hypotheses", "asr_scores"])
+
     with open(args.manifest_file_path, "r", encoding="utf-8") as f:
-        for line in tqdm(f):
-            manifest_entry = json.loads(line)
-            audio = whisper.load_audio(manifest_entry["audio_filepath"])
-            audio = whisper.pad_or_trim(audio)
-            mel = whisper.log_mel_spectrogram(audio).to(model.device)
-            options = whisper.DecodingOptions(language="sl", beam_size=args.beam_width)
-            results = whisper.decode(model, mel, options)
+        lines = f.readlines()
 
-            hypotheses = [result.text for result in results]
-            asr_scores = [result.avg_logprob for result in results]
+    for line in tqdm(f):
+        manifest_entry = json.loads(line)
+        audio = whisper.load_audio(manifest_entry["audio_filepath"])
+        audio = whisper.pad_or_trim(audio)
+        mel = whisper.log_mel_spectrogram(audio).to(model.device)
+        options = whisper.DecodingOptions(language="sl", beam_size=args.beam_width)
+        results = whisper.decode(model, mel, options)
 
-            df_to_add = pd.DataFrame({"hypotheses": hypotheses, "asr_scores": asr_scores})
+        hypotheses = [result.text for result in results]
+        asr_scores = [result.avg_logprob for result in results]
 
-            df = pd.concat([df, df_to_add], ignore_index=True)
+        hypotheses_list.extend(hypotheses)
+        asr_scores_list.extend(asr_scores)
 
-            count += 1
-            current_wer = calc.calculate_wer([hypotheses[0]], [manifest_entry["text"]])
-            wer += current_wer
+        count += 1
+        current_wer = calc.calculate_wer([hypotheses[0]], [manifest_entry["text"]])
+        wer += current_wer
 
-    print(f'WER = {wer/count}')
+    df = pd.DataFrame({"hypotheses": hypotheses_list, "asr_scores": asr_scores_list})
     df.to_csv(args.beams_file_path, sep='\t', index=False, header=False)
+
+    print(f"Saved beams to {args.beams_file_path}")
+    print(f'WER = {wer / count}')
 
