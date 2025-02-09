@@ -48,6 +48,9 @@ if __name__ == '__main__':
         options = whisper.DecodingOptions(language="sl", beam_size=args.beam_width)
         results = whisper.decode(model, mel, options)
 
+        print(f"=" * 10, "Results", "=" * 10)
+        print(results)
+
         hypotheses = [result.text for result in results]
         asr_scores = [result.avg_logprob for result in results]
 
