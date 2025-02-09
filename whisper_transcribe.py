@@ -40,7 +40,7 @@ if __name__ == '__main__':
     with open(args.manifest_file_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
-    for line in tqdm(f):
+    for line in tqdm(lines):
         manifest_entry = json.loads(line)
         audio = whisper.load_audio(manifest_entry["audio_filepath"])
         audio = whisper.pad_or_trim(audio)
