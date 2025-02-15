@@ -8,7 +8,7 @@ import whisper
 from tqdm import tqdm
 
 from metrics_calculator import MetricsCalculator
-from whisper.whisper.normalizers import BasicTextNormalizer
+from whisper.normalizers import BasicTextNormalizer
 
 
 def get_best_n_indices(best_hypotheses: list[str], n: int) -> list[int]:
