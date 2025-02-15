@@ -8,22 +8,24 @@ import whisper
 from tqdm import tqdm
 
 from metrics_calculator import MetricsCalculator
+from whisper.whisper.normalizers import BasicTextNormalizer
 
-def get_top_n_indices(top_hypotheses: list[str], n: int) -> list[int]:
-    top_n_indices: list[int] = []
 
-    top_n_hypotheses: list[str] = []
-    for idx, hypothesis in enumerate(top_hypotheses):
-        if len(top_n_indices) < n and len(hypothesis) > 0 and hypothesis not in top_n_hypotheses:
-            top_n_hypotheses.append(hypothesis)
-            top_n_indices.append(idx)
+def get_best_n_indices(best_hypotheses: list[str], n: int) -> list[int]:
+    best_n_indices: list[int] = []
 
-    if len(top_n_indices) < n:
-        for _ in range(n - len(top_n_hypotheses)):
-            random_idx_to_use_again = random.choice(top_n_indices)
-            top_n_indices.append(random_idx_to_use_again)
+    best_n_hypotheses: list[str] = []
+    for idx, hypothesis in enumerate(best_hypotheses):
+        if len(best_n_indices) < n and len(hypothesis) > 0 and hypothesis not in best_n_hypotheses:
+            best_n_hypotheses.append(hypothesis)
+            best_n_indices.append(idx)
 
-    return top_n_indices
+    if len(best_n_indices) < n:
+        for _ in range(n - len(best_n_hypotheses)):
+            random_idx_to_use_again = random.choice(best_n_indices)
+            best_n_indices.append(random_idx_to_use_again)
+
+    return best_n_indices
 
 
 if __name__ == '__main__':
@@ -35,7 +37,7 @@ if __name__ == '__main__':
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = whisper.load_model(name="base", device=device)
-    # normalizer = BasicTextNormalizer()
+    normalizer = BasicTextNormalizer()
     calc = MetricsCalculator()
 
     hypotheses_list = []
@@ -53,21 +55,21 @@ if __name__ == '__main__':
         mel = whisper.log_mel_spectrogram(audio).to(model.device)
         options = whisper.DecodingOptions(language="sl", beam_size=50)
         texts, log_probs = whisper.decode(model, mel, options)
+        texts = [normalizer(text) for text in texts]
 
-        #TODO - order by log_probs
-
-        indices = get_top_n_indices(texts, args.beam_width)
+        indices = get_best_n_indices(texts, args.beam_width)
 
         hypotheses_list.extend([texts[i] for i in indices])
         asr_scores_list.extend([log_probs[i] for i in indices])
 
-        print(f"=" * 10, "Top Texts", "=" * 10)
-        print(hypotheses_list)
-        print(f"=" * 10, "Top Log probs", "=" * 10)
-        print(asr_scores_list)
+        # sort the hypotheses by ASR score
+        hypotheses_list, asr_scores_list = zip(
+            *sorted(zip(hypotheses_list, asr_scores_list), key=lambda x: x[1], reverse=True)
+        )
 
         count += 1
         current_wer = calc.calculate_wer([hypotheses_list[0]], [manifest_entry["text"]])
+        print(f"Current WER: {current_wer}")
         wer += current_wer
 
     df = pd.DataFrame({"hypotheses": hypotheses_list, "asr_scores": asr_scores_list})
