@@ -54,11 +54,6 @@ if __name__ == '__main__':
         options = whisper.DecodingOptions(language="sl", beam_size=50)
         texts, log_probs = whisper.decode(model, mel, options)
 
-        print(f"=" * 10, "Texts", "=" * 10)
-        print(texts)
-        print(f"=" * 10, "Log probs", "=" * 10)
-        print(texts)
-
         #TODO - order by log_probs
 
         indices = get_top_n_indices(texts, args.beam_width)
@@ -67,9 +62,9 @@ if __name__ == '__main__':
         asr_scores_list.extend([log_probs[i] for i in indices])
 
         print(f"=" * 10, "Top Texts", "=" * 10)
-        print(texts)
+        print(hypotheses_list)
         print(f"=" * 10, "Top Log probs", "=" * 10)
-        print(texts)
+        print(asr_scores_list)
 
         count += 1
         current_wer = calc.calculate_wer([hypotheses_list[0]], [manifest_entry["text"]])
