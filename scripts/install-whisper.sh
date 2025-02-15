@@ -1,5 +1,6 @@
 #!/bin/bash
 
-cd /slollmasr/whisper || exit
+cp -r /slollmasr/whisper /testing/whisper
+cd /testing/whisper || exit
 pip install -e .
 cd - || exit
