@@ -59,13 +59,18 @@ if __name__ == '__main__':
 
         indices = get_best_n_indices(texts, args.beam_width)
 
-        hypotheses_list.extend([texts[i] for i in indices])
-        asr_scores_list.extend([log_probs[i] for i in indices])
+        best_texts = [texts[i] for i in indices]
+        best_log_probs = [log_probs[i] for i in indices]
+        print(f"Best texts: {best_texts}")
+        print(f"Best log probs: {best_log_probs}")
 
-        # sort the hypotheses by ASR score
-        hypotheses_list, asr_scores_list = zip(
-            *sorted(zip(hypotheses_list, asr_scores_list), key=lambda x: x[1], reverse=True)
-        )
+        sorted_pairs = sorted(zip(best_texts, best_log_probs), key=lambda x: x[1], reverse=True)
+        sorted_best_texts, sorted_best_log_probs = [list(t) for t in zip(*sorted_pairs)]
+        print(f"Sorted best texts: {sorted_best_texts}")
+        print(f"Sorted best log probs: {sorted_best_log_probs}")
+
+        hypotheses_list.extend(sorted_best_texts)
+        asr_scores_list.extend(sorted_best_log_probs)
 
         count += 1
         current_wer = calc.calculate_wer([hypotheses_list[0]], [manifest_entry["text"]])
