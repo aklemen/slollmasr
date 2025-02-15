@@ -12,7 +12,7 @@
 
 EXPERIMENT_NAME="whisper-beam-search"
 
-MANIFEST_FILE_PATH="/dataset/artur/v1.0/nemo/test.nemo"
+MANIFEST_FILE_PATH="/dataset/artur/v1.0/nemo/train.nemo"
 BEAM_WIDTH=10
 
 # get the name of this script
