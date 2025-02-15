@@ -4,7 +4,7 @@ TIMESTAMP=$(date +%Y%m%d%H%M%S)
 
 if ! pip show whisper; then
   echo "Installing whisper..."
-  /slollmasr/scripts/install-whisper.sh
+  /slollmasr/scripts/beam-search/install-whisper.sh
 fi
 
 python /slollmasr/whisper_transcribe.py \
