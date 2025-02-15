@@ -3,8 +3,8 @@
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
 
 if ! pip show whisper; then
-  echo "whisper package is not installed!"
-  exit 1
+  echo "Installing whisper..."
+  /slollmasr/scripts/install-whisper.sh
 fi
 
 python /slollmasr/whisper_transcribe.py \
