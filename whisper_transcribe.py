@@ -1,5 +1,6 @@
 import argparse
 import json
+import random
 
 import pandas as pd
 import torch
@@ -8,16 +9,21 @@ from tqdm import tqdm
 
 from metrics_calculator import MetricsCalculator
 
-# def get_top_n_hypotheses(results: list[DecodingResult], n: int):
-#     top_n_hypotheses: list[str] = []
-#     for result in results:
-#         if len(top_n_hypotheses) < n and len(result.text) > 0 and result not in top_n_hypotheses:
-#             top_n_hypotheses.append(result.text)
-#     if len(top_n_hypotheses) < n:
-#         for _ in range(n - len(top_n_hypotheses)):
-#             random_hypotheses_to_use_again = copy.deepcopy(random.choice(top_n_hypotheses))
-#             top_n_hypotheses.append(random_hypotheses_to_use_again)
-#     return top_n_hypotheses
+def get_top_n_indices(top_hypotheses: list[str], n: int) -> list[int]:
+    top_n_indices: list[int] = []
+
+    top_n_hypotheses: list[str] = []
+    for idx, hypothesis in enumerate(top_hypotheses):
+        if len(top_n_indices) < n and len(hypothesis) > 0 and hypothesis not in top_n_hypotheses:
+            top_n_hypotheses.append(hypothesis)
+            top_n_indices.append(idx)
+
+    if len(top_n_indices) < n:
+        for _ in range(n - len(top_n_hypotheses)):
+            random_idx_to_use_again = random.choice(top_n_indices)
+            top_n_indices.append(random_idx_to_use_again)
+
+    return top_n_indices
 
 
 if __name__ == '__main__':
@@ -45,20 +51,28 @@ if __name__ == '__main__':
         audio = whisper.load_audio(manifest_entry["audio_filepath"])
         audio = whisper.pad_or_trim(audio)
         mel = whisper.log_mel_spectrogram(audio).to(model.device)
-        options = whisper.DecodingOptions(language="sl", beam_size=args.beam_width)
-        results = whisper.decode(model, mel, options)
+        options = whisper.DecodingOptions(language="sl", beam_size=50)
+        texts, log_probs = whisper.decode(model, mel, options)
 
-        print(f"=" * 10, "Results", "=" * 10)
-        print(results)
+        print(f"=" * 10, "Texts", "=" * 10)
+        print(texts)
+        print(f"=" * 10, "Log probs", "=" * 10)
+        print(texts)
 
-        hypotheses = [result.text for result in results]
-        asr_scores = [result.avg_logprob for result in results]
+        #TODO - order by log_probs
 
-        hypotheses_list.extend(hypotheses)
-        asr_scores_list.extend(asr_scores)
+        indices = get_top_n_indices(texts, args.beam_width)
+
+        hypotheses_list.extend([texts[i] for i in indices])
+        asr_scores_list.extend([log_probs[i] for i in indices])
+
+        print(f"=" * 10, "Top Texts", "=" * 10)
+        print(texts)
+        print(f"=" * 10, "Top Log probs", "=" * 10)
+        print(texts)
 
         count += 1
-        current_wer = calc.calculate_wer([hypotheses[0]], [manifest_entry["text"]])
+        current_wer = calc.calculate_wer([hypotheses_list[0]], [manifest_entry["text"]])
         wer += current_wer
 
     df = pd.DataFrame({"hypotheses": hypotheses_list, "asr_scores": asr_scores_list})

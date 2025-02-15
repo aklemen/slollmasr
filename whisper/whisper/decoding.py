@@ -611,7 +611,7 @@ class DecodingTask:
         return tokens, sum_logprobs, no_speech_probs
 
     @torch.no_grad()
-    def run(self, mel: Tensor) -> List[DecodingResult]:
+    def run(self, mel: Tensor) -> tuple[list[list[str]], list[list[float]]]:
         self.decoder.reset()
         tokenizer: Tokenizer = self.tokenizer
         n_audio: int = mel.shape[0]
@@ -619,16 +619,8 @@ class DecodingTask:
         audio_features: Tensor = self._get_audio_features(mel)  # encoder forward pass
         tokens: Tensor = torch.tensor([self.initial_tokens]).repeat(n_audio, 1)
 
-        # detect language if requested, overwriting the language token
-        languages, language_probs = self._detect_language(audio_features, tokens)
-        if self.options.task == "lang_id":
-            return [
-                DecodingResult(audio_features=features, language=language, language_probs=probs)
-                for features, language, probs in zip(audio_features, languages, language_probs)
-            ]
-
         # repeat the audio & text tensors by the group size, for beam search or best-of-n sampling
-        audio_features = audio_features.repeat_interleave(self.n_group, dim=0)
+        audio_features = audio_features.repeat_interleave(self.n_group, dim=0) ### added
         tokens = tokens.repeat_interleave(self.n_group, dim=0).to(audio_features.device)
 
         # call the main sampling loop
@@ -648,13 +640,9 @@ class DecodingTask:
             [t[self.sample_begin : (t == tokenizer.eot).nonzero()[0, 0]] for t in s] for s in tokens
         ]
 
-        # select the top-ranked sample in each group
-        # selected = self.sequence_ranker.rank(tokens, sum_logprobs)
-        # print(f'selected = {selected}\n')
-
         tokens = [[i.tolist() for i in t] for t in tokens]
-        avg_logprobs: List[float] = [[ilp / (len(it) + 1) for it, ilp in zip(t, lp)] for t, lp in zip(tokens, sum_logprobs)]
         texts = [[tokenizer.decode(i).strip() for i in t] for t in tokens]
+        avg_logprobs: List[List[float]] = [[ilp / (len(it) + 1) for it, ilp in zip(t, lp)] for t, lp in zip(tokens, sum_logprobs)]
 
         # print(f'tokens = {tokens}')
         # print(f'avg_logprobs = {avg_logprobs}')
@@ -665,8 +653,9 @@ class DecodingTask:
         # print(f'top50_list = {top50_list}')
 
         texts = [[text[i] for i in top50] for text, top50 in zip(texts, top50_list)]
+        log_probs = [[avg_logprobs[i][j] for j in top50] for i, top50 in enumerate(top50_list)]
 
-        return texts
+        return texts, log_probs
 
     @torch.no_grad()
     def run_wer(self, mel: Tensor) -> List[DecodingResult]:
@@ -729,7 +718,7 @@ class DecodingTask:
 
 
 @torch.no_grad()
-def decode(model: "Whisper", mel: Tensor, options: DecodingOptions = DecodingOptions()) -> Union[DecodingResult, List[DecodingResult]]:
+def decode(model: "Whisper", mel: Tensor, options: DecodingOptions = DecodingOptions()) -> tuple[list[str], list[float]]:
     """
     Performs decoding of 30-second audio segment(s), provided as Mel spectrogram(s).
 
@@ -750,15 +739,11 @@ def decode(model: "Whisper", mel: Tensor, options: DecodingOptions = DecodingOpt
         The result(s) of decoding contained in `DecodingResult` dataclass instance(s)
     """
     single = mel.ndim == 2
-    if single:
-        mel = mel.unsqueeze(0)
+    assert single == True, "Single should be true"
 
-    result = DecodingTask(model, options).run(mel)
-    
-    if single:
-        result = result[0]
-
-    return result
+    mel = mel.unsqueeze(0)
+    texts, log_probs = DecodingTask(model, options).run(mel)
+    return texts[0], log_probs[0]
 
 
 @torch.no_grad()
