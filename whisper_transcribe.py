@@ -111,7 +111,7 @@ if __name__ == '__main__':
         f.writelines(ignored_manifest_lines)
 
     Logger.info(f"Saved beams and manifests to {args.results_dir_path}")
-    Logger.info(f'WER = {wer / len(lines)}')
+    Logger.info(f'WER = {wer / len(transcribed_manifest_lines)}')
 
     run_duration = time.time() - start_time
     Logger.info(f"Completed in {str(datetime.timedelta(seconds=run_duration))}")
