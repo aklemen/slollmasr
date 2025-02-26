@@ -1,6 +1,8 @@
 import argparse
+import datetime
 import json
 import random
+import time
 
 import pandas as pd
 import torch
@@ -75,6 +77,7 @@ if __name__ == '__main__':
     asr_scores_list = []
     wer = 0
 
+    start_time = time.time()
     for line in tqdm(lines):
         manifest_entry = json.loads(line)
         try:
@@ -109,4 +112,7 @@ if __name__ == '__main__':
 
     Logger.info(f"Saved beams and manifests to {args.results_dir_path}")
     Logger.info(f'WER = {wer / len(lines)}')
+
+    run_duration = time.time() - start_time
+    Logger.info(f"Completed in {str(datetime.timedelta(seconds=run_duration))}")
 
