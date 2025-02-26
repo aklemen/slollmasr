@@ -61,6 +61,7 @@ if __name__ == '__main__':
     parser.add_argument('--manifest_file_path', type=str, help='Path to the NeMo manifest file')
     parser.add_argument('--beams_file_path', type=str, help='Path to output the resulting beams')
     parser.add_argument('--beam_width', type=int, help='Width of the resulting beams')
+    parser.add_argument('--log_results', type=bool, default=False, help='Logs the path, best hypothesis, ground truth and WER')
     args = parser.parse_args()
 
     with open(args.manifest_file_path, "r", encoding="utf-8") as f:
@@ -82,6 +83,12 @@ if __name__ == '__main__':
 
         current_wer = calc.calculate_wer([best_texts[0]], [manifest_entry["text"]])
         wer += current_wer
+
+        if args.log_results:
+            Logger.info(f" PATH: {manifest_entry['audio_filepath']}")
+            Logger.info(f"TRUTH: {manifest_entry['text']}")
+            Logger.info(f" BEST: {best_texts[0]}")
+            Logger.info(f"  WER: {current_wer}")
 
     df = pd.DataFrame({"hypotheses": hypotheses_list, "asr_scores": asr_scores_list})
     df.to_csv(args.beams_file_path, sep='\t', index=False, header=False)
