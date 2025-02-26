@@ -10,5 +10,9 @@ class Logger:
         Logger.log_with_time(f"WARNING: {message}")
 
     @staticmethod
+    def error(message):
+        Logger.log_with_time(f"ERROR: {message}")
+
+    @staticmethod
     def log_with_time(message):
         print(f"[{datetime.now()}] {message}")

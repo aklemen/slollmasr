@@ -64,9 +64,12 @@ export NCCL_DEBUG=INFO
 
 /slollmasr/scripts/beam-search/install-whisper.sh
 
+RESULTS_DIR=\"/exp/results\"
+mkdir -p \$RESULTS_DIR
+
 python /slollmasr/whisper_transcribe.py \
   --manifest_file_path $MANIFEST_FILE_PATH \
-  --beams_file_path /exp/beams_$BEAM_WIDTH.tsv \
+  --results_dir_path \$RESULTS_DIR \
   --beam_width $BEAM_WIDTH
 
 echo -e \"\"\"

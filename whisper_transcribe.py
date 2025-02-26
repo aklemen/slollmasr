@@ -25,10 +25,6 @@ class WhisperTranscriber:
         texts, log_probs = whisper.decode(self.model, mel, options)
         texts = [self.normalizer(text) for text in texts]
 
-        if len(texts) == 0:
-            Logger.warn(f"No hypotheses generated for {audio_filepath}! Empty strings and 0 log probs will be used.")
-            return [''] * beam_width, [0] * beam_width
-
         indices = self._get_best_n_indices(texts, beam_width)
 
         unsorted_best_texts = [texts[i] for i in indices]
@@ -48,6 +44,9 @@ class WhisperTranscriber:
                 best_n_hypotheses.append(hypothesis)
                 best_n_indices.append(idx)
 
+        if len(best_n_indices) == 0:
+            raise Exception("All hypotheses are empty!")
+
         if len(best_n_indices) < n:
             for _ in range(n - len(best_n_hypotheses)):
                 random_idx_to_use_again = random.choice(best_n_indices)
@@ -59,7 +58,7 @@ class WhisperTranscriber:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Create hypotheses-to-transcript mapping dataset with Whisper')
     parser.add_argument('--manifest_file_path', type=str, help='Path to the NeMo manifest file')
-    parser.add_argument('--beams_file_path', type=str, help='Path to output the resulting beams')
+    parser.add_argument('--results_dir_path', type=str, help='Path to output the resulting beams and manifests')
     parser.add_argument('--beam_width', type=int, help='Width of the resulting beams')
     parser.add_argument('--log_results', type=bool, default=False, help='Logs the path, best hypothesis, ground truth and WER')
     args = parser.parse_args()
@@ -70,29 +69,44 @@ if __name__ == '__main__':
     transcriber = WhisperTranscriber()
     calc = MetricsCalculator()
 
+    transcribed_manifest_lines = []
+    ignored_manifest_lines = []
     hypotheses_list = []
     asr_scores_list = []
     wer = 0
 
     for line in tqdm(lines):
         manifest_entry = json.loads(line)
-        best_texts, best_log_probs = transcriber.transcribe(manifest_entry["audio_filepath"], args.beam_width)
+        try:
+            best_texts, best_log_probs = transcriber.transcribe(manifest_entry["audio_filepath"], args.beam_width)
 
-        hypotheses_list.extend(best_texts)
-        asr_scores_list.extend(best_log_probs)
+            transcribed_manifest_lines.append(line)
+            hypotheses_list.extend(best_texts)
+            asr_scores_list.extend(best_log_probs)
 
-        current_wer = calc.calculate_wer([best_texts[0]], [manifest_entry["text"]])
-        wer += current_wer
+            current_wer = calc.calculate_wer([best_texts[0]], [manifest_entry["text"]])
+            wer += current_wer
 
-        if args.log_results:
-            Logger.info(f" PATH: {manifest_entry['audio_filepath']}")
-            Logger.info(f"TRUTH: {manifest_entry['text']}")
-            Logger.info(f" BEST: {best_texts[0]}")
-            Logger.info(f"  WER: {current_wer}")
+            if args.log_results:
+                Logger.info(f" PATH: {manifest_entry['audio_filepath']}")
+                Logger.info(f"TRUTH: {manifest_entry['text']}")
+                Logger.info(f" BEST: {best_texts[0]}")
+                Logger.info(f"  WER: {current_wer}")
+        except Exception as e:
+            Logger.error(e)
+            ignored_manifest_lines.append(line)
 
+    beams_file_path = f"{args.results_dir_path}/beams_{args.beam_width}.tsv"
     df = pd.DataFrame({"hypotheses": hypotheses_list, "asr_scores": asr_scores_list})
     df.to_csv(args.beams_file_path, sep='\t', index=False, header=False)
 
-    Logger.info(f"Saved beams to {args.beams_file_path}")
+    transcribed_manifest_path = f"{args.results_dir_path}/transcribed_manifest.nemo"
+    ignored_manifest_path = f"{args.results_dir_path}/ignored_manifest.nemo"
+    with open(transcribed_manifest_path, "w", encoding="utf-8") as f:
+        f.writelines(transcribed_manifest_lines)
+    with open(ignored_manifest_path, "w", encoding="utf-8") as f:
+        f.writelines(ignored_manifest_lines)
+
+    Logger.info(f"Saved beams and manifests to {args.results_dir_path}")
     Logger.info(f'WER = {wer / len(lines)}')
 
