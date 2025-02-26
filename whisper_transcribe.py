@@ -25,6 +25,10 @@ class WhisperTranscriber:
         texts, log_probs = whisper.decode(self.model, mel, options)
         texts = [self.normalizer(text) for text in texts]
 
+        if len(texts) == 0:
+            Logger.warn(f"No hypotheses generated for {audio_filepath}! Empty strings and 0 log probs will be used.")
+            return [''] * beam_width, [0] * beam_width
+
         indices = self._get_best_n_indices(texts, beam_width)
 
         unsorted_best_texts = [texts[i] for i in indices]
