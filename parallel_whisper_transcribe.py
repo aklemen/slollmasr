@@ -71,7 +71,7 @@ if __name__ == '__main__':
     with open(args.manifest_file_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
-    def process_batch(lines: list[str]) -> tuple:
+    def process_batch(manifest_lines: list[str]) -> tuple:
         transcriber = WhisperTranscriber()
         calc = MetricsCalculator()
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
         scores_list = []
         wer_sum = 0
 
-        for line in tqdm(lines):
+        for line in tqdm(manifest_lines):
             manifest_entry = json.loads(line)
             try:
                 best_texts, best_log_probs = transcriber.transcribe(manifest_entry["audio_filepath"], args.beam_width)
