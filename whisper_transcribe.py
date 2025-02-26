@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     beams_file_path = f"{args.results_dir_path}/beams_{args.beam_width}.tsv"
     df = pd.DataFrame({"hypotheses": hypotheses_list, "asr_scores": asr_scores_list})
-    df.to_csv(args.beams_file_path, sep='\t', index=False, header=False)
+    df.to_csv(beams_file_path, sep='\t', index=False, header=False)
 
     transcribed_manifest_path = f"{args.results_dir_path}/transcribed_manifest.nemo"
     ignored_manifest_path = f"{args.results_dir_path}/ignored_manifest.nemo"
