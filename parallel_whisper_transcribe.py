@@ -74,8 +74,7 @@ if __name__ == '__main__':
     split_lines = [read_lines[i:i + args.save_frequency] for i in range(0, len(read_lines), args.save_frequency)]
 
     def process_batch(args_tuple: tuple) -> tuple:
-        manifest_lines, device_idx = args_tuple
-        transcriber = WhisperTranscriber(device_idx)
+        manifest_lines, transcriber = args_tuple
         calc = MetricsCalculator()
 
         transcr_manifest_lines = []
@@ -120,14 +119,14 @@ if __name__ == '__main__':
     start_time = time.time()
     Logger.info(f"Starting processing...")
     with Pool(num_gpus) as p:
+        transcribers = [WhisperTranscriber(device_idx) for device_idx in device_indices]
         for idx, lines in enumerate(tqdm(split_lines)):
             Logger.info(f"Processing batch {idx + 1}/{len(split_lines)}...")
 
             batched_lines = [list(batch) for batch in np.array_split(lines, num_gpus)]
-            batched_lines_with_indices = list(zip(batched_lines, device_indices))
 
             Logger.info(f"Running decoding in {num_gpus} processes...")
-            results = p.map(process_batch, batched_lines_with_indices)
+            results = p.map(process_batch, list(zip(batched_lines, transcribers)))
 
             Logger.info(f"Saving results...")
             for result in results:
