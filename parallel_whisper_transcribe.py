@@ -118,34 +118,35 @@ if __name__ == '__main__':
     wer = 0
 
     start_time = time.time()
-    for idx, lines in enumerate(tqdm(split_lines)):
-        Logger.info(f"Processing batch {idx + 1}/{len(split_lines)}...")
+    Logger.info(f"Starting processing...")
+    with Pool(num_gpus) as p:
+        for idx, lines in enumerate(tqdm(split_lines)):
+            Logger.info(f"Processing batch {idx + 1}/{len(split_lines)}...")
 
-        batched_lines = [list(batch) for batch in np.array_split(lines, num_gpus)]
-        batched_lines_with_indices = list(zip(batched_lines, device_indices))
+            batched_lines = [list(batch) for batch in np.array_split(lines, num_gpus)]
+            batched_lines_with_indices = list(zip(batched_lines, device_indices))
 
-        Logger.info(f"Running decoding in {num_gpus} processes...")
-        with Pool(num_gpus) as p:
+            Logger.info(f"Running decoding in {num_gpus} processes...")
             results = p.map(process_batch, batched_lines_with_indices)
 
-        Logger.info(f"Saving results...")
-        for result in results:
-            transcribed_manifest_lines.extend(result[0])
-            ignored_manifest_lines.extend(result[1])
-            hypotheses_list.extend(result[2])
-            asr_scores_list.extend(result[3])
-            wer += result[4]
+            Logger.info(f"Saving results...")
+            for result in results:
+                transcribed_manifest_lines.extend(result[0])
+                ignored_manifest_lines.extend(result[1])
+                hypotheses_list.extend(result[2])
+                asr_scores_list.extend(result[3])
+                wer += result[4]
 
-        with open(transcribed_manifest_path, "w", encoding="utf-8") as transcribed_manifest_file:
-            transcribed_manifest_file.writelines(transcribed_manifest_lines)
-        with open(ignored_manifest_path, "w", encoding="utf-8") as ignored_manifest_file:
-            ignored_manifest_file.writelines(ignored_manifest_lines)
+            with open(transcribed_manifest_path, "w", encoding="utf-8") as transcribed_manifest_file:
+                transcribed_manifest_file.writelines(transcribed_manifest_lines)
+            with open(ignored_manifest_path, "w", encoding="utf-8") as ignored_manifest_file:
+                ignored_manifest_file.writelines(ignored_manifest_lines)
 
-        df = pd.DataFrame({"hypotheses": hypotheses_list, "asr_scores": asr_scores_list})
-        df.to_csv(beams_file_path, sep='\t', index=False, header=False)
+            df = pd.DataFrame({"hypotheses": hypotheses_list, "asr_scores": asr_scores_list})
+            df.to_csv(beams_file_path, sep='\t', index=False, header=False)
 
-        Logger.info(f"Saved beams and manifests to {args.results_dir_path}")
-        Logger.info(f'WER = {wer / len(transcribed_manifest_lines)}')
+            Logger.info(f"Saved beams and manifests to {args.results_dir_path}")
+            Logger.info(f'WER = {wer / len(transcribed_manifest_lines)}')
 
     run_duration = time.time() - start_time
     Logger.info(f"Completed in {str(datetime.timedelta(seconds=run_duration))}")
