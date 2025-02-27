@@ -14,7 +14,7 @@ EXPERIMENT_NAME="whisper-beam-search"
 
 MANIFEST_FILE_PATH="/dataset/artur/v1.0/nemo/clean/train.nemo"
 BEAM_WIDTH=10
-SAVE_FREQUENCY=5000
+SAVE_FREQUENCY=3000
 
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
