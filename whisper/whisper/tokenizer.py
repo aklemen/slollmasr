@@ -274,7 +274,7 @@ class Tokenizer:
 def build_tokenizer(name: str = "gpt2"):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     path = os.path.join(os.path.dirname(__file__), "assets", name)
-    tokenizer = GPT2TokenizerFast.from_pretrained(path)
+    tokenizer = GPT2TokenizerFast.from_pretrained(path, clean_up_tokenization_spaces=True)
 
     specials = [
         "<|startoftranscript|>",
