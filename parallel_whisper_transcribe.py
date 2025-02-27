@@ -65,11 +65,13 @@ if __name__ == '__main__':
     parser.add_argument('--results_dir_path', type=str, help='Path to output the resulting beams and manifests')
     parser.add_argument('--beam_width', type=int, help='Width of the resulting beams')
     parser.add_argument('--log_results', type=bool, default=False, help='Logs the path, best hypothesis, ground truth and WER')
-    parser.add_argument('--num_workers', type=int, default=8, help='Number of workers to use for transcribing')
+    parser.add_argument('--save_frequency', type=int, default=100, help='After how many processed samples to save the results')
     args = parser.parse_args()
 
     with open(args.manifest_file_path, "r", encoding="utf-8") as f:
-        lines = f.readlines()
+        read_lines = f.readlines()
+
+    split_lines = [read_lines[i:i + args.save_frequency] for i in range(0, len(read_lines), args.save_frequency)]
 
     def process_batch(args_tuple: tuple) -> tuple:
         manifest_lines, device_idx = args_tuple
@@ -82,7 +84,7 @@ if __name__ == '__main__':
         scores_list = []
         wer_sum = 0
 
-        for line in tqdm(manifest_lines):
+        for line in manifest_lines:
             manifest_entry = json.loads(line)
             try:
                 best_texts, best_log_probs = transcriber.transcribe(manifest_entry["audio_filepath"], args.beam_width)
@@ -105,36 +107,41 @@ if __name__ == '__main__':
 
         return transcr_manifest_lines, ignor_manifest_lines, hyp_list, scores_list, wer_sum
 
-    batched_lines = [list(batch) for batch in np.array_split(lines, args.num_workers)]
-    device_indices = list(range(args.num_workers))
-    batched_lines_with_indices = list(zip(batched_lines, device_indices))
+    num_gpus = torch.cuda.device_count()
+    device_indices = list(range(num_gpus))
 
-    start_time = time.time()
-    with Pool(args.num_workers) as p:
-        results = p.map(process_batch, batched_lines_with_indices)
+    beams_file_path = f"{args.results_dir_path}/beams_{args.beam_width}.tsv"
+    transcribed_manifest_path = f"{args.results_dir_path}/transcribed_manifest.nemo"
+    ignored_manifest_path = f"{args.results_dir_path}/ignored_manifest.nemo"
 
     transcribed_manifest_lines, ignored_manifest_lines, hypotheses_list, asr_scores_list = [], [], [], []
     wer = 0
-    for result in results:
-        transcribed_manifest_lines.extend(result[0])
-        ignored_manifest_lines.extend(result[1])
-        hypotheses_list.extend(result[2])
-        asr_scores_list.extend(result[3])
-        wer += result[4]
 
-    beams_file_path = f"{args.results_dir_path}/beams_{args.beam_width}.tsv"
-    df = pd.DataFrame({"hypotheses": hypotheses_list, "asr_scores": asr_scores_list})
-    df.to_csv(beams_file_path, sep='\t', index=False, header=False)
+    start_time = time.time()
+    for lines in tqdm(split_lines):
+        batched_lines = [list(batch) for batch in np.array_split(lines, num_gpus)]
+        batched_lines_with_indices = list(zip(batched_lines, device_indices))
 
-    transcribed_manifest_path = f"{args.results_dir_path}/transcribed_manifest.nemo"
-    ignored_manifest_path = f"{args.results_dir_path}/ignored_manifest.nemo"
-    with open(transcribed_manifest_path, "w", encoding="utf-8") as f:
-        f.writelines(transcribed_manifest_lines)
-    with open(ignored_manifest_path, "w", encoding="utf-8") as f:
-        f.writelines(ignored_manifest_lines)
+        with Pool(num_gpus) as p:
+            results = p.map(process_batch, batched_lines_with_indices)
 
-    Logger.info(f"Saved beams and manifests to {args.results_dir_path}")
-    Logger.info(f'WER = {wer / len(transcribed_manifest_lines)}')
+        for result in results:
+            transcribed_manifest_lines.extend(result[0])
+            ignored_manifest_lines.extend(result[1])
+            hypotheses_list.extend(result[2])
+            asr_scores_list.extend(result[3])
+            wer += result[4]
+
+        with open(transcribed_manifest_path, "w", encoding="utf-8") as f:
+            f.writelines(transcribed_manifest_lines)
+        with open(ignored_manifest_path, "w", encoding="utf-8") as f:
+            f.writelines(ignored_manifest_lines)
+
+        df = pd.DataFrame({"hypotheses": hypotheses_list, "asr_scores": asr_scores_list})
+        df.to_csv(beams_file_path, sep='\t', index=False, header=False)
+
+        Logger.info(f"Saved beams and manifests to {args.results_dir_path}")
+        Logger.info(f'WER = {wer / len(transcribed_manifest_lines)}')
 
     run_duration = time.time() - start_time
     Logger.info(f"Completed in {str(datetime.timedelta(seconds=run_duration))}")
