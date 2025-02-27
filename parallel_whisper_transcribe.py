@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
     start_time = time.time()
     with Pool(args.num_workers) as p:
-        results = p.imap(process_batch, batched_lines_with_indices)
+        results = p.map(process_batch, batched_lines_with_indices)
 
     transcribed_manifest_lines, ignored_manifest_lines, hypotheses_list, asr_scores_list = [], [], [], []
     wer = 0
