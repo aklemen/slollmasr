@@ -74,8 +74,7 @@ if __name__ == '__main__':
     split_lines = [read_lines[i:i + args.save_frequency] for i in range(0, len(read_lines), args.save_frequency)]
 
     def process_batch(args_tuple: tuple) -> tuple:
-        manifest_lines, device_idx = args_tuple
-        transcriber = WhisperTranscriber(device_idx)
+        manifest_lines, transcriber = args_tuple
         calc = MetricsCalculator()
 
         transcr_manifest_lines = []
@@ -117,13 +116,15 @@ if __name__ == '__main__':
     transcribed_manifest_lines, ignored_manifest_lines, hypotheses_list, asr_scores_list = [], [], [], []
     wer = 0
 
+    transcribers = [WhisperTranscriber(device_idx) for device_idx in device_indices]
+
     start_time = time.time()
     for lines in tqdm(split_lines):
         batched_lines = [list(batch) for batch in np.array_split(lines, num_gpus)]
-        batched_lines_with_indices = list(zip(batched_lines, device_indices))
+        batched_lines_with_transcribers = list(zip(batched_lines, transcribers))
 
         with Pool(num_gpus) as p:
-            results = p.map(process_batch, batched_lines_with_indices)
+            results = p.map(process_batch, batched_lines_with_transcribers)
 
         for result in results:
             transcribed_manifest_lines.extend(result[0])
