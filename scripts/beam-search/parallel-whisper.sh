@@ -13,4 +13,5 @@ mkdir -p "$RESULTS_DIR"
 python /slollmasr/parallel_whisper_transcribe.py \
   --manifest_file_path "/dataset/artur/v1.0/nemo/clean/train.nemo" \
   --results_dir_path "$RESULTS_DIR" \
-  --beam_width 10
+  --beam_width 10 \
+  --num_workers 4
