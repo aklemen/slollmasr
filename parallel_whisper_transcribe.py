@@ -136,10 +136,10 @@ if __name__ == '__main__':
             asr_scores_list.extend(result[3])
             wer += result[4]
 
-        with open(transcribed_manifest_path, "w", encoding="utf-8") as f:
-            f.writelines(transcribed_manifest_lines)
-        with open(ignored_manifest_path, "w", encoding="utf-8") as f:
-            f.writelines(ignored_manifest_lines)
+        with open(transcribed_manifest_path, "w", encoding="utf-8") as transcribed_manifest_file:
+            transcribed_manifest_file.writelines(transcribed_manifest_lines)
+        with open(ignored_manifest_path, "w", encoding="utf-8") as ignored_manifest_file:
+            ignored_manifest_file.writelines(ignored_manifest_lines)
 
         df = pd.DataFrame({"hypotheses": hypotheses_list, "asr_scores": asr_scores_list})
         df.to_csv(beams_file_path, sep='\t', index=False, header=False)
