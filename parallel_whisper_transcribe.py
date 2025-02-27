@@ -118,13 +118,17 @@ if __name__ == '__main__':
     wer = 0
 
     start_time = time.time()
-    for lines in tqdm(split_lines):
+    for idx, lines in enumerate(tqdm(split_lines)):
+        Logger.info(f"Processing batch {idx + 1}/{len(split_lines)}...")
+
         batched_lines = [list(batch) for batch in np.array_split(lines, num_gpus)]
         batched_lines_with_indices = list(zip(batched_lines, device_indices))
 
+        Logger.info(f"Running decoding in {num_gpus} processes...")
         with Pool(num_gpus) as p:
             results = p.map(process_batch, batched_lines_with_indices)
 
+        Logger.info(f"Saving results...")
         for result in results:
             transcribed_manifest_lines.extend(result[0])
             ignored_manifest_lines.extend(result[1])
