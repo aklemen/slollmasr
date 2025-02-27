@@ -16,8 +16,8 @@ from metrics_calculator import MetricsCalculator
 from whisper.normalizers import BasicTextNormalizer
 
 class WhisperTranscriber:
-    def __init__(self):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+    def __init__(self, device_idx: int):
+        self.device = f"cuda:{device_idx}"
         self.model = whisper.load_model(name="base", device=self.device)
         self.normalizer = BasicTextNormalizer()
 
@@ -71,8 +71,9 @@ if __name__ == '__main__':
     with open(args.manifest_file_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
-    def process_batch(manifest_lines: list[str]) -> tuple:
-        transcriber = WhisperTranscriber()
+    def process_batch(args_tuple: tuple) -> tuple:
+        manifest_lines, device_idx = args_tuple
+        transcriber = WhisperTranscriber(device_idx)
         calc = MetricsCalculator()
 
         transcr_manifest_lines = []
@@ -105,10 +106,12 @@ if __name__ == '__main__':
         return transcr_manifest_lines, ignor_manifest_lines, hyp_list, scores_list, wer_sum
 
     batched_lines = [list(batch) for batch in np.array_split(lines, args.num_workers)]
+    device_indices = list(range(args.num_workers))
+    batched_lines_with_indices = list(zip(batched_lines, device_indices))
 
     start_time = time.time()
     with Pool(args.num_workers) as p:
-        results = p.imap(process_batch, batched_lines)
+        results = p.imap(process_batch, batched_lines_with_indices)
 
     transcribed_manifest_lines, ignored_manifest_lines, hypotheses_list, asr_scores_list = [], [], [], []
     wer = 0
