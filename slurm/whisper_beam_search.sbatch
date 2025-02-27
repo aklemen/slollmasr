@@ -14,6 +14,7 @@ EXPERIMENT_NAME="whisper-beam-search"
 
 MANIFEST_FILE_PATH="/dataset/artur/v1.0/nemo/clean/train.nemo"
 BEAM_WIDTH=10
+SAVE_FREQUENCY=5000
 
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
@@ -67,10 +68,11 @@ export NCCL_DEBUG=INFO
 RESULTS_DIR=\"/exp/results\"
 mkdir -p \$RESULTS_DIR
 
-python /slollmasr/whisper_transcribe.py \
+python /slollmasr/parallel_whisper_transcribe.py \
   --manifest_file_path $MANIFEST_FILE_PATH \
   --results_dir_path \$RESULTS_DIR \
-  --beam_width $BEAM_WIDTH
+  --beam_width $BEAM_WIDTH \
+  --save_frequency $SAVE_FREQUENCY
 
 echo -e \"\"\"
 # finished at \$(date)
