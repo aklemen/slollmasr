@@ -66,10 +66,11 @@ if __name__ == '__main__':
     parser.add_argument('--beam_width', type=int, help='Width of the resulting beams')
     parser.add_argument('--log_results', type=bool, default=False, help='Logs the path, best hypothesis, ground truth and WER')
     parser.add_argument('--save_frequency', type=int, default=100, help='After how many processed samples to save the results')
+    parser.add_argument('--offset', type=int, default=0, help='Offset to skip samples.')
     args = parser.parse_args()
 
     with open(args.manifest_file_path, "r", encoding="utf-8") as f:
-        read_lines = f.readlines()
+        read_lines = f.readlines()[args.offset:]
 
     split_lines = [read_lines[i:i + args.save_frequency] for i in range(0, len(read_lines), args.save_frequency)]
 
