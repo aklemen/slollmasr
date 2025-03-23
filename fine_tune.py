@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import pandas as pd
 import torch
@@ -9,6 +10,8 @@ from trl import DataCollatorForCompletionOnlyLM
 
 from logger import Logger
 from torch_datasets.manifest_dataset import ManifestDataset
+
+os.environ["WANDB_PROJECT"] = "H2T-LoRA"
 
 response_template = "### Transkript:"
 prompt_template = ("### Navodilo:\n"
