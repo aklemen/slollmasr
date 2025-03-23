@@ -98,6 +98,9 @@ if __name__ == '__main__':
 
     tokenized_train = train_val["train"].map(tokenize, batched=True, remove_columns=["hypotheses", "ground_truth"])
     tokenized_val = train_val["test"].map(tokenize, batched=True, remove_columns=["hypotheses", "ground_truth"])
+    Logger.info(f"Tokenization complete. Train size: {len(tokenized_train)}, Val size: {len(tokenized_val)}")
+    Logger.info(f"First tokenized train example: {tokenized_train[0]}")
+    Logger.info(f"First tokenized val example: {tokenized_val[0]}")
 
     data_collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=tokenizer)
 
@@ -113,8 +116,6 @@ if __name__ == '__main__':
     Logger.info(f"Model AFTER applying LoRA: {llm}")
 
     llm.print_trainable_parameters()
-
-    print(tokenized_train)
 
     training_args = TrainingArguments(
         output_dir=args.output_dir_path,
