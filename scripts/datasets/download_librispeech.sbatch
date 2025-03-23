@@ -12,7 +12,7 @@
 DATASETS_PATH="$HOME/datasets"
 DATA_ROOT="/datasets/librispeech"
 
-CONTAINER_IMAGE="nvcr.io/nvidia/nemo:24.07"
+CONTAINER_IMAGE="nvcr.io/nvidia/nemo:25.02"
 CONTAINER_MOUNTS="$DATASETS_PATH:/datasets"
 
 srun \
