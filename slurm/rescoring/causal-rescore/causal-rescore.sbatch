@@ -116,6 +116,11 @@ if [[ "$LLM_NAME" == \"google/gemma-2\"* ]]; then
   pip install transformers==4.43.4
 fi
 
+# Upgrade transformers to support Gemma 3
+if [[ "$LLM_NAME" == \"google/gemma-3\"* ]]; then
+  pip install --upgrade transformers
+fi
+
 python /slollmasr/main.py \
    --method causal-rescore \
    --llm_name $LLM_NAME \
