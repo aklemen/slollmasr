@@ -1,4 +1,4 @@
-WANDB_API_KEY-"<your_wandb_api_key>"
+WANDB_API_KEY="<your_wandb_api_key>"
 
 python /slollmasr/fine_tune.py \
 --llm_name "google/gemma-2-9b" \
