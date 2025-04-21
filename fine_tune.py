@@ -61,32 +61,17 @@ if __name__ == '__main__':
         Logger.info(f"Tokenizer name was not given, using LLM name '{args.llm_name}'")
         args.tokenizer_name = args.llm_name
 
-    manifest = ManifestDataset(args.manifest_file_path)
-    ground_truths = manifest.get_transcripts()
-
-    hypotheses = pd.read_csv(args.beams_file_path, delimiter="\t", header=None, names=["text", "score"])
-    hypotheses = hypotheses["text"].tolist()
-    grouped_hypotheses = [hypotheses[i:i + args.beam_size] for i in range(0, len(hypotheses), args.beam_size)]
-
-    dataset = Dataset.from_dict({
-        "hypotheses": grouped_hypotheses,
-        "ground_truth": ground_truths,
-    })
-
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name, use_fast=True)
     if tokenizer.pad_token is None:
         Logger.info(f"No pad_token available. Setting pad_token to eos_token: {tokenizer.eos_token}")
         tokenizer.pad_token = tokenizer.eos_token
+
     llm = AutoModelForCausalLM.from_pretrained(
         pretrained_model_name_or_path=args.llm_name,
         attn_implementation="flash_attention_2",
         device_map="auto",
         torch_dtype=torch.bfloat16,
     )
-
-    train_val = dataset.train_test_split(test_size=0.2, shuffle=True, seed=42)
-    Logger.info(f"Dataset split: {train_val}")
-
 
     def tokenize(examples):
         prompts = [f"{generate_prompt(h, g)}{tokenizer.eos_token}" for h, g in
@@ -102,22 +87,39 @@ if __name__ == '__main__':
     tokenized_train_path = os.path.join(args.tokenized_dataset_dir_path, "train")
     tokenized_val_path = os.path.join(args.tokenized_dataset_dir_path, "val")
     if os.path.exists(tokenized_train_path) and os.path.exists(tokenized_val_path):
-        Logger.info(f"Loading tokenized dataset (train, val) from {args.tokenized_dataset_dir_path} ...")
+        Logger.info(f"Loading tokenized datasets (train, val) from {args.tokenized_dataset_dir_path} ...")
         tokenized_train = load_from_disk(tokenized_train_path)
         tokenized_val = load_from_disk(tokenized_val_path)
+        Logger.info(f"Train and val datasets loaded.")
     else:
+        Logger.info(f"Loading ground truths from {args.manifest_file_path} ...")
+        manifest = ManifestDataset(args.manifest_file_path)
+        ground_truths = manifest.get_transcripts()
+
+        Logger.info(f"Loading hypotheses from {args.beams_file_path} ...")
+        hypotheses = pd.read_csv(args.beams_file_path, delimiter="\t", header=None, names=["text", "score"])
+        hypotheses = hypotheses["text"].tolist()
+        grouped_hypotheses = [hypotheses[i:i + args.beam_size] for i in range(0, len(hypotheses), args.beam_size)]
+
+        Logger.info(f"Creating and splitting dataset ...")
+        dataset = Dataset.from_dict({
+            "hypotheses": grouped_hypotheses,
+            "ground_truth": ground_truths,
+        })
+        train_val = dataset.train_test_split(test_size=0.2, shuffle=True, seed=42)
+
         Logger.info("Tokenizing dataset ...")
         tokenized_train = train_val["train"].map(tokenize, batched=True, remove_columns=["hypotheses", "ground_truth"])
         tokenized_val = train_val["test"].map(tokenize, batched=True, remove_columns=["hypotheses", "ground_truth"])
-        Logger.info(f"Tokenization complete. Train size: {len(tokenized_train)}, Val size: {len(tokenized_val)}")
+        Logger.info(f"Tokenization complete.")
         if args.tokenized_dataset_dir_path is not None:
-            Logger.info(f"Saving tokenized dataset (train, val) to {args.tokenized_dataset_dir_path} ...")
+            Logger.info(f"Saving tokenized datasets (train, val) to {args.tokenized_dataset_dir_path} ...")
             os.makedirs(args.tokenized_dataset_dir_path,  exist_ok=True)
             tokenized_train.save_to_disk(tokenized_train_path)
             tokenized_val.save_to_disk(tokenized_val_path)
 
-    Logger.info(f"First tokenized train example: {tokenized_train[0]}")
-    Logger.info(f"First tokenized val example: {tokenized_val[0]}")
+    Logger.info(f"Train dataset: {tokenized_train}")
+    Logger.info(f"Val dataset: {tokenized_val}")
 
     data_collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=tokenizer)
 
