@@ -1,5 +1,6 @@
 WANDB_API_KEY="<your_wandb_api_key>"
 
+pip install transformers==4.51.3
 pip install trl
 
 python /slollmasr/fine_tune.py \
