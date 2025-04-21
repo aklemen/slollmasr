@@ -3,7 +3,7 @@ WANDB_API_KEY="<your_wandb_api_key>"
 pip install trl
 
 python /slollmasr/fine_tune.py \
---llm_name "google/gemma-2-9b" \
+--llm_name "google/gemma-3-1b-pt" \
 --manifest_file_path "/beams/whisper/artur/train/transcribed_manifest.nemo" \
 --beams_file_path "/beams/whisper/artur/train/beams_10.tsv" \
 --beam_size 10 \
