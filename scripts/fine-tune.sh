@@ -1,5 +1,7 @@
 WANDB_API_KEY="<your_wandb_api_key>"
 
+pip install trl
+
 python /slollmasr/fine_tune.py \
 --llm_name "google/gemma-2-9b" \
 --manifest_file_path "/beams/whisper/artur/train/transcribed_manifest.nemo" \
