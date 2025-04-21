@@ -117,7 +117,7 @@ echo -e \"\"\"
 \"\"\"
 """ >> $SCRIPT_FILE_PATH
 
-CONTAINER_IMAGE="nvcr.io/nvidia/nemo:25.02"
+CONTAINER_IMAGE="nvcr.io/nvidia/nemo:25.02.01"
 
 EXPERIMENTS="$LOCAL_EXPERIMENT_DIR:/exp"
 

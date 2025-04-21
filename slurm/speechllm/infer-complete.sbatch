@@ -135,7 +135,7 @@ TESTING_MOUNT="$HOME/testing:/testing"
 SCRIPTS_MOUNT="$HOME/scripts:/scripts"
 HF_HOME_MOUNT="$HOME/.cache/huggingface:/hf-home"
 
-CONTAINER_IMAGE="nvcr.io/nvidia/nemo:25.02"
+CONTAINER_IMAGE="nvcr.io/nvidia/nemo:25.02.01"
 CONTAINER_MOUNTS="$EXP_MOUNT,$LPT_DATASETS_MOUNT,$MANIFESTS_MOUNT,$MODELS_MOUNT,$TESTING_MOUNT"
 
 srun \
