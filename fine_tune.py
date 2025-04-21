@@ -128,6 +128,7 @@ if __name__ == '__main__':
         r=args.lora_r,
         lora_alpha=args.lora_alpha,
         lora_dropout=args.lora_dropout,
+        target_modules="all-linear",
     )
 
     Logger.info(f"Model BEFORE applying LoRA: {llm}")
