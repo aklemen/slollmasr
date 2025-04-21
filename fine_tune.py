@@ -3,7 +3,7 @@ import os
 
 import pandas as pd
 import torch
-from datasets import Dataset
+from datasets import Dataset, load_from_disk
 from peft import LoraConfig, TaskType, get_peft_model
 from transformers import AutoModelForCausalLM, TrainingArguments, Trainer, AutoTokenizer
 from trl import DataCollatorForCompletionOnlyLM
@@ -40,6 +40,7 @@ def parse_args():
     parser.add_argument('--beams_file_path', type=str, required=True)
     parser.add_argument('--beam_size', type=int, required=True)
     parser.add_argument('--output_dir_path', type=str, required=True)
+    parser.add_argument('--tokenized_dataset_dir_path', type=str, required=False)
     parser.add_argument("--run_name", type=str, default="lora-finetune")
 
     parser.add_argument("--lora_r", type=float, default=16)
@@ -98,10 +99,22 @@ if __name__ == '__main__':
             add_special_tokens=False
         )
 
+    tokenized_train_path = os.path.join(args.tokenized_dataset_dir_path, "train")
+    tokenized_val_path = os.path.join(args.tokenized_dataset_dir_path, "val")
+    if os.path.exists(tokenized_train_path) and os.path.exists(tokenized_val_path):
+        Logger.info(f"Loading tokenized dataset (train, val) from {args.tokenized_dataset_dir_path} ...")
+        tokenized_train = load_from_disk(tokenized_train_path)
+        tokenized_val = load_from_disk(tokenized_val_path)
+    else:
+        Logger.info("Tokenizing dataset ...")
+        tokenized_train = train_val["train"].map(tokenize, batched=True, remove_columns=["hypotheses", "ground_truth"])
+        tokenized_val = train_val["test"].map(tokenize, batched=True, remove_columns=["hypotheses", "ground_truth"])
+        Logger.info(f"Tokenization complete. Train size: {len(tokenized_train)}, Val size: {len(tokenized_val)}")
+        if args.tokenized_dataset_dir_path is not None:
+            Logger.info(f"Saving tokenized dataset (train, val) to {args.tokenized_dataset_dir_path} ...")
+            tokenized_train.save_to_disk(tokenized_train_path)
+            tokenized_val.save_to_disk(tokenized_val_path)
 
-    tokenized_train = train_val["train"].map(tokenize, batched=True, remove_columns=["hypotheses", "ground_truth"])
-    tokenized_val = train_val["test"].map(tokenize, batched=True, remove_columns=["hypotheses", "ground_truth"])
-    Logger.info(f"Tokenization complete. Train size: {len(tokenized_train)}, Val size: {len(tokenized_val)}")
     Logger.info(f"First tokenized train example: {tokenized_train[0]}")
     Logger.info(f"First tokenized val example: {tokenized_val[0]}")
 
