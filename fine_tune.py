@@ -112,6 +112,7 @@ if __name__ == '__main__':
         Logger.info(f"Tokenization complete. Train size: {len(tokenized_train)}, Val size: {len(tokenized_val)}")
         if args.tokenized_dataset_dir_path is not None:
             Logger.info(f"Saving tokenized dataset (train, val) to {args.tokenized_dataset_dir_path} ...")
+            os.makedirs(args.tokenized_dataset_dir_path,  exist_ok=True)
             tokenized_train.save_to_disk(tokenized_train_path)
             tokenized_val.save_to_disk(tokenized_val_path)
 

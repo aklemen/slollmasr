@@ -8,4 +8,5 @@ python /slollmasr/fine_tune.py \
 --beams_file_path "/beams/whisper/artur/train/beams_10.tsv" \
 --beam_size 10 \
 --output_dir_path "/testing/fine-tune" \
+--tokenized_dataset_dir_path "/testing/tokenized-artur-train-10" \
 --run_name "test-run"
