@@ -92,6 +92,11 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
+# Upgrade transformers to support Gemma 3
+if [[ "$LLM_NAME" == \"google/gemma-3\"* ]]; then
+  pip install --upgrade transformers
+fi
+
 python /slollmasr/main.py \
    --method one-shot-gec \
    --llm_name $LLM_NAME \
