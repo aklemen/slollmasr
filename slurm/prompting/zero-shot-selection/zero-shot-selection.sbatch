@@ -92,11 +92,6 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
-# Upgrade transformers to support Gemma 3
-if [[ "$LLM_NAME" == \"google/gemma-3\"* ]]; then
-  pip install --upgrade transformers
-fi
-
 python /slollmasr/main.py \
    --method zero-shot-selection \
    --llm_name $LLM_NAME \
@@ -113,7 +108,7 @@ echo -e \"\"\"
 \"\"\"
 """ >> $SCRIPT_FILE_PATH
 
-CONTAINER_IMAGE="nvcr.io/nvidia/nemo:25.02.01"
+CONTAINER_IMAGE="nvcr.io/nvidia/nemo:25.04"
 
 EXPERIMENTS="$LOCAL_EXPERIMENT_DIR:/exp"
 
