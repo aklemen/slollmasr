@@ -156,7 +156,7 @@ if __name__ == '__main__':
         run_name=args.run_name,
         per_device_train_batch_size=args.per_device_batch_size,
         per_device_eval_batch_size=args.per_device_batch_size,
-        # gradient_accumulation_steps=8,
+        gradient_accumulation_steps=8,
         optim="adamw_torch",
         learning_rate=1e-4,
         warmup_ratio=0.05,
