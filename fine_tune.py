@@ -12,6 +12,7 @@ from logger import Logger
 from torch_datasets.manifest_dataset import ManifestDataset
 
 os.environ["WANDB_PROJECT"] = "H2T-LoRA"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 response_template = "### Transkript:"
 prompt_template = ("### Navodilo:\n"
