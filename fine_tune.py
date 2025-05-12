@@ -70,7 +70,7 @@ if __name__ == '__main__':
     llm = AutoModelForCausalLM.from_pretrained(
         pretrained_model_name_or_path=args.llm_name,
         attn_implementation="flash_attention_2",
-        device_map="auto",
+        # device_map="auto",
         torch_dtype=torch.bfloat16,
     )
 
