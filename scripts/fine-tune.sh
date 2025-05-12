@@ -9,4 +9,5 @@ python /slollmasr/fine_tune.py \
 --beam_size 10 \
 --output_dir_path "/testing/fine-tune" \
 --tokenized_dataset_dir_path "/testing/tokenized-artur-train-10" \
---run_name "test-run"
+--run_name "test-run" \
+--per_device_batch_size 1
