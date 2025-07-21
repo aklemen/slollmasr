@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# DON'T FORGET TO RUN prepare_for_beam_search.sh (installs required packages, fixes errors)
+# DON'T FORGET TO RUN prepare_for_beam_search_with_n-gram.sh (installs required packages, fixes errors)
 
 DATASET_PATH="artur/v1.0/nemo/dev"
 # DATASET_PATH="artur/v1.0/nemo/test"
@@ -11,9 +11,10 @@ DATASET_PATH="artur/v1.0/nemo/dev"
 # DATASET_PATH="voxpopuli/nemo/clean/all"
 
 MANIFEST="/dataset/$DATASET_PATH.nemo"
-OUT_DIR="/beams/original/$DATASET_PATH"
+OUT_DIR="/beams/n-gram/$DATASET_PATH"
 
 MODEL_PATH="/models/asr/conformer_ctc_bpe.nemo"
+KENLM_MODEL="/models/n-gram/artur_train_kenlm_4_gram.binary"
 
 mkdir -p $OUT_DIR
 
@@ -21,10 +22,11 @@ start=$(date +%s)
 
 python /opt/NeMo/scripts/asr_language_modeling/ngram_lm/eval_beamsearch_ngram_ctc.py \
     nemo_model_file="$MODEL_PATH" \
+    kenlm_model_file="$KENLM_MODEL" \
     input_manifest="$MANIFEST" \
     preds_output_folder="$OUT_DIR" \
     probs_cache_file="$OUT_DIR/cache_file" \
-    decoding_mode=beamsearch \
+    decoding_mode=beamsearch_ngram \
     decoding_strategy="beam" \
     beam_width=[5,10,50,100] \
     beam_batch_size=256 \
