@@ -1,5 +1,6 @@
+apt-get update
 apt install libeigen3-dev
-cd "$HOME"/local || exit
+cd /usr/local || exit
 git clone https://github.com/kpu/kenlm.git
 cd kenlm && mkdir build && cd build && cmake .. && make -j
 

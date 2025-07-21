@@ -16,7 +16,7 @@ python /opt/NeMo/scripts/asr_language_modeling/ngram_lm/train_kenlm.py \
     train_paths="$DATASET_PATH" \
     kenlm_model_file="${OUT_DIR}/artur_train_kenlm_${NGRAM_LENGTH}_gram.binary" \
     ngram_length="$NGRAM_LENGTH" \
-    kenlm_bin_path="${HOME}/local/kenlm/build/bin" \
+    kenlm_bin_path="usr/local/kenlm/build/bin" \
     preserve_arpa=True \
     save_nemo=True \
     normalize_unk_nemo=False
