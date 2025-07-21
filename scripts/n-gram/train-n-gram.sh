@@ -13,7 +13,7 @@ start=$(date +%s)
 
 python /opt/NeMo/scripts/asr_language_modeling/ngram_lm/train_kenlm.py \
     nemo_model_file="$MODEL_PATH" \
-    train_paths="$DATASET_PATH" \
+    train_paths="[$DATASET_PATH]" \
     kenlm_model_file="${OUT_DIR}/artur_train_kenlm_${NGRAM_LENGTH}_gram.binary" \
     ngram_length="$NGRAM_LENGTH" \
     kenlm_bin_path="usr/local/kenlm/build/bin" \
