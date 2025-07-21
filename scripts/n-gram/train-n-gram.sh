@@ -3,7 +3,7 @@
 # DON'T FORGET TO RUN prepare-for-n-gram-training.sh (installs required packages)
 
 DATASET_PATH="/dataset/artur/v1.0/nemo/train.nemo"
-OUT_DIR="/models/n-gram"
+OUT_DIR="/testing/n-gram"
 MODEL_PATH="/models/asr/conformer_ctc_bpe.nemo"
 NGRAM_LENGTH=4
 
