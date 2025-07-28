@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=beam-search-n-gram
+#SBATCH --job-name=beam-search-4-gram
 #SBATCH --partition=frida
 #SBATCH --time=2-00:00:00
 #SBATCH --nodes=1
@@ -10,7 +10,7 @@
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
-EXPERIMENT_NAME="beam-search-n-gram"
+EXPERIMENT_NAME="beam-search-4-gram"
 
 BATCH_SIZE=512
 
