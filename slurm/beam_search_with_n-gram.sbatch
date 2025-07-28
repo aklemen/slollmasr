@@ -4,8 +4,8 @@
 #SBATCH --time=2-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=A100:2
-#SBATCH --cpus-per-task=32
+#SBATCH --gpus-per-node=A100_80GB:2
+#SBATCH --cpus-per-task=64
 #SBATCH --mem-per-gpu=64G
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
