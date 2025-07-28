@@ -25,11 +25,11 @@ python /opt/NeMo/scripts/asr_language_modeling/ngram_lm/eval_beamsearch_ngram_ct
     kenlm_model_file="$KENLM_MODEL" \
     input_manifest="$MANIFEST" \
     preds_output_folder="$OUT_DIR" \
-    probs_cache_file="$OUT_DIR/cache_file" \
-    decoding_mode=beamsearch_ngram \
+    hyps_cache_file="$OUT_DIR/cache_file" \
+    decoding_mode="beamsearch_ngram" \
     decoding_strategy="beam" \
     beam_width=[5,10,50,100] \
-    beam_batch_size=256 \
+    batch_size=256 \
     use_amp=True
 
 end=$(date +%s)
