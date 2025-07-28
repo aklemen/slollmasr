@@ -23,3 +23,9 @@ git clone https://github.com/kpu/kenlm.git
 cd kenlm && mkdir build && cd build && cmake .. && make -j
 
 pip3 install git+https://github.com/kpu/kenlm.git
+
+
+# Replace eval_beamsearch_ngram_ctc.py with the one with time logging
+curl -o /opt/NeMo/scripts/asr_language_modeling/ngram_lm/eval_beamsearch_ngram_ctc.py https://raw.githubusercontent.com/aklemen/NeMo/time-logging/scripts/asr_language_modeling/ngram_lm/eval_beamsearch_ngram_ctc.py
+
+
