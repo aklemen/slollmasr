@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=beam-search-4-gram
+#SBATCH --job-name=beam-search-n-gram
 #SBATCH --partition=frida
 #SBATCH --time=2-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=A100_80GB:2
+#SBATCH --gpus-per-node=A100_80GB:1
 #SBATCH --cpus-per-task=32
 #SBATCH --mem-per-gpu=64G
 #SBATCH --output=/dev/null
