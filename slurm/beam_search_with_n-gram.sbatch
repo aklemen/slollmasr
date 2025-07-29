@@ -10,7 +10,7 @@
 
 EXPERIMENT_NAME="beam-search-4-gram"
 
-BATCH_SIZE=512
+BATCH_SIZE=256
 
 TEST_DATASETS=(
 #  "artur/v1.0/nemo/clean/train"
