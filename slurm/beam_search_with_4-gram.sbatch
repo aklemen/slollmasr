@@ -2,9 +2,11 @@
 #SBATCH --job-name=beam-search-4-gram
 #SBATCH --partition=frida
 #SBATCH --time=2-00:00:00
-#SBATCH --gres=gpu:A100_80GB:1
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --gpus-per-node=A100_80GB:1
 #SBATCH --cpus-per-task=32
-#SBATCH --mem=128G
+#SBATCH --mem-per-gpu=128G
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
