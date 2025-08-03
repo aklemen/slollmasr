@@ -11,7 +11,7 @@ DATASET_PATH="artur/v1.0/nemo/dev"
 # DATASET_PATH="voxpopuli/nemo/clean/all"
 
 MANIFEST="/dataset/$DATASET_PATH.nemo"
-OUT_DIR="/beams/n-gram/$DATASET_PATH"
+OUT_DIR="/beams/n-gram/gpu/$DATASET_PATH"
 
 MODEL_PATH="/models/asr/conformer_ctc_bpe.nemo"
 KENLM_MODEL="/models/n-gram/artur_train_kenlm_4_gram.binary"
