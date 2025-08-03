@@ -91,6 +91,9 @@ cp /opt/NeMo/scripts/installers/setup_os2s_decoders.py ./setup.py && \
 # Replace eval_beamsearch_ngram_ctc.py with the one with time logging
 curl -o /opt/NeMo/scripts/asr_language_modeling/ngram_lm/eval_beamsearch_ngram_ctc.py https://raw.githubusercontent.com/aklemen/NeMo/time-logging/scripts/asr_language_modeling/ngram_lm/eval_beamsearch_ngram_ctc.py
 
+# Replace ctc_beam_decoding.py with the one without KenLM file check
+curl -o /opt/NeMo/nemo/collections/asr/parts/submodules/ctc_beam_decoding.py https://raw.githubusercontent.com/aklemen/NeMo/time-logging/nemo/collections/asr/parts/submodules/ctc_beam_decoding.py
+
 
 ############################### RUN BEAM SEARCH WITH N-GRAM LANGUAGE MODELING ###############################
 
