@@ -14,7 +14,7 @@ MANIFEST="/dataset/$DATASET_PATH.nemo"
 OUT_DIR="/beams/n-gram/gpu/$DATASET_PATH"
 
 MODEL_PATH="/models/asr/conformer_ctc_bpe.nemo"
-KENLM_MODEL="/models/n-gram/artur_train_kenlm_4_gram.binary"
+KENLM_MODEL="/models/n-gram/artur_train_kenlm_4_gram.binary.nemo"
 
 mkdir -p $OUT_DIR
 
