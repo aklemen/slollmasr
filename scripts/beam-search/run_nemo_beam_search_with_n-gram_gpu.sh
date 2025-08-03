@@ -22,7 +22,7 @@ start=$(date +%s)
 
 python /opt/NeMo/examples/asr/speech_to_text_eval.py \
     model_path="$MODEL_PATH" \
-    amp=True \
+    amp=False \
     amp_dtype=bfloat16 \
     matmul_precision=high \
     compute_dtype=bfloat16 \
