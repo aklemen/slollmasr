@@ -35,7 +35,8 @@ python /opt/NeMo/examples/asr/speech_to_text_eval.py \
     ctc_decoding.beam.beam_size=5 \
     ctc_decoding.beam.beam_beta=0 \
     ctc_decoding.strategy="beam_batch" \
-    ctc_decoding.beam.allow_cuda_graphs=True
+    ctc_decoding.beam.allow_cuda_graphs=True \
+    output_filename="$OUT_DIR/evaluation_transcripts.json"
 
 end=$(date +%s)
 
