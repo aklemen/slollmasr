@@ -2,20 +2,18 @@
 #SBATCH --job-name=beam-search
 #SBATCH --partition=frida
 #SBATCH --time=2-00:00:00
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=A100:2
-#SBATCH --cpus-per-task=64
-#SBATCH --mem-per-gpu=128G
+#SBATCH --gres=gpu:A100_80GB:1
+#SBATCH --cpus-per-task=32
+#SBATCH --mem=128G
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 EXPERIMENT_NAME="beam-search"
 
-BATCH_SIZE=512
+BATCH_SIZE=64
 
 TEST_DATASETS=(
-  "artur/v1.0/nemo/clean/train"
+#  "artur/v1.0/nemo/clean/train"
   "artur/v1.0/nemo/test"
   "commonvoice/v18.0/nemo/clean/all"
   "fleurs/nemo/clean/all"
@@ -72,7 +70,9 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
-# Prepare for beam search
+########################### PREPARE FOR BEAM SEARCH WITH N-GRAM LANGUAGE MODELING ###########################
+
+## Install decoders
 
 apt-get update && apt-get upgrade -y && apt-get install -y swig && rm -rf /var/lib/apt/lists/*
 
@@ -86,11 +86,11 @@ cd /opt/NeMo/decoders && \
 cp /opt/NeMo/scripts/installers/setup_os2s_decoders.py ./setup.py && \
 ./setup.sh
 
-curl -o /opt/NeMo/scripts/asr_language_modeling/ngram_lm/eval_beamsearch_ngram_ctc.py https://raw.githubusercontent.com/aklemen/NeMo/decoding-fix/scripts/asr_language_modeling/ngram_lm/eval_beamsearch_ngram_ctc.py
-curl -o /opt/NeMo/nemo/collections/asr/parts/submodules/ctc_beam_decoding.py https://raw.githubusercontent.com/aklemen/NeMo/decoding-fix/nemo/collections/asr/parts/submodules/ctc_beam_decoding.py
+# Replace eval_beamsearch_ngram_ctc.py with the one with time logging
+curl -o /opt/NeMo/scripts/asr_language_modeling/ngram_lm/eval_beamsearch_ngram_ctc.py https://raw.githubusercontent.com/aklemen/NeMo/time-logging/scripts/asr_language_modeling/ngram_lm/eval_beamsearch_ngram_ctc.py
 
 
-# Run beam search
+############################### RUN BEAM SEARCH WITH N-GRAM LANGUAGE MODELING ###############################
 
 MODEL_PATH=/models/asr/conformer_ctc_bpe.nemo
 TEST_DATASETS_ARRAY=(${TEST_DATASETS[*]})
@@ -106,11 +106,11 @@ for DATASET in \"\${TEST_DATASETS_ARRAY[@]}\"; do
       nemo_model_file=\"\$MODEL_PATH\" \
       input_manifest=\"\$MANIFEST\" \
       preds_output_folder=\"\$RESULT_DIR\" \
-      probs_cache_file=\"\$CACHE_FILE_PATH\" \
+      hyps_cache_file=\"\$CACHE_FILE_PATH\" \
       decoding_mode=beamsearch \
       decoding_strategy=beam \
       beam_width=[5,10,50,100] \
-      beam_batch_size=$BATCH_SIZE \
+      batch_size=$BATCH_SIZE \
       use_amp=True
 
   echo \"Finished beam search for \$DATASET. Beams saved to \$RESULT_DIR.\"

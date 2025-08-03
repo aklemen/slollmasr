@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=beam-search-n-gram
+#SBATCH --job-name=beam-search-4-gram
 #SBATCH --partition=frida
 #SBATCH --time=2-00:00:00
 #SBATCH --gres=gpu:A100_80GB:1
@@ -10,7 +10,7 @@
 
 EXPERIMENT_NAME="beam-search-4-gram"
 
-BATCH_SIZE=256
+BATCH_SIZE=64
 
 TEST_DATASETS=(
 #  "artur/v1.0/nemo/clean/train"
