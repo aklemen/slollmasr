@@ -21,7 +21,7 @@ mkdir -p $OUT_DIR
 start=$(date +%s)
 
 python /opt/NeMo/examples/asr/speech_to_text_eval.py \
-    pretrained_name="$MODEL_PATH" \
+    model_path="$MODEL_PATH" \
     amp=True \
     amp_dtype=bfloat16 \
     matmul_precision=high \
