@@ -12,8 +12,6 @@ from logger import Logger
 
 os.environ["WANDB_PROJECT"] = "H2T-LoRA"
 
-Logger.info(f"Using device map: {device_map}")
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--llm_name', type=str, required=True)
