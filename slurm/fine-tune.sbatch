@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=finetune-lora-gemma-3-1b
+#SBATCH --job-name=finetune-lora-gams-9B
 #SBATCH --partition=frida
-#SBATCH --time=4-00:00:00
+#SBATCH --time=2-00:00:00
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=A100_80GB:1
-#SBATCH --cpus-per-task=32
+#SBATCH --ntasks-per-node=2
+#SBATCH --gpus-per-node=A100_80GB:2
+#SBATCH --cpus-per-task=16
 #SBATCH --mem-per-gpu=64G
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
@@ -64,15 +64,15 @@ mkdir -p \$RESULTS_DIR
 
 pip install trl
 
-python /slollmasr/fine_tune.py \
-  --llm_name google/gemma-3-1b-pt \
+python /slollmasr/sft_fine_tune.py \
+  --llm_name cjvt/GaMS-9B \
   --manifest_file_path /beams/whisper/artur/train/transcribed_manifest.nemo \
   --beams_file_path /beams/whisper/artur/train/beams_10.tsv \
   --beam_size 10 \
   --output_dir_path \$RESULTS_DIR \
   --tokenized_dataset_dir_path /testing/tokenized-artur-train-10 \
-  --run_name lora-gemma-3-1b \
-  --per_device_batch_size 1
+  --run_name lora-gams-9B \
+  --per_device_batch_size 8
 
 echo -e \"\"\"
 # finished at \$(date)
