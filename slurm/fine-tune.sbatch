@@ -12,6 +12,8 @@
 
 EXPERIMENT_NAME="finetune-lora-gams-9B"
 
+NUM_GPUS=2
+
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
   SBATCH_SCRIPT_FILE_PATH=$(scontrol show job "$SLURM_JOB_ID" | awk -F= '/Command=/{print $2}')
@@ -64,7 +66,7 @@ mkdir -p \$RESULTS_DIR
 
 pip install trl
 
-accelerate launch /slollmasr/sft_fine_tune.py \
+accelerate launch --num_processes {$NUM_GPUS} /slollmasr/sft_fine_tune.py \
   --llm_name cjvt/GaMS-9B \
   --manifest_file_path /beams/whisper/artur/train/transcribed_manifest.nemo \
   --beams_file_path /beams/whisper/artur/train/beams_10.tsv \
