@@ -5,7 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --gpus-per-node=A100_80GB:2
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=32
 #SBATCH --mem-per-gpu=64G
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
@@ -62,9 +62,7 @@ export NCCL_DEBUG=INFO
 RESULTS_DIR=\"/exp/results\"
 mkdir -p \$RESULTS_DIR
 
-pip install --upgrade transformers accelerate
-
-pip install trl
+pip install --upgrade trl==0.20.0
 
 accelerate launch /slollmasr/sft_fine_tune.py \
   --llm_name cjvt/GaMS-9B \
