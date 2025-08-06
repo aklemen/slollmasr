@@ -64,7 +64,7 @@ mkdir -p \$RESULTS_DIR
 
 pip install trl
 
-python /slollmasr/sft_fine_tune.py \
+accelerate launch /slollmasr/sft_fine_tune.py \
   --llm_name cjvt/GaMS-9B \
   --manifest_file_path /beams/whisper/artur/train/transcribed_manifest.nemo \
   --beams_file_path /beams/whisper/artur/train/beams_10.tsv \
