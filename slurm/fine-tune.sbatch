@@ -3,7 +3,7 @@
 #SBATCH --partition=frida
 #SBATCH --time=2-00:00:00
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=2
+#SBATCH --ntasks-per-node=1
 #SBATCH --gpus-per-node=A100_80GB:2
 #SBATCH --cpus-per-task=16
 #SBATCH --mem-per-gpu=64G
