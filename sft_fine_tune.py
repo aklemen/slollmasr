@@ -41,7 +41,7 @@ def parse_args():
 
 response_template = "### Transkript:"
 
-if __name__ == '__main__':
+def main():
     args = parse_args()
 
     if args.tokenizer_name is None:
@@ -130,3 +130,7 @@ if __name__ == '__main__':
 
     llm.save_pretrained(f"{args.output_dir_path}/adapter")
     tokenizer.save_pretrained(f"{args.output_dir_path}/tokenizer")
+
+
+if __name__ == '__main__':
+    main()
