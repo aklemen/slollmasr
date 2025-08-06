@@ -6,7 +6,7 @@ from accelerate import PartialState
 from datasets import load_from_disk
 from peft import LoraConfig, TaskType, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
-from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
+from trl import SFTTrainer
 
 from logger import Logger
 
@@ -61,8 +61,6 @@ def main():
 
     Logger.info(f"Train dataset: {tokenized_train}")
     Logger.info(f"Val dataset: {tokenized_val}")
-
-    data_collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=tokenizer)
 
     llm = AutoModelForCausalLM.from_pretrained(
         pretrained_model_name_or_path=args.llm_name,

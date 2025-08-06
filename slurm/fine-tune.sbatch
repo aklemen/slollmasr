@@ -62,7 +62,7 @@ export NCCL_DEBUG=INFO
 RESULTS_DIR=\"/exp/results\"
 mkdir -p \$RESULTS_DIR
 
-pip install --upgrade trl==0.20.0
+pip install trl
 
 accelerate launch /slollmasr/sft_fine_tune.py \
   --llm_name cjvt/GaMS-9B \
