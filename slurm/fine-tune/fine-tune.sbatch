@@ -67,6 +67,7 @@ export WANDB_API_KEY="$WANDB_API_KEY"
 RESULTS_DIR=\"/exp/results\"
 mkdir -p \$RESULTS_DIR
 
+pip install --upgrade transformers accelerate
 pip install trl
 
 accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$NUM_GPUS /slollmasr/sft_fine_tune.py \
