@@ -12,6 +12,7 @@
 
 EXPERIMENT_NAME="finetune-lora-gams-9B"
 
+ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-multi-gpu.yaml"
 NUM_GPUS=2
 
 # get the name of this script
@@ -66,7 +67,7 @@ mkdir -p \$RESULTS_DIR
 
 pip install trl
 
-accelerate launch --num_processes {$NUM_GPUS} /slollmasr/sft_fine_tune.py \
+accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes {$NUM_GPUS} /slollmasr/sft_fine_tune.py \
   --llm_name cjvt/GaMS-9B \
   --manifest_file_path /beams/whisper/artur/train/transcribed_manifest.nemo \
   --beams_file_path /beams/whisper/artur/train/beams_10.tsv \
