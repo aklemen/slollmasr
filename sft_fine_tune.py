@@ -2,11 +2,10 @@ import argparse
 import os
 
 import torch
-from accelerate import PartialState
 from datasets import load_from_disk
 from peft import LoraConfig, TaskType, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
-from trl import SFTTrainer
+from trl import SFTTrainer, SFTConfig
 
 from logger import Logger
 
@@ -78,7 +77,7 @@ def main():
 
     llm.print_trainable_parameters()
 
-    training_args = TrainingArguments(
+    sft_config = SFTConfig(
         output_dir=args.output_dir_path,
         num_train_epochs=3,
         eval_strategy="epoch",
@@ -108,15 +107,15 @@ def main():
         bf16=True,
         dataloader_num_workers=8,
         push_to_hub=False,
+        max_length=512,
     )
 
     trainer = SFTTrainer(
         model=llm,
         train_dataset=tokenized_train,
         eval_dataset=tokenized_val,
-        tokenizer=tokenizer,
-        max_seq_length=512,
-        args=training_args
+        processing_class=tokenizer,
+        args=sft_config
     )
 
     trainer.train()
