@@ -62,6 +62,8 @@ export NCCL_DEBUG=INFO
 RESULTS_DIR=\"/exp/results\"
 mkdir -p \$RESULTS_DIR
 
+pip install --upgrade transformers accelerate
+
 pip install trl
 
 accelerate launch /slollmasr/sft_fine_tune.py \
