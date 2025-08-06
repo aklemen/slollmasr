@@ -10,7 +10,7 @@
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
-EXPERIMENT_NAME="finetune-lora-gemma-3-1b"
+EXPERIMENT_NAME="finetune-lora-gams-9B"
 
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
