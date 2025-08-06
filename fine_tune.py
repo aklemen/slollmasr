@@ -140,7 +140,7 @@ if __name__ == '__main__':
 
     training_args = TrainingArguments(
         output_dir=args.output_dir_path,
-        num_train_epochs=5,
+        num_train_epochs=3,
         eval_strategy="epoch",
         save_strategy="epoch",
         save_total_limit=3,
@@ -158,13 +158,13 @@ if __name__ == '__main__':
         per_device_eval_batch_size=args.per_device_batch_size,
         gradient_accumulation_steps=8,
         optim="adamw_torch",
-        learning_rate=1e-4,
+        learning_rate=5e-5,
         warmup_ratio=0.05,
         weight_decay=0.1,
         adam_beta1=0.9,
         adam_beta2=0.95,
         lr_scheduler_type="cosine_with_min_lr",
-        lr_scheduler_kwargs={"min_lr": 1e-5},
+        lr_scheduler_kwargs={"min_lr": 1e-7},
         bf16=True,
         dataloader_num_workers=8,
         push_to_hub=False
@@ -182,4 +182,3 @@ if __name__ == '__main__':
 
     llm.save_pretrained(f"{args.output_dir_path}/adapter")
     tokenizer.save_pretrained(f"{args.output_dir_path}/tokenizer")
-
