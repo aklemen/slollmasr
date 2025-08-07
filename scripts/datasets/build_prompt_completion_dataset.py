@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
     Logger.info('Loading transcripts from manifest files ...')
     all_transcripts = ManifestDataset(args.manifest_file_path).get_transcripts()
-    all_whisper_transcripts = ManifestDataset(args.whisper_transcribed_manifest_file_path).get_transcripts()
+    all_whisper_transcripts = ManifestDataset(args.whisper_manifest_file_path).get_transcripts()
 
     if len(set(all_transcripts)) != len(all_transcripts):
         raise ValueError("There are duplicate transcripts in the manifest file.")
@@ -58,8 +58,8 @@ if __name__ == '__main__':
         raise ValueError("There are duplicate transcripts in the whisper manifest file.")
 
     Logger.info(f"Loading hypotheses from beams files ...")
-    all_ctc_hypotheses = read_grouped_hypotheses(args.ctc_beams_file_path, args.beam_size)
-    all_whisper_hypotheses = read_grouped_hypotheses(args.whisper_beams_file_path, args.beam_size)
+    all_ctc_hypotheses = read_grouped_hypotheses(args.ctc_beams_file_path, 10)
+    all_whisper_hypotheses = read_grouped_hypotheses(args.whisper_beams_file_path, 10)
 
     number_of_whisper_samples = round(len(all_transcripts) * args.whisper_percentage)
     number_of_ctc_samples = len(all_transcripts) - number_of_whisper_samples
@@ -69,8 +69,8 @@ if __name__ == '__main__':
     if number_of_whisper_samples > len(all_whisper_transcripts):
         raise ValueError(f"Not enough whisper transcripts available. Requested: {number_of_whisper_samples}, Available: {len(all_whisper_transcripts)}")
 
-    whisper_hypotheses = all_whisper_hypotheses[:-number_of_whisper_samples]
-    whisper_transcripts = all_whisper_transcripts[:-number_of_whisper_samples]
+    whisper_hypotheses = all_whisper_hypotheses[:number_of_whisper_samples]
+    whisper_transcripts = all_whisper_transcripts[:number_of_whisper_samples]
     whisper_dataset = Dataset.from_dict({
         "hypotheses": whisper_hypotheses,
         "ground_truth": whisper_transcripts,
@@ -80,7 +80,8 @@ if __name__ == '__main__':
         "hypotheses": all_ctc_hypotheses,
         "ground_truth": all_transcripts,
     })
-    ctc_dataset = all_ctc_dataset.filter(lambda x: x["ground_truth"] not in whisper_transcripts)
+    whisper_transcripts_set = set(whisper_transcripts)
+    ctc_dataset = all_ctc_dataset.filter(lambda x: x["ground_truth"] not in whisper_transcripts_set)
 
     Logger.info(f"Whisper dataset: {whisper_dataset}")
     Logger.info(f"CTC dataset: {ctc_dataset}")
