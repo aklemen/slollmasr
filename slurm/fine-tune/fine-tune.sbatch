@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --job-name=finetune-lora-gams-9B
 #SBATCH --partition=frida
-#SBATCH --time=2-00:00:00
+#SBATCH --time=1-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=A100_80GB:2
+#SBATCH --gpus-per-node=H100:2
 #SBATCH --cpus-per-task=32
 #SBATCH --mem-per-gpu=64G
 #SBATCH --output=/dev/null
@@ -62,7 +62,7 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
-export WANDB_API_KEY="$WANDB_API_KEY"
+export WANDB_API_KEY=$WANDB_API_KEY
 
 RESULTS_DIR=\"/exp/results\"
 mkdir -p \$RESULTS_DIR
@@ -72,12 +72,11 @@ pip install trl
 
 accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$NUM_GPUS /slollmasr/sft_fine_tune.py \
   --llm_name cjvt/GaMS-9B \
-  --manifest_file_path /beams/whisper/artur/train/transcribed_manifest.nemo \
-  --beams_file_path /beams/whisper/artur/train/beams_10.tsv \
-  --beam_size 10 \
   --output_dir_path \$RESULTS_DIR \
-  --tokenized_dataset_dir_path /testing/tokenized-artur-train-10 \
-  --run_name lora-gams-9B \
+  --run_name lora-gams-9B-whisper-ctc \
+  --lora_r 8 \
+  --lora_alpha 16 \
+  --lora_dropout 0.05 \
   --per_device_batch_size 8
 
 echo -e \"\"\"
