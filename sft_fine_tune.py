@@ -43,14 +43,15 @@ def main():
         Logger.info(f"No pad_token available. Setting pad_token to eos_token: {tokenizer.eos_token}")
         tokenizer.pad_token = tokenizer.eos_token
 
-    def convert_to_chat_format(example):
+    def convert_to_standard_format(example):
         return {
             "prompt": example["prompt"][0]["content"],
             "completion": example["completion"][0]["content"],
         }
 
     dataset = load_dataset('aklemen/whisper-ctc-h2t')['train']
-    dataset = dataset.map(convert_to_chat_format)
+    dataset = dataset.map(convert_to_standard_format)
+    Logger.info(f"Example from dataset: {dataset[0]}")
     train_val_dataset = dataset.train_test_split(test_size=0.2, shuffle=True, seed=42)
 
     Logger.info(f"Dataset 80/20 split: {train_val_dataset}")
