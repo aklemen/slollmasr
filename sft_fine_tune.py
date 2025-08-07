@@ -18,7 +18,6 @@ def parse_args():
     parser.add_argument('--tokenizer_name', type=str, required=False)
     parser.add_argument('--output_dir_path', type=str, required=True)
     parser.add_argument("--run_name", type=str, default="lora-finetune")
-    parser.add_argument('--use_language_modelling_dataset_type', type=bool, default=True)
 
     parser.add_argument("--lora_r", type=int, default=8)
     parser.add_argument("--lora_alpha", type=int, default=16)
@@ -30,15 +29,6 @@ def parse_args():
     Logger.info(arguments)
     Logger.info("===================================")
     return arguments
-
-
-def prompt_completion_to_language_modelling(example):
-    return {
-        "messages": [
-            {"role": "user", "content": example["prompt"]},
-            {"role": "assistant", "content": example["completion"]}
-        ]
-    }
 
 
 def main():
@@ -53,9 +43,14 @@ def main():
         Logger.info(f"No pad_token available. Setting pad_token to eos_token: {tokenizer.eos_token}")
         tokenizer.pad_token = tokenizer.eos_token
 
+    def convert_to_chat_format(example):
+        return {
+            "prompt": tokenizer.apply_chat_template(example["prompt"], tokenize=False, add_generation_prompt=False),
+            "completion": tokenizer.apply_chat_template(example["completion"], tokenize=False, add_generation_prompt=False),
+        }
+
     dataset = load_dataset('aklemen/whisper-ctc-h2t')['train']
-    if args.use_language_modelling_dataset_type:
-        dataset = dataset.map(prompt_completion_to_language_modelling)
+    dataset = dataset.map(convert_to_chat_format)
     train_val_dataset = dataset.train_test_split(test_size=0.2, shuffle=True, seed=42)
 
     Logger.info(f"Dataset 80/20 split: {train_val_dataset}")
@@ -110,7 +105,6 @@ def main():
         dataloader_num_workers=8,
         push_to_hub=False,
         max_length=512,
-        assistant_only_loss=True
     )
 
     trainer = SFTTrainer(
