@@ -31,6 +31,13 @@ def parse_args():
     return arguments
 
 
+def convert_to_standard_format(example):
+    return {
+        "prompt": example["prompt"][0]["content"],
+        "completion": example["completion"][0]["content"],
+    }
+
+
 def main():
     args = parse_args()
 
@@ -42,12 +49,6 @@ def main():
     if tokenizer.pad_token is None:
         Logger.info(f"No pad_token available. Setting pad_token to eos_token: {tokenizer.eos_token}")
         tokenizer.pad_token = tokenizer.eos_token
-
-    def convert_to_standard_format(example):
-        return {
-            "prompt": example["prompt"][0]["content"],
-            "completion": example["completion"][0]["content"],
-        }
 
     dataset = load_dataset('aklemen/whisper-ctc-h2t')['train']
     dataset = dataset.map(convert_to_standard_format)
