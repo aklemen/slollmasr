@@ -45,8 +45,8 @@ def main():
 
     def convert_to_chat_format(example):
         return {
-            "prompt": tokenizer.apply_chat_template(example["prompt"], tokenize=False, add_generation_prompt=False),
-            "completion": tokenizer.apply_chat_template(example["completion"], tokenize=False, add_generation_prompt=False),
+            "prompt": example["prompt"][0]["content"],
+            "completion": example["completion"][0]["content"],
         }
 
     dataset = load_dataset('aklemen/whisper-ctc-h2t')['train']
