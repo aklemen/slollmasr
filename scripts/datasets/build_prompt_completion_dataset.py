@@ -76,6 +76,7 @@ if __name__ == '__main__':
         raise ValueError(f"Not enough whisper transcripts available. Requested: {number_of_whisper_samples}, Available: {len(whisper_manifest)}")
 
     # remove
+    print("-" * 50)
     Logger.info(f"Number of CTC hypotheses: {len(all_ctc_hypotheses)}")
     Logger.info(f"Number of Whisper hypotheses: {len(all_whisper_hypotheses)}")
     Logger.info(f"Number of CTC transcripts: {len(ctc_manifest)}")
@@ -87,6 +88,7 @@ if __name__ == '__main__':
     whisper_utterances = [entry["utterance"] for entry in whisper_manifest][:number_of_whisper_samples]
 
     # remove
+    print("-" * 50)
     Logger.info(f"Number of Whisper hypotheses: {len(whisper_hypotheses)}")
     Logger.info(f"Number of Whisper transcripts: {len(whisper_transcripts)}")
     Logger.info(f"Number of Whisper utterances: {len(whisper_utterances)}")
@@ -99,6 +101,13 @@ if __name__ == '__main__':
 
     all_ctc_transcripts = [entry["text"] for entry in ctc_manifest]
     all_ctc_utterances = [entry["utterance"] for entry in ctc_manifest]
+
+    # remove
+    print("-" * 50)
+    Logger.info(f"Number of CTC hypotheses: {len(all_ctc_hypotheses)}")
+    Logger.info(f"Number of CTC transcripts: {len(all_ctc_transcripts)}")
+    Logger.info(f"Number of CTC utterances: {len(all_ctc_utterances)}")
+
     all_ctc_dataset = Dataset.from_dict({
         "hypotheses": all_ctc_hypotheses,
         "ground_truth": all_ctc_transcripts,
