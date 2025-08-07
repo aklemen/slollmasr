@@ -56,7 +56,7 @@ def main():
     dataset = load_dataset('aklemen/whisper-ctc-h2t')
     if args.use_language_modelling_dataset_type:
         dataset = dataset['train'].map(prompt_completion_to_language_modelling)
-    train_val_dataset=dataset['train'].train_test_split(test_size=0.2, shuffle=True, seed=42)
+    train_val_dataset = dataset['train'].train_test_split(test_size=0.2, shuffle=True, seed=42)
 
     Logger.info(f"Dataset 80/20 split: {train_val_dataset}")
 
