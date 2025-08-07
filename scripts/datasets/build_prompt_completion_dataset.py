@@ -97,6 +97,7 @@ if __name__ == '__main__':
     Logger.info(f"Prompt-completion dataset: {prompt_completion_dataset}")
 
     dataset_name = "whisper-ctc-h2t"
+    os.makedirs(args.output_dir_path, exist_ok=True)
     output_path = os.path.join(args.output_dir_path, dataset_name)
     prompt_completion_dataset.save_to_disk(output_path)
     prompt_completion_dataset.push_to_hub(f'aklemen/{dataset_name}', private=True)
