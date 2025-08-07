@@ -57,7 +57,7 @@ def main():
     Logger.info(f"Train dataset: {tokenized_train}")
     Logger.info(f"Val dataset: {tokenized_val}")
 
-    llm = AutoModelForCausalLM.from_pretrained(
+    model = AutoModelForCausalLM.from_pretrained(
         pretrained_model_name_or_path=args.llm_name,
         attn_implementation="flash_attention_2",
         torch_dtype=torch.bfloat16,
@@ -71,11 +71,11 @@ def main():
         target_modules="all-linear",
     )
 
-    Logger.info(f"Model BEFORE applying LoRA: {llm}")
-    llm = get_peft_model(llm, peft_config)
-    Logger.info(f"Model AFTER applying LoRA: {llm}")
+    Logger.info(f"Model BEFORE applying LoRA: {model}")
+    model = get_peft_model(model, peft_config)
+    Logger.info(f"Model AFTER applying LoRA: {model}")
 
-    llm.print_trainable_parameters()
+    model.print_trainable_parameters()
 
     sft_config = SFTConfig(
         output_dir=args.output_dir_path,
@@ -85,7 +85,6 @@ def main():
         save_total_limit=3,
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
-        # prediction_loss_only=True, # Returns only the loss, no predictions
         greater_is_better=False,
         logging_dir=f"{args.output_dir_path}/logs",
         logging_strategy="steps",
@@ -111,7 +110,7 @@ def main():
     )
 
     trainer = SFTTrainer(
-        model=llm,
+        model=model,
         train_dataset=tokenized_train,
         eval_dataset=tokenized_val,
         processing_class=tokenizer,
@@ -120,7 +119,7 @@ def main():
 
     trainer.train()
 
-    llm.save_pretrained(f"{args.output_dir_path}/adapter")
+    model.save_pretrained(f"{args.output_dir_path}/adapter")
     tokenizer.save_pretrained(f"{args.output_dir_path}/tokenizer")
 
 
