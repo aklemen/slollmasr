@@ -106,7 +106,7 @@ def main():
         bf16=True,
         dataloader_num_workers=8,
         push_to_hub=False,
-        max_length=512,
+        max_length=2048,
     )
 
     trainer = SFTTrainer(
