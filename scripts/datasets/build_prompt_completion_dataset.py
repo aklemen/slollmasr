@@ -75,9 +75,22 @@ if __name__ == '__main__':
     if number_of_whisper_samples > len(whisper_manifest):
         raise ValueError(f"Not enough whisper transcripts available. Requested: {number_of_whisper_samples}, Available: {len(whisper_manifest)}")
 
+    # remove
+    Logger.info(f"Number of CTC hypotheses: {len(all_ctc_hypotheses)}")
+    Logger.info(f"Number of Whisper hypotheses: {len(all_whisper_hypotheses)}")
+    Logger.info(f"Number of CTC transcripts: {len(ctc_manifest)}")
+    Logger.info(f"Number of Whisper transcripts: {len(whisper_manifest)}")
+
+
     whisper_hypotheses = all_whisper_hypotheses[:number_of_whisper_samples]
     whisper_transcripts = [entry["text"] for entry in whisper_manifest][:number_of_whisper_samples]
     whisper_utterances = [entry["utterance"] for entry in whisper_manifest][:number_of_whisper_samples]
+
+    # remove
+    Logger.info(f"Number of Whisper hypotheses: {len(whisper_hypotheses)}")
+    Logger.info(f"Number of Whisper transcripts: {len(whisper_transcripts)}")
+    Logger.info(f"Number of Whisper utterances: {len(whisper_utterances)}")
+
     whisper_dataset = Dataset.from_dict({
         "hypotheses": whisper_hypotheses,
         "ground_truth": whisper_transcripts,
