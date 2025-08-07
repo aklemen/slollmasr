@@ -53,10 +53,10 @@ def main():
         Logger.info(f"No pad_token available. Setting pad_token to eos_token: {tokenizer.eos_token}")
         tokenizer.pad_token = tokenizer.eos_token
 
-    dataset = load_dataset('aklemen/whisper-ctc-h2t')
+    dataset = load_dataset('aklemen/whisper-ctc-h2t')['train']
     if args.use_language_modelling_dataset_type:
-        dataset = dataset['train'].map(prompt_completion_to_language_modelling)
-    train_val_dataset = dataset['train'].train_test_split(test_size=0.2, shuffle=True, seed=42)
+        dataset = dataset.map(prompt_completion_to_language_modelling)
+    train_val_dataset = dataset.train_test_split(test_size=0.2, shuffle=True, seed=42)
 
     Logger.info(f"Dataset 80/20 split: {train_val_dataset}")
 
