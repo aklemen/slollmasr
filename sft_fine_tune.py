@@ -18,8 +18,8 @@ def parse_args():
     parser.add_argument('--output_dir_path', type=str, required=True)
     parser.add_argument("--run_name", type=str, default="lora-finetune")
 
-    parser.add_argument("--lora_r", type=float, default=8)
-    parser.add_argument("--lora_alpha", type=float, default=16)
+    parser.add_argument("--lora_r", type=int, default=8)
+    parser.add_argument("--lora_alpha", type=int, default=16)
     parser.add_argument("--lora_dropout", type=float, default=0.05)
     parser.add_argument("--per_device_batch_size", type=int, default=8)
 
