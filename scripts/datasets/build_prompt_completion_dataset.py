@@ -53,9 +53,9 @@ if __name__ == '__main__':
     all_whisper_transcripts = ManifestDataset(args.whisper_manifest_file_path).get_transcripts()
 
     if len(set(all_transcripts)) != len(all_transcripts):
-        raise ValueError("There are duplicate transcripts in the manifest file.")
+        raise ValueError(f"There are duplicate transcripts in the manifest file. Unique transcripts: {len(set(all_transcripts))}, all transcripts: {len(all_transcripts)}.")
     if len(set(all_whisper_transcripts)) != len(all_whisper_transcripts):
-        raise ValueError("There are duplicate transcripts in the whisper manifest file.")
+        raise ValueError(f"There are duplicate transcripts in the whisper manifest file. Unique transcripts: {len(set(all_whisper_transcripts))}, all transcripts: {len(all_whisper_transcripts)}.")
 
     Logger.info(f"Loading hypotheses from beams files ...")
     all_ctc_hypotheses = read_grouped_hypotheses(args.ctc_beams_file_path, 10)
