@@ -53,6 +53,7 @@ def read_manifest(manifest_file_path):
 def read_grouped_hypotheses(beams_file_path, beam_size):
     hypotheses = pd.read_csv(beams_file_path, delimiter="\t", header=None, names=["text", "score"])
     hypotheses = hypotheses["text"].tolist()
+    hypotheses = [str(text) for text in hypotheses]
     return [hypotheses[i:i + beam_size] for i in range(0, len(hypotheses), beam_size)]
 
 
@@ -73,25 +74,12 @@ if __name__ == '__main__':
     Logger.info(f"Number of wanted CTC samples: {number_of_ctc_samples}")
 
     if number_of_whisper_samples > len(whisper_manifest):
-        raise ValueError(f"Not enough whisper transcripts available. Requested: {number_of_whisper_samples}, Available: {len(whisper_manifest)}")
-
-    # remove
-    print("-" * 50)
-    Logger.info(f"Number of CTC hypotheses: {len(all_ctc_hypotheses)}")
-    Logger.info(f"Number of Whisper hypotheses: {len(all_whisper_hypotheses)}")
-    Logger.info(f"Number of CTC transcripts: {len(ctc_manifest)}")
-    Logger.info(f"Number of Whisper transcripts: {len(whisper_manifest)}")
-
+        raise ValueError(
+            f"Not enough whisper transcripts available. Requested: {number_of_whisper_samples}, Available: {len(whisper_manifest)}")
 
     whisper_hypotheses = all_whisper_hypotheses[:number_of_whisper_samples]
     whisper_transcripts = [entry["text"] for entry in whisper_manifest][:number_of_whisper_samples]
     whisper_utterances = [entry["utterance"] for entry in whisper_manifest][:number_of_whisper_samples]
-
-    # remove
-    print("-" * 50)
-    Logger.info(f"Number of Whisper hypotheses: {len(whisper_hypotheses)}")
-    Logger.info(f"Number of Whisper transcripts: {len(whisper_transcripts)}")
-    Logger.info(f"Number of Whisper utterances: {len(whisper_utterances)}")
 
     whisper_dataset = Dataset.from_dict({
         "hypotheses": whisper_hypotheses,
@@ -101,12 +89,6 @@ if __name__ == '__main__':
 
     all_ctc_transcripts = [entry["text"] for entry in ctc_manifest]
     all_ctc_utterances = [entry["utterance"] for entry in ctc_manifest]
-
-    # remove
-    print("-" * 50)
-    Logger.info(f"Number of CTC hypotheses: {len(all_ctc_hypotheses)}")
-    Logger.info(f"Number of CTC transcripts: {len(all_ctc_transcripts)}")
-    Logger.info(f"Number of CTC utterances: {len(all_ctc_utterances)}")
 
     all_ctc_dataset = Dataset.from_dict({
         "hypotheses": all_ctc_hypotheses,
@@ -118,10 +100,9 @@ if __name__ == '__main__':
 
     Logger.info(f"Whisper dataset: {whisper_dataset}")
     Logger.info(f"CTC dataset: {ctc_dataset}")
-    
+
     dataset = concatenate_datasets([whisper_dataset, ctc_dataset])
     Logger.info(f"Combined dataset: {dataset}")
-
 
     prompt_completion_dataset = dataset.map(generate_sample, remove_columns=["hypotheses", "ground_truth", "utterance"])
 
