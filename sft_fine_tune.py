@@ -126,5 +126,6 @@ def main():
     model.save_pretrained(f"{args.output_dir_path}/adapter")
     tokenizer.save_pretrained(f"{args.output_dir_path}/tokenizer")
 
-    if __name__ == '__main__':
-        main()
+
+if __name__ == '__main__':
+    main()
