@@ -79,7 +79,7 @@ def main():
 
     sft_config = SFTConfig(
         output_dir=args.output_dir_path,
-        num_train_epochs=3,
+        num_train_epochs=5,
         eval_strategy="epoch",
         save_strategy="epoch",
         save_total_limit=3,
