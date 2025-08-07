@@ -2,7 +2,7 @@ import argparse
 import os
 
 import torch
-from datasets import load_from_disk
+from datasets import load_dataset
 from peft import LoraConfig, TaskType, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
 from trl import SFTTrainer, SFTConfig
@@ -19,7 +19,6 @@ def parse_args():
     parser.add_argument('--beams_file_path', type=str, required=True)
     parser.add_argument('--beam_size', type=int, required=True)
     parser.add_argument('--output_dir_path', type=str, required=True)
-    parser.add_argument('--tokenized_dataset_dir_path', type=str, required=True)
     parser.add_argument("--run_name", type=str, default="lora-finetune")
 
     parser.add_argument("--lora_r", type=float, default=16)
@@ -34,8 +33,6 @@ def parse_args():
     return arguments
 
 
-response_template = "### Transkript:"
-
 def main():
     args = parse_args()
 
@@ -48,14 +45,11 @@ def main():
         Logger.info(f"No pad_token available. Setting pad_token to eos_token: {tokenizer.eos_token}")
         tokenizer.pad_token = tokenizer.eos_token
 
-    Logger.info(f"Loading tokenized datasets (train, val) from {args.tokenized_dataset_dir_path} ...")
-    tokenized_train_path = os.path.join(args.tokenized_dataset_dir_path, "train")
-    tokenized_val_path = os.path.join(args.tokenized_dataset_dir_path, "val")
-    tokenized_train = load_from_disk(tokenized_train_path)
-    tokenized_val = load_from_disk(tokenized_val_path)
+    dataset = load_dataset('aklemen/whisper-ctc-h2t')
+    train_val_dataset = dataset['train'].train_test_split(test_size=0.2, shuffle=True, seed=42)
 
-    Logger.info(f"Train dataset: {tokenized_train}")
-    Logger.info(f"Val dataset: {tokenized_val}")
+
+    Logger.info(f"Dataset 80/20 split: {train_val_dataset}")
 
     model = AutoModelForCausalLM.from_pretrained(
         pretrained_model_name_or_path=args.llm_name,
@@ -111,8 +105,8 @@ def main():
 
     trainer = SFTTrainer(
         model=model,
-        train_dataset=tokenized_train,
-        eval_dataset=tokenized_val,
+        train_dataset=train_val_dataset['train'],
+        eval_dataset=train_val_dataset['test'],
         processing_class=tokenizer,
         args=sft_config
     )
