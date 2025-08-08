@@ -5,6 +5,7 @@ import re
 from collections import Counter
 
 import pandas as pd
+from tqdm import tqdm
 from transformers import AutoTokenizer
 
 from logger import Logger
@@ -87,7 +88,7 @@ if __name__ == "__main__":
     Logger.info(f"Max tokens to accept: {max_tokens} (safety buffer: {safety_buffer})")
 
     whisper_indices_to_remove = []
-    for i, hypotheses in enumerate(whisper_hypotheses):
+    for i, hypotheses in tqdm(enumerate(whisper_hypotheses)):
         total_tokens = count_tokens("\n".join(hypotheses))
         repetition_info = detect_repetition(hypotheses[0])
 
