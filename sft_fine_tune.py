@@ -23,6 +23,7 @@ def parse_args():
     parser.add_argument("--lora_alpha", type=int, default=16)
     parser.add_argument("--lora_dropout", type=float, default=0.05)
     parser.add_argument("--per_device_batch_size", type=int, default=8)
+    parser.add_argument("--epochs", type=int, default=5)
 
     arguments = parser.parse_args()
     Logger.info("============ ARGUMENTS ============")
@@ -79,7 +80,7 @@ def main():
 
     sft_config = SFTConfig(
         output_dir=args.output_dir_path,
-        num_train_epochs=5,
+        num_train_epochs=args.epochs,
         eval_strategy="epoch",
         save_strategy="epoch",
         save_total_limit=3,
