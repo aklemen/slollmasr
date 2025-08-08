@@ -54,7 +54,7 @@ else
 fi
 
 # time of running script
-DATETIME=$(date -d "+1 hour" "+%Y-%m-%d___%H-%M-%S_%3N")
+DATETIME=$(TZ="Europe/Ljubljana" date "+%Y-%m-%d___%H-%M-%S_%3N")
 
 # experiment dir
 EXPERIMENT_DIR="simple-causal-rescore/$EXPERIMENT_NAME/$DATETIME"
