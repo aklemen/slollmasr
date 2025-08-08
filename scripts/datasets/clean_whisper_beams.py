@@ -3,6 +3,7 @@ import json
 import os
 
 import pandas as pd
+from transformers import AutoTokenizer
 
 from logger import Logger
 
@@ -18,6 +19,7 @@ def parse_args():
     Logger.info(arguments)
     Logger.info("===================================")
     return arguments
+
 
 def read_manifest(manifest_file_path):
     with open(manifest_file_path, 'r', encoding='utf-8') as f:
@@ -36,21 +38,30 @@ if __name__ == "__main__":
 
     os.makedirs(args.output_dir_path, exist_ok=True)
 
+    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name)
+
+    def count_tokens(text):
+        return len(tokenizer.encode(text, truncation=False))
+
     whisper_manifest = read_manifest(args.whisper_manifest_file_path)
     whisper_hypotheses = read_grouped_hypotheses(args.whisper_beams_file_path, 10)
 
-    utterance_with_max_transcript_length = max(whisper_manifest, key=lambda x: len(x["text"]))
+    utterance_with_max_transcript_tokens = max(whisper_manifest, key=lambda x: count_tokens(x["text"]))
 
-    Logger.info(f"Utterance with max transcript length: {utterance_with_max_transcript_length}")
+    Logger.info(f"Utterance with max transcript tokens: {utterance_with_max_transcript_tokens}")
 
-    safety_buffer = 100 # chars
+    safety_buffer = 50
 
     beam_size = 10
-    max_length = len(utterance_with_max_transcript_length["text"]) * beam_size
-    max_length += safety_buffer
-    Logger.info(f"Max length to accept: {max_length} (safety buffer: {safety_buffer})")
+    max_tokens = count_tokens(utterance_with_max_transcript_tokens["text"]) * beam_size
+    max_tokens += safety_buffer
 
-    whisper_indices_to_remove = [i for i, hypotheses in enumerate(whisper_hypotheses) if len("".join(hypotheses)) > max_length]
+    Logger.info(f"Max tokens to accept: {max_tokens} (safety buffer: {safety_buffer})")
+
+    whisper_indices_to_remove = [
+        i for i, hypotheses in enumerate(whisper_hypotheses)
+        if count_tokens("".join(hypotheses)) > max_tokens
+    ]
 
     Logger.info(f"Number of hypotheses to remove: {len(whisper_indices_to_remove)}")
 
