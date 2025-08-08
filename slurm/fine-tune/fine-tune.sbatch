@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --job-name=finetune-lora-gams-9B
 #SBATCH --partition=frida
-#SBATCH --time=1-00:00:00
+#SBATCH --time=0-15:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=H100:2
+#SBATCH --gpus-per-node=H100:4
 #SBATCH --cpus-per-task=32
 #SBATCH --mem-per-gpu=64G
 #SBATCH --output=/dev/null
@@ -13,7 +13,13 @@
 EXPERIMENT_NAME="finetune-lora-gams-9B"
 
 ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-multi-gpu.yaml"
-NUM_GPUS=2
+NUM_GPUS=4
+PER_DEVICE_BATCH_SIZE=2
+
+if [ -z "${WANDB_API_KEY:-}" ]; then
+  echo "WANDB_API_KEY is not set. Please set it before running the script."
+  exit 1
+fi
 
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
@@ -77,7 +83,7 @@ accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$NUM_GPU
   --lora_r 8 \
   --lora_alpha 16 \
   --lora_dropout 0.05 \
-  --per_device_batch_size 8
+  --per_device_batch_size $PER_DEVICE_BATCH_SIZE
 
 echo -e \"\"\"
 # finished at \$(date)
