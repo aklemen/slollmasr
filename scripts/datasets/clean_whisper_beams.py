@@ -49,10 +49,21 @@ def detect_repetition(text, min_repeat_count=5, max_char_repeat=5, min_pattern_r
 
     pattern_repeats = []
     for pattern_len in range(2, 6):
-        pattern = r'(.{' + str(pattern_len) + r'})\1{' + str(min_pattern_repeats - 1) + r',}'
-        matches = re.findall(pattern, text.lower())
-        if matches:
-            pattern_repeats.extend(matches)
+        # Find all starting positions of patterns
+        for start in range(len(text) - pattern_len * min_pattern_repeats + 1):
+            pattern = text[start:start + pattern_len].lower()
+
+            # Count consecutive repetitions starting at this position
+            count = 0
+            pos = start
+            while pos + pattern_len <= len(text) and text[pos:pos + pattern_len].lower() == pattern:
+                count += 1
+                pos += pattern_len
+
+            # If we found enough repetitions, add to results
+            if count >= min_pattern_repeats:
+                pattern_repeats.append(pattern)
+                break  # Move to next pattern length to avoid duplicates
 
     unique_words = len(set(words))
     total_words = len(words)
