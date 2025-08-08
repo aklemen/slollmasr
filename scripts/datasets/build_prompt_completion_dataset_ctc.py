@@ -62,7 +62,7 @@ if __name__ == '__main__':
     ctc_manifest = read_manifest(args.manifest_file_path)
 
     Logger.info(f"Loading hypotheses from beams files ...")
-    ctc_hypotheses = read_grouped_hypotheses(args.ctc_beams_file_path, 10)
+    ctc_hypotheses = read_grouped_hypotheses(args.beams_file_path, 10)
 
     dataset = Dataset.from_dict({
         "hypotheses": ctc_hypotheses,
