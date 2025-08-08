@@ -47,7 +47,12 @@ def detect_repetition(text, min_repeat_count=5, max_char_repeat=5, min_pattern_r
 
     char_repeats = re.findall(r'(.)\1{' + str(max_char_repeat) + ',}', text.lower())
 
-    pattern_repeats = re.findall(r'(.{2})\1{' + str(min_pattern_repeats - 1) + ',}', text.lower())
+    pattern_repeats = []
+    for pattern_len in range(2, 6):
+        pattern = r'(.{' + str(pattern_len) + r'})\1{' + str(min_pattern_repeats - 1) + r',}'
+        matches = re.findall(pattern, text.lower())
+        if matches:
+            pattern_repeats.extend(matches)
 
     unique_words = len(set(words))
     total_words = len(words)
