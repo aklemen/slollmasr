@@ -38,7 +38,8 @@ if __name__ == "__main__":
 
     os.makedirs(args.output_dir_path, exist_ok=True)
 
-    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name)
+    model_name = "google/gemma-2b"
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     def count_tokens(text):
         return len(tokenizer.encode(text, truncation=False))
