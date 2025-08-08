@@ -98,17 +98,28 @@ if __name__ == "__main__":
     Logger.info(f"Number of hypotheses to remove: {len(whisper_indices_to_remove)}")
 
     manifest_output_path = os.path.join(args.output_dir_path, "whisper_manifest_cleaned.nemo")
-    with open(manifest_output_path, 'w', encoding='utf-8') as f:
+    removes_manifest_output_path = os.path.join(args.output_dir_path, "whisper_manifest_removed.nemo")
+
+    with open(manifest_output_path, 'w', encoding='utf-8') as clean_f, \
+            open(removes_manifest_output_path, 'w', encoding='utf-8') as removed_f:
         for i, entry in enumerate(whisper_manifest):
-            if i not in whisper_indices_to_remove:
-                f.write(json.dumps(entry, ensure_ascii=False) + '\n')
+            json_line = json.dumps(entry, ensure_ascii=False) + '\n'
+            if i in whisper_indices_to_remove:
+                removed_f.write(json_line)
+            else:
+                clean_f.write(json_line)
 
     beams_indices_to_remove = []
     for index in whisper_indices_to_remove:
         beams_indices_to_remove.extend(range(index * beam_size, (index + 1) * beam_size))
+
     beams_output_path = os.path.join(args.output_dir_path, "whisper_beams_cleaned.tsv")
+    removed_beams_output_path = os.path.join(args.output_dir_path, "whisper_beams_removed.tsv")
+
     df_hypotheses = pd.read_csv(args.whisper_beams_file_path, delimiter="\t", header=None, names=["text", "score"])
     df_cleaned = df_hypotheses.drop(beams_indices_to_remove)
     df_cleaned.to_csv(beams_output_path, sep="\t", header=False, index=False)
+    df_removed = df_hypotheses.iloc[beams_indices_to_remove]
+    df_removed.to_csv(removed_beams_output_path, sep="\t", header=False, index=False)
 
     Logger.info(f"Cleaned files saved to: {manifest_output_path} and {beams_output_path}")
