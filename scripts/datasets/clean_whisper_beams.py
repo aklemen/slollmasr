@@ -35,7 +35,7 @@ def read_grouped_hypotheses(beams_file_path, beam_size):
     hypotheses = [str(text) for text in hypotheses]
     return [hypotheses[i:i + beam_size] for i in range(0, len(hypotheses), beam_size)]
 
-def detect_repetition(text, min_repeat_count=5, max_char_repeat=5):
+def detect_repetition(text, min_repeat_count=5, max_char_repeat=5, min_pattern_repeats=10):
     words = text.lower().split()
     word_counts = Counter(words)
     repeated_words = {word: count for word, count in word_counts.items() if count >= min_repeat_count}
@@ -47,15 +47,18 @@ def detect_repetition(text, min_repeat_count=5, max_char_repeat=5):
 
     char_repeats = re.findall(r'(.)\1{' + str(max_char_repeat) + ',}', text.lower())
 
+    pattern_repeats = re.findall(r'(.{2})\1{' + str(min_pattern_repeats - 1) + ',}', text.lower())
+
     unique_words = len(set(words))
     total_words = len(words)
     repetition_ratio = 1 - (unique_words / total_words) if total_words > 0 else 0
 
     return {
-        'has_repetition': bool(repeated_words or consecutive_repeats or char_repeats),
+        'has_repetition': bool(repeated_words or consecutive_repeats or char_repeats or pattern_repeats),
         'repeated_words': repeated_words,
         'consecutive_repeats': list(set(consecutive_repeats)),
         'char_repeats': char_repeats,
+        'pattern_repeats': pattern_repeats,
         'repetition_ratio': repetition_ratio,
         'is_highly_repetitive': repetition_ratio > 0.7
     }
