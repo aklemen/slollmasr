@@ -1,6 +1,8 @@
 import argparse
 import json
 import os
+import re
+from collections import Counter
 
 import pandas as pd
 from transformers import AutoTokenizer
@@ -32,6 +34,31 @@ def read_grouped_hypotheses(beams_file_path, beam_size):
     hypotheses = [str(text) for text in hypotheses]
     return [hypotheses[i:i + beam_size] for i in range(0, len(hypotheses), beam_size)]
 
+def detect_repetition(text, min_repeat_count=5, max_char_repeat=5):
+    words = text.lower().split()
+    word_counts = Counter(words)
+    repeated_words = {word: count for word, count in word_counts.items() if count >= min_repeat_count}
+
+    consecutive_repeats = []
+    for i in range(len(words) - 1):
+        if words[i] == words[i + 1]:
+            consecutive_repeats.append(words[i])
+
+    char_repeats = re.findall(r'(.)\1{' + str(max_char_repeat) + ',}', text.lower())
+
+    unique_words = len(set(words))
+    total_words = len(words)
+    repetition_ratio = 1 - (unique_words / total_words) if total_words > 0 else 0
+
+    return {
+        'has_repetition': bool(repeated_words or consecutive_repeats or char_repeats),
+        'repeated_words': repeated_words,
+        'consecutive_repeats': list(set(consecutive_repeats)),
+        'char_repeats': char_repeats,
+        'repetition_ratio': repetition_ratio,
+        'is_highly_repetitive': repetition_ratio > 0.7
+    }
+
 
 if __name__ == "__main__":
     args = parse_args()
@@ -59,10 +86,13 @@ if __name__ == "__main__":
 
     Logger.info(f"Max tokens to accept: {max_tokens} (safety buffer: {safety_buffer})")
 
-    whisper_indices_to_remove = [
-        i for i, hypotheses in enumerate(whisper_hypotheses)
-        if count_tokens("".join(hypotheses)) > max_tokens
-    ]
+    whisper_indices_to_remove = []
+    for i, hypotheses in enumerate(whisper_hypotheses):
+        total_tokens = count_tokens("\n".join(hypotheses))
+        repetition_info = detect_repetition(hypotheses[0])
+
+        if total_tokens > max_tokens or repetition_info['has_repetition'] or repetition_info['is_highly_repetitive']:
+            whisper_indices_to_remove.append(i)
 
     Logger.info(f"Number of hypotheses to remove: {len(whisper_indices_to_remove)}")
 
