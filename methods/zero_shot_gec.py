@@ -1,5 +1,5 @@
 from torch_datasets.hypotheses_dataset import HypothesesDataset
-from utils.build_chats import build_chats
+from utils.build_chats import build_prompt_dataset
 from utils.prompter import Prompter
 
 
@@ -8,7 +8,7 @@ class ZeroShotGec:
         self.prompter = Prompter(llm_name, tokenizer_name, batch_size)
 
     def run(self, dataset: HypothesesDataset):
-        chats = build_chats(dataset, self._build_chat)
+        chats = build_prompt_dataset(dataset, self._build_chat)
         return self.prompter.execute_chats(chats)
 
     def _build_chat(self, hypotheses: list[str]) -> list[dict[str, str]]:

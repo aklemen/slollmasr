@@ -1,5 +1,4 @@
 import gc
-import string
 
 import torch
 from tqdm import tqdm
@@ -8,17 +7,22 @@ from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 from logger import Logger
 from torch_datasets.prompts_dataset import PromptsDataset
 from utils.are_chat_templates_supported import are_chat_templates_supported
+from utils.sanitize_string import sanitize_string
 
 
 class Prompter:
     def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 8):
-        self._tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True, padding_side="left")
+        self._tokenizer = AutoTokenizer.from_pretrained(
+            tokenizer_name,
+            use_fast=True,
+            padding_side="left",
+        )
         if not are_chat_templates_supported(self._tokenizer):
             raise Exception(f"Chat templates are not supported by the given tokenizer: {tokenizer_name}.")
         if self._tokenizer.pad_token is None:
             Logger.info(f"No pad_token available. Setting pad_token to eos_token: {self._tokenizer.eos_token}")
             self._tokenizer.pad_token = self._tokenizer.eos_token
-        llm = AutoModelForCausalLM.from_pretrained(
+        model = AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=llm_name,
             attn_implementation="flash_attention_2",
             device_map="auto",
@@ -26,7 +30,7 @@ class Prompter:
         )
         self._generator = pipeline(
             "text-generation",
-            model=llm,
+            model=model,
             tokenizer=self._tokenizer,
             device_map="auto",
             torch_dtype=torch.bfloat16,
@@ -66,7 +70,7 @@ class Prompter:
                 total=len(unprocessed_sorted_dataset)
             )):
                 generated_text = output[-1]["generated_text"]
-                sanitized_text = self._sanitize_llm_output(generated_text)
+                sanitized_text = sanitize_string(generated_text)
                 original_index = unprocessed_original_indices[idx]
                 last_best_hypotheses[original_index] = sanitized_text
                 last_processed_idx += 1
@@ -89,7 +93,7 @@ class Prompter:
     def _transform_chat_to_prompt(self, chat: list[dict[str, str]]) -> str:
         return self._tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
 
-    def _sort_prompts(self, prompts: list[str]) -> [list[int], list[str]]:
+    def _sort_prompts(self, prompts: list[str]) -> tuple[list[int], list[str]]:
         Logger.info(f"First prompt: {prompts[0]}")
         Logger.info(f"First response: {self._generator(prompts[0])[-1]['generated_text']}")
 
@@ -102,6 +106,3 @@ class Prompter:
         Logger.info(f"First sorted response: {self._generator(sorted_prompts[0])[-1]['generated_text']}")
 
         return original_indices, sorted_prompts
-
-    def _sanitize_llm_output(self, text: str) -> str:
-        return text.strip().translate(str.maketrans('', '', string.punctuation)).lower()
