@@ -14,8 +14,8 @@ EXPERIMENT_NAME="finetune-lora-gams-9B"
 
 ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-multi-gpu.yaml"
 NUM_GPUS=4
-PER_DEVICE_BATCH_SIZE=4
-EPOCHS=3
+PER_DEVICE_BATCH_SIZE=2
+EPOCHS=5
 
 if [ -z "${WANDB_API_KEY:-}" ]; then
   echo "WANDB_API_KEY is not set. Please set it before running the script."
