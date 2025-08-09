@@ -6,25 +6,12 @@ import pandas as pd
 from datasets import Dataset, concatenate_datasets
 
 from logger import Logger
+from utils.build_h2t_prompt import build_h2t_prompt
 
-prompt_template = ("### Navodilo:\n"
-                   "Spodaj je najboljša hipoteza, ki jo je za avdio posnetek generiral sistem za razpoznavanje govora. "
-                   "Preglej jo in jo s pomočjo ostalih hipotez popravi, če je potebno. "
-                   "Potem izpiši končni transkript.\n\n"
-                   "### Najboljša hipoteza:\n{best_hypothesis}\n\n"
-                   "### Ostale hipoteze:\n{other_hypotheses}\n\n"
-                   f"### Transkript:\n")
-
-
-def generate_prompt(hypotheses: list[str]):
-    return prompt_template.format_map({
-        "best_hypothesis": hypotheses[0],
-        "other_hypotheses": "\n".join(hypotheses[1:]),
-    })
 
 def generate_sample(example):
     return {
-        "prompt": [{ "role": "user", "content": generate_prompt(example["hypotheses"]) }],
+        "prompt": [{ "role": "user", "content": build_h2t_prompt(example["hypotheses"])}],
         "completion": [{ "role": "assistant", "content": example["ground_truth"] }]
     }
 
