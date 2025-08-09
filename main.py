@@ -8,6 +8,7 @@ import pandas as pd
 from best_hypotheses_selector import BestHypothesesSelector
 from logger import Logger
 from methods.causal_rescorer import CausalReScorer
+from methods.h2t_mapping import H2TMapping
 from methods.one_shot_gec import OneShotGec
 from methods.simple_causal_rescorer import SimpleCausalReScorer
 from methods.task_activating_gec import TaskActivatingGec
@@ -87,6 +88,8 @@ if __name__ == '__main__':
         method = ZeroShotSelection(args.llm_name, args.tokenizer_name, args.batch_size)
     elif args.method == 'task-activating-gec':
         method = TaskActivatingGec(args.llm_name, args.tokenizer_name, args.batch_size)
+    elif args.method == 'h2t-mapping':
+        method = H2TMapping(args.llm_name, args.tokenizer_name, args.batch_size)
     else:
         raise Exception(f"Method {args.method} is not implemented!")
 
@@ -144,7 +147,8 @@ if __name__ == '__main__':
                     isinstance(method, ZeroShotGec) or
                     isinstance(method, OneShotGec) or
                     isinstance(method, ZeroShotSelection) or
-                    isinstance(method, TaskActivatingGec)
+                    isinstance(method, TaskActivatingGec) or
+                    isinstance(method, H2TMapping)
             ):
                 new_best_hypotheses = method.run(dataset)
                 run_duration = time.time() - start_time

@@ -1,6 +1,9 @@
 import gc
+from typing import Union
 
 import torch
+from peft import AutoPeftModelForCausalLM
+from peft.helpers import check_if_peft_model
 from tqdm import tqdm
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 
@@ -11,23 +14,27 @@ from utils.sanitize_string import sanitize_string
 
 
 class Prompter:
-    def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 8):
+    def __init__(self, llm_name_or_path: str, tokenizer_name_or_path: str, batch_size: int = 8):
         self._tokenizer = AutoTokenizer.from_pretrained(
-            tokenizer_name,
+            tokenizer_name_or_path,
             use_fast=True,
             padding_side="left",
         )
-        if not are_chat_templates_supported(self._tokenizer):
-            raise Exception(f"Chat templates are not supported by the given tokenizer: {tokenizer_name}.")
         if self._tokenizer.pad_token is None:
             Logger.info(f"No pad_token available. Setting pad_token to eos_token: {self._tokenizer.eos_token}")
             self._tokenizer.pad_token = self._tokenizer.eos_token
-        model = AutoModelForCausalLM.from_pretrained(
-            pretrained_model_name_or_path=llm_name,
-            attn_implementation="flash_attention_2",
-            device_map="auto",
-            torch_dtype=torch.bfloat16,
-        )
+
+        model_args = {
+            "pretrained_model_name_or_path": llm_name_or_path,
+            "attn_implementation": "flash_attention_2",
+            "device_map": "auto",
+            "torch_dtype": torch.bfloat16,
+        }
+        if check_if_peft_model(llm_name_or_path):
+            model = AutoPeftModelForCausalLM.from_pretrained(**model_args)
+        else:
+            model = AutoModelForCausalLM.from_pretrained(**model_args)
+
         self._generator = pipeline(
             "text-generation",
             model=model,
@@ -38,10 +45,19 @@ class Prompter:
             max_new_tokens=256,
             return_full_text=False,
         )
+
         self._batch_size = batch_size
 
-    def execute_chats(self, chats: list[list[dict[str, str]]]) -> list[str]:
-        prompts = [self._transform_chat_to_prompt(chat) for chat in chats]
+    def execute_prompts(self, prompts_or_chats: list[Union[str, list[dict[str, str]]]]) -> list[str]:
+        is_chat = isinstance(prompts_or_chats[0], list)
+        if is_chat:
+            Logger.info("Detected chat format, applying chat template to transform chats to prompts ...")
+            if not are_chat_templates_supported(self._tokenizer):
+                raise Exception(
+                    f"Chat templates are not supported by the given tokenizer: {self._tokenizer.name_or_path}.")
+            prompts = [self._transform_chat_to_prompt(chat) for chat in prompts_or_chats]
+        else:
+            prompts = prompts_or_chats
         original_indices, sorted_prompts = self._sort_prompts(prompts)
         last_best_hypotheses = [""] * len(sorted_prompts)
         last_processed_idx = 0
@@ -66,8 +82,8 @@ class Prompter:
         unprocessed_original_indices = original_indices[last_processed_idx:]
         try:
             for idx, output in enumerate(tqdm(
-                self._generator(unprocessed_sorted_dataset, padding=True, batch_size=batch_size),
-                total=len(unprocessed_sorted_dataset)
+                    self._generator(unprocessed_sorted_dataset, padding=True, batch_size=batch_size),
+                    total=len(unprocessed_sorted_dataset)
             )):
                 generated_text = output[-1]["generated_text"]
                 sanitized_text = sanitize_string(generated_text)
@@ -87,7 +103,13 @@ class Prompter:
             else:
                 new_batch_size = batch_size // 2
             Logger.info(f"Trying again with new batch size {new_batch_size} ...")
-            return self._generate_hypotheses(sorted_prompts, original_indices, new_batch_size, last_best_hypotheses, last_processed_idx)
+            return self._generate_hypotheses(
+                sorted_prompts,
+                original_indices,
+                new_batch_size,
+                last_best_hypotheses,
+                last_processed_idx
+            )
         return last_best_hypotheses
 
     def _transform_chat_to_prompt(self, chat: list[dict[str, str]]) -> str:

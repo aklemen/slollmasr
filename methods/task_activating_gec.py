@@ -10,7 +10,7 @@ class TaskActivatingGec:
 
     def run(self, dataset: HypothesesDataset):
         chats = build_prompt_dataset(dataset, self._build_chat)
-        return self.prompter.execute_chats(chats)
+        return self.prompter.execute_prompts(chats)
 
     def _build_chat(self, hypotheses: list[str]) -> list[dict[str, str]]:
         beam_size = len(hypotheses)
