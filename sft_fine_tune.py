@@ -95,7 +95,7 @@ def main():
         run_name=args.run_name,
         per_device_train_batch_size=args.per_device_batch_size,
         per_device_eval_batch_size=args.per_device_batch_size,
-        gradient_accumulation_steps=8,
+        gradient_accumulation_steps=1,
         optim="adamw_torch",
         learning_rate=5e-5,
         warmup_ratio=0.05,
