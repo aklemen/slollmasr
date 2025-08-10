@@ -125,7 +125,7 @@ def main():
 
     trainer.train()
 
-    model.save_pretrained(f"{args.output_dir_path}/adapter")
+    trainer.model.save_pretrained(f"{args.output_dir_path}/adapter")
     tokenizer.save_pretrained(f"{args.output_dir_path}/tokenizer")
 
 
