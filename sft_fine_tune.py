@@ -98,7 +98,9 @@ def main():
         run_name=args.run_name,
         per_device_train_batch_size=args.per_device_batch_size,
         per_device_eval_batch_size=args.per_device_batch_size,
-        gradient_accumulation_steps=1,
+        gradient_accumulation_steps=8,
+        packing=True,
+        max_length=512,
         optim="adamw_torch",
         learning_rate=5e-5,
         warmup_ratio=0.05,
@@ -110,7 +112,6 @@ def main():
         bf16=True,
         dataloader_num_workers=8,
         push_to_hub=False,
-        max_length=1024,
     )
 
     trainer = SFTTrainer(
