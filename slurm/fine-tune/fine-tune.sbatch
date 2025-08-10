@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=finetune-lora-gams-9B
 #SBATCH --partition=frida
-#SBATCH --time=2-00:00:00
+#SBATCH --time=3-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --gres=gpu:A100_80GB:4
@@ -12,7 +12,7 @@
 
 EXPERIMENT_NAME="lora-gams-9B-whisper-ctc"
 
-ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-zero3-optimizer-offload.yaml"
+ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-ddp.yaml"
 NUM_GPUS=4
 PER_DEVICE_BATCH_SIZE=4
 EPOCHS=5
