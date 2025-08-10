@@ -85,6 +85,8 @@ def main():
 
     model.print_trainable_parameters()
 
+    os.makedirs(args.output_dir_path, exist_ok=True)
+
     sft_config = SFTConfig(
         output_dir=args.output_dir_path,
         num_train_epochs=args.epochs,

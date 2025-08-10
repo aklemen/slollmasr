@@ -73,7 +73,6 @@ export NCCL_DEBUG=INFO
 export WANDB_API_KEY=$WANDB_API_KEY
 
 RESULTS_DIR=\"/exp/results\"
-mkdir -p \$RESULTS_DIR
 
 pip install --upgrade transformers accelerate
 pip install trl
