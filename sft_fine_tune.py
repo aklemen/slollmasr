@@ -57,7 +57,7 @@ def main():
     dataset = load_dataset(args.prompt_completion_dataset_name)['train']
     if args.num_samples is not None:
         Logger.warn(f"Only using {args.num_samples} samples from the dataset. Only use this for testing purposes!")
-        dataset = dataset.select(range(number_of_test_samples))
+        dataset = dataset.select(range(args.num_samples))
     dataset = dataset.map(convert_to_standard_format)
     Logger.info(f"Example from dataset: {dataset[0]}")
     train_val_dataset = dataset.train_test_split(test_size=0.2, shuffle=True, seed=42)
