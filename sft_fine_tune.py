@@ -25,6 +25,8 @@ def parse_args():
     parser.add_argument("--per_device_batch_size", type=int, default=8)
     parser.add_argument("--epochs", type=int, default=5)
 
+    parser.add_argument("--is_testing", type=bool, default=False)
+
     arguments = parser.parse_args()
     Logger.info("============ ARGUMENTS ============")
     Logger.info(arguments)
@@ -52,6 +54,10 @@ def main():
         tokenizer.pad_token = tokenizer.eos_token
 
     dataset = load_dataset('aklemen/whisper-ctc-h2t')['train']
+    if args.is_testing:
+        number_of_test_samples = 1000
+        Logger.info(f"Running in testing mode, using only {number_of_test_samples} samples from the dataset.")
+        dataset = dataset.select(range(number_of_test_samples))
     dataset = dataset.map(convert_to_standard_format)
     Logger.info(f"Example from dataset: {dataset[0]}")
     train_val_dataset = dataset.train_test_split(test_size=0.2, shuffle=True, seed=42)
