@@ -56,7 +56,10 @@ def main():
     dataset = load_dataset('aklemen/whisper-ctc-h2t')['train']
     if args.is_testing:
         number_of_test_samples = 1000
-        Logger.info(f"Running in testing mode, using only {number_of_test_samples} samples from the dataset.")
+        Logger.info(f"Running in testing mode, using only top {number_of_test_samples} longest samples from the dataset.")
+        dataset = dataset.map(lambda x: {**x, "length": len(x["prompt"][0]["content"]) + len(x["completion"][0]["content"])})
+        dataset = dataset.sort("length", reverse=True)
+        dataset = dataset.remove_columns("length")
         dataset = dataset.select(range(number_of_test_samples))
     dataset = dataset.map(convert_to_standard_format)
     Logger.info(f"Example from dataset: {dataset[0]}")
