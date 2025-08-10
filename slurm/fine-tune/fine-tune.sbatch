@@ -4,17 +4,17 @@
 #SBATCH --time=0-10:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=H100:4
-#SBATCH --cpus-per-task=32
+#SBATCH --gpus-per-node=A100_80GB:4
+#SBATCH --cpus-per-task=64
 #SBATCH --mem-per-gpu=64G
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 EXPERIMENT_NAME="finetune-lora-gams-9B"
 
-ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-multi-gpu.yaml"
+ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-zero3.yaml"
 NUM_GPUS=4
-PER_DEVICE_BATCH_SIZE=2
+PER_DEVICE_BATCH_SIZE=32
 EPOCHS=5
 
 if [ -z "${WANDB_API_KEY:-}" ]; then
@@ -76,6 +76,7 @@ mkdir -p \$RESULTS_DIR
 
 pip install --upgrade transformers accelerate
 pip install trl
+pip install deepspeed
 
 accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$NUM_GPUS /slollmasr/sft_fine_tune.py \
   --llm_name cjvt/GaMS-9B \
