@@ -14,7 +14,7 @@ EXPERIMENT_NAME="finetune-lora-gams-9B"
 
 ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-zero3.yaml"
 NUM_GPUS=4
-PER_DEVICE_BATCH_SIZE=16
+PER_DEVICE_BATCH_SIZE=4
 EPOCHS=5
 
 if [ -z "${WANDB_API_KEY:-}" ]; then
