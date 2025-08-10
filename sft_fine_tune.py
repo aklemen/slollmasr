@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument("--per_device_batch_size", type=int, default=8)
     parser.add_argument("--epochs", type=int, default=5)
 
-    parser.add_argument("--is_testing", type=bool, default=False)
+    parser.add_argument("--is_testing", action="store_true")
 
     arguments = parser.parse_args()
     Logger.info("============ ARGUMENTS ============")
