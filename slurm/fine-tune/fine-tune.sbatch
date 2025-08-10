@@ -10,12 +10,13 @@
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
-EXPERIMENT_NAME="finetune-lora-gams-9B"
+EXPERIMENT_NAME="lora-gams-9B-whisper-ctc"
 
 ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-zero3-optimizer-offload.yaml"
 NUM_GPUS=4
 PER_DEVICE_BATCH_SIZE=4
 EPOCHS=5
+DATASET_NAME="aklemen/whisper-ctc-h2t"
 
 if [ -z "${WANDB_API_KEY:-}" ]; then
   echo "WANDB_API_KEY is not set. Please set it before running the script."
@@ -80,8 +81,9 @@ pip install deepspeed
 
 accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$NUM_GPUS /slollmasr/sft_fine_tune.py \
   --llm_name cjvt/GaMS-9B \
+  --prompt_completion_dataset_name $DATASET_NAME \
   --output_dir_path \$RESULTS_DIR \
-  --run_name lora-gams-9B-whisper-ctc \
+  --run_name $EXPERIMENT_NAME \
   --lora_r 8 \
   --lora_alpha 16 \
   --lora_dropout 0.05 \

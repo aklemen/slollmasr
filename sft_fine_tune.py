@@ -16,6 +16,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--llm_name', type=str, required=True)
     parser.add_argument('--tokenizer_name', type=str, required=False)
+    parser.add_argument('--prompt_completion_dataset_name', type=str, required=True)
     parser.add_argument('--output_dir_path', type=str, required=True)
     parser.add_argument("--run_name", type=str, default="lora-finetune")
 
@@ -53,7 +54,7 @@ def main():
         Logger.info(f"No pad_token available. Setting pad_token to eos_token: {tokenizer.eos_token}")
         tokenizer.pad_token = tokenizer.eos_token
 
-    dataset = load_dataset('aklemen/whisper-ctc-h2t')['train']
+    dataset = load_dataset(args.prompt_completion_dataset_name)['train']
     if args.is_testing:
         number_of_test_samples = 1000
         Logger.info(f"Running in testing mode, using only {number_of_test_samples} samples from the dataset.")
