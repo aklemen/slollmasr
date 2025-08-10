@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument("--per_device_batch_size", type=int, default=8)
     parser.add_argument("--epochs", type=int, default=5)
 
-    parser.add_argument("--is_testing", action="store_true")
+    parser.add_argument("--num_samples", type=int, required=False, help="Number of samples to use from the dataset for testing purposes.")
 
     arguments = parser.parse_args()
     Logger.info("============ ARGUMENTS ============")
@@ -55,9 +55,8 @@ def main():
         tokenizer.pad_token = tokenizer.eos_token
 
     dataset = load_dataset(args.prompt_completion_dataset_name)['train']
-    if args.is_testing:
-        number_of_test_samples = 1000
-        Logger.info(f"Running in testing mode, using only {number_of_test_samples} samples from the dataset.")
+    if args.num_samples is not None:
+        Logger.warn(f"Only using {args.num_samples} samples from the dataset. Only use this for testing purposes!")
         dataset = dataset.select(range(number_of_test_samples))
     dataset = dataset.map(convert_to_standard_format)
     Logger.info(f"Example from dataset: {dataset[0]}")
