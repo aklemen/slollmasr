@@ -3,8 +3,8 @@ import os
 
 import torch
 from datasets import load_dataset
-from peft import LoraConfig, TaskType, get_peft_model
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
+from peft import LoraConfig, TaskType
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import SFTTrainer, SFTConfig
 
 from logger import Logger
@@ -124,15 +124,16 @@ def main():
 
     trainer.train()
 
-    Logger.info("Training completed. Saving model and tokenizer...")
-    trainer.model.save_pretrained(f"{args.output_dir_path}/adapter")
-    tokenizer.save_pretrained(f"{args.output_dir_path}/tokenizer")
+    if trainer.is_world_process_zero():
+        Logger.info("Training completed. Saving model and tokenizer...")
+        trainer.model.save_pretrained(f"{args.output_dir_path}/adapter")
+        tokenizer.save_pretrained(f"{args.output_dir_path}/tokenizer")
 
-    Logger.info("Merging and pushing model to Hugging Face Hub...")
-    merged_model = trainer.model.merge_and_unload()
-    was_test_run = args.num_samples is not None
-    model_name = "H2T-LoRA-test" if was_test_run else "H2T-LoRA"
-    merged_model.push_to_hub(f"aklemen/{model_name}")
+        Logger.info("Merging and pushing model to Hugging Face Hub...")
+        merged_model = trainer.model.merge_and_unload()
+        was_test_run = args.num_samples is not None
+        model_name = "H2T-LoRA-test" if was_test_run else "H2T-LoRA"
+        merged_model.push_to_hub(f"aklemen/{model_name}")
 
 
 if __name__ == '__main__':
