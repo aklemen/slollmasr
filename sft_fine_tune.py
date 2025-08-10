@@ -124,8 +124,15 @@ def main():
 
     trainer.train()
 
+    Logger.info("Training completed. Saving model and tokenizer...")
     trainer.model.save_pretrained(f"{args.output_dir_path}/adapter")
     tokenizer.save_pretrained(f"{args.output_dir_path}/tokenizer")
+
+    Logger.info("Merging and pushing model to Hugging Face Hub...")
+    merged_model = trainer.model.merge_and_unload()
+    was_test_run = args.num_samples is not None
+    model_name = "H2T-LoRA-test" if was_test_run else "H2T-LoRA"
+    merged_model.push_to_hub(f"aklemen/{model_name}")
 
 
 if __name__ == '__main__':
