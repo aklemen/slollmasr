@@ -79,12 +79,6 @@ def main():
         target_modules="all-linear",
     )
 
-    Logger.info(f"Model BEFORE applying LoRA: {model}")
-    model = get_peft_model(model, peft_config)
-    Logger.info(f"Model AFTER applying LoRA: {model}")
-
-    model.print_trainable_parameters()
-
     os.makedirs(args.output_dir_path, exist_ok=True)
 
     sft_config = SFTConfig(
@@ -121,6 +115,7 @@ def main():
 
     trainer = SFTTrainer(
         model=model,
+        peft_config=peft_config,
         train_dataset=train_val_dataset['train'],
         eval_dataset=train_val_dataset['test'],
         processing_class=tokenizer,
