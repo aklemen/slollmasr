@@ -2,8 +2,6 @@ import gc
 from typing import Union
 
 import torch
-from peft import AutoPeftModelForCausalLM
-from peft.helpers import check_if_peft_model
 from tqdm import tqdm
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 
@@ -24,16 +22,12 @@ class Prompter:
             Logger.info(f"No pad_token available. Setting pad_token to eos_token: {self._tokenizer.eos_token}")
             self._tokenizer.pad_token = self._tokenizer.eos_token
 
-        model_args = {
-            "pretrained_model_name_or_path": llm_name_or_path,
-            "attn_implementation": "flash_attention_2",
-            "device_map": "auto",
-            "torch_dtype": torch.bfloat16,
-        }
-        if check_if_peft_model(llm_name_or_path):
-            model = AutoPeftModelForCausalLM.from_pretrained(**model_args)
-        else:
-            model = AutoModelForCausalLM.from_pretrained(**model_args)
+        model = AutoModelForCausalLM.from_pretrained(
+            pretrained_model_name_or_path=llm_name_or_path,
+            attn_implementation="flash_attention_2",
+            device_map="auto",
+            torch_dtype=torch.bfloat16,
+        )
 
         self._generator = pipeline(
             "text-generation",
@@ -57,6 +51,7 @@ class Prompter:
                     f"Chat templates are not supported by the given tokenizer: {self._tokenizer.name_or_path}.")
             prompts = [self._transform_chat_to_prompt(chat) for chat in prompts_or_chats]
         else:
+            Logger.info(f"Prompts are not in chat format, so they will be kept as is. First sample: {prompts_or_chats[0]}")
             prompts = prompts_or_chats
         original_indices, sorted_prompts = self._sort_prompts(prompts)
         last_best_hypotheses = [""] * len(sorted_prompts)
