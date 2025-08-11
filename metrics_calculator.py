@@ -1,5 +1,5 @@
-from typing import Tuple
 from evaluate import load
+
 class MetricsCalculator:
     def __init__(self):
         self.cer = load("cer")
