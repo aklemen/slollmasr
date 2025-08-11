@@ -4,7 +4,7 @@
 #SBATCH --time=3-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gres=gpu:A100_80GB:2
+#SBATCH --gres=gpu:H100:4
 #SBATCH --cpus-per-task=64
 #SBATCH --mem-per-gpu=64G
 #SBATCH --output=/dev/null
@@ -13,7 +13,7 @@
 EXPERIMENT_NAME="lora-gams-9B-whisper-ctc"
 
 ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-ddp.yaml"
-NUM_GPUS=2
+NUM_GPUS=4
 PER_DEVICE_BATCH_SIZE=4
 EPOCHS=5
 DATASET_NAME="aklemen/whisper-ctc-h2t"
@@ -76,7 +76,10 @@ RESULTS_DIR=\"/exp/results\"
 
 pip install --upgrade transformers accelerate
 pip install trl
-pip install deepspeed
+
+if grep -q \"distributed_type: DEEPSPEED\" $ACCELERATE_CONFIG_FILE; then
+  pip install deepspeed
+fi
 
 accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$NUM_GPUS /slollmasr/sft_fine_tune.py \
   --llm_name cjvt/GaMS-9B \
