@@ -9,6 +9,7 @@ from best_hypotheses_selector import BestHypothesesSelector
 from logger import Logger
 from methods.causal_rescorer import CausalReScorer
 from methods.h2t_mapping import H2TMapping
+from methods.masked_rescorer import MaskedRescorer
 from methods.one_shot_gec import OneShotGec
 from methods.simple_causal_rescorer import SimpleCausalReScorer
 from methods.task_activating_gec import TaskActivatingGec
@@ -90,6 +91,8 @@ if __name__ == '__main__':
         method = TaskActivatingGec(args.llm_name, args.tokenizer_name, args.batch_size)
     elif args.method == 'h2t-mapping':
         method = H2TMapping(args.llm_name, args.tokenizer_name, args.batch_size)
+    elif args.method == 'masked-rescore':
+        method = MaskedRescorer(args.llm_name, args.tokenizer_name, args.batch_size)
     else:
         raise Exception(f"Method {args.method} is not implemented!")
 
@@ -135,7 +138,7 @@ if __name__ == '__main__':
             used_alpha, used_beta = None, None
 
             start_time = time.time()
-            if isinstance(method, CausalReScorer) or isinstance(method, SimpleCausalReScorer):
+            if isinstance(method, CausalReScorer) or isinstance(method, SimpleCausalReScorer) or isinstance(method, MaskedRescorer):
                 new_scores, used_alpha, used_beta = method.run(dataset, alpha, beta)
                 run_duration = time.time() - start_time
                 new_best_hypotheses, new_best_scores, new_best_indices = BestHypothesesSelector.select(dataset, new_scores)
