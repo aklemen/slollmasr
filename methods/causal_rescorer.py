@@ -42,7 +42,7 @@ class CausalReScorer:
             support_attention_mask = False
 
         with torch.no_grad():
-            hypotheses, asr_scores, llm_scores, char_lengths, distances = [], [], [], [], []
+            asr_scores, llm_scores, char_lengths, distances = [], [], [], []
             for batch in tqdm(data_loader):
                 _, asr_score, input_ids, input_mask, char_length, distance = batch
 
