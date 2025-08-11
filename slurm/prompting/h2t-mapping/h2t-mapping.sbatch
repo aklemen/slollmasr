@@ -92,6 +92,8 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
+pip install --upgrade transformers
+
 python /slollmasr/main.py \
    --method h2t-mapping \
    --llm_name $LLM_NAME \
