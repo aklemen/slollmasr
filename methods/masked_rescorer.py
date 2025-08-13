@@ -14,6 +14,7 @@ class MaskedRescorer:
         self.llm = (
             AutoModelForMaskedLM.from_pretrained(
                 pretrained_model_name_or_path=llm_name,
+                attn_implementation="flash_attention_2",
                 torch_dtype=torch.bfloat16,
             )
             .to("cuda")
