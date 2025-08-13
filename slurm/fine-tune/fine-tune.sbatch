@@ -1,5 +1,4 @@
 #!/bin/bash
-#SBATCH --job-name=finetune-lora-gams-9B
 #SBATCH --partition=frida
 #SBATCH --time=2-00:00:00
 #SBATCH --nodes=1
@@ -10,13 +9,20 @@
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
-EXPERIMENT_NAME="lora-gams-9B-whisper-ctc"
+# Check if all required environment variables are set
+required_vars=(LLM_NAME PER_DEVICE_BATCH_SIZE DATASET_NAME LORA_RANK LORA_ALPHA)
+for var in "${required_vars[@]}"; do
+  if [ -z "${!var}" ]; then
+    echo "Error: $var is not set."
+    exit 1
+  fi
+done
+
+EXPERIMENT_NAME="$(echo "$LLM_NAME" | sed 's/\//_/g')__$(echo "$DATASET_NAME" | sed 's/\//_/g')"
 
 ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-ddp.yaml"
 NUM_GPUS=4
-PER_DEVICE_BATCH_SIZE=2
 EPOCHS=5
-DATASET_NAME="aklemen/whisper-ctc-h2t"
 
 if [ -z "${WANDB_API_KEY:-}" ]; then
   echo "WANDB_API_KEY is not set. Please set it before running the script."
@@ -34,7 +40,7 @@ fi
 DATETIME=$(TZ="Europe/Ljubljana" date "+%Y-%m-%d___%H-%M-%S_%3N")
 
 # experiment dir
-EXPERIMENT_DIR="$EXPERIMENT_NAME/$DATETIME"
+EXPERIMENT_DIR="lora-fine-tune/$EXPERIMENT_NAME/$DATETIME"
 LOCAL_EXPERIMENT_DIR="$HOME/exp/$EXPERIMENT_DIR"
 mkdir -p "$LOCAL_EXPERIMENT_DIR"
 
@@ -82,12 +88,12 @@ if grep -q \"distributed_type: DEEPSPEED\" $ACCELERATE_CONFIG_FILE; then
 fi
 
 accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$NUM_GPUS /slollmasr/sft_fine_tune.py \
-  --llm_name cjvt/GaMS-9B \
+  --llm_name $LLM_NAME \
   --prompt_completion_dataset_name $DATASET_NAME \
   --output_dir_path \$RESULTS_DIR \
   --run_name $EXPERIMENT_NAME \
-  --lora_r 8 \
-  --lora_alpha 16 \
+  --lora_r $LORA_RANK \
+  --lora_alpha $LORA_ALPHA \
   --lora_dropout 0.05 \
   --per_device_batch_size $PER_DEVICE_BATCH_SIZE \
   --epochs $EPOCHS
