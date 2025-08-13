@@ -3,10 +3,10 @@ import torch
 from tqdm import tqdm
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 
-from best_hypotheses_selector import BestHypothesesSelector
 from logger import Logger
 from torch_datasets.hypotheses_dataset import HypothesesDataset
 from torch_datasets.hypotheses_with_ids_dataset import HypothesesWithIdsDataset
+from utils.coefficient_finder import CoefficientFinder
 
 
 class MaskedRescorer:
@@ -22,6 +22,7 @@ class MaskedRescorer:
         )
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
         self.device_to_map_to = "cuda"
+        self.coefficient_finder = CoefficientFinder("cuda")
         self.batch_size = batch_size
 
     def run(self, dataset: HypothesesDataset, alpha_weight: float = None, beta_weight: float = None) -> tuple[
@@ -54,17 +55,14 @@ class MaskedRescorer:
 
         if alpha_weight is None:
             Logger.info("Alpha weight was not provided. Executing linear search for it...")
-            alpha_weight, best_wer = self._find_best_coefficient(with_ids_dataset, asr_scores, llm_scores, distances)
-            alpha_weight = np.round(alpha_weight, 3)
+            alpha_weight, best_wer = self.coefficient_finder.find_best_coefficient(with_ids_dataset, asr_scores, llm_scores, distances)
             Logger.info(f"alpha_weight={alpha_weight} achieved the best WER ({best_wer}).")
 
         scores_with_llm = asr_scores + alpha_weight * llm_scores
 
         if beta_weight is None:
             Logger.info("Beta weight was not provided. Executing linear search for it...")
-            beta_weight, best_wer = self._find_best_coefficient(with_ids_dataset, scores_with_llm, char_lengths,
-                                                                distances)
-            beta_weight = np.round(beta_weight, 3)
+            beta_weight, best_wer = self.coefficient_finder.find_best_coefficient(with_ids_dataset, scores_with_llm, char_lengths, distances)
             Logger.info(f"beta_weight={beta_weight} achieved the best WER ({best_wer}).")
 
         new_scores = scores_with_llm + beta_weight * char_lengths
@@ -104,40 +102,3 @@ class MaskedRescorer:
             pll_scores += token_log_probs
 
         return pll_scores
-
-    def _find_best_coefficient(self, dataset: HypothesesWithIdsDataset, scores1, scores2, distances):
-        ground_truths_word_lengths_sum = sum(len(ground_truth.split()) for ground_truth in dataset.get_ground_truths())
-        ground_truths_word_lengths_sum = torch.tensor(ground_truths_word_lengths_sum).to(self.device_to_map_to)
-        coefficients = self._get_coefficients(scores1, scores2)
-        best_coefficient = coefficients[0]
-        best_wer = 10000
-        for coefficient in tqdm(coefficients):
-            new_scores = scores1 + coefficient * scores2
-            _, _, new_best_indices = BestHypothesesSelector.select(dataset, new_scores.tolist())
-            new_best_indices = torch.tensor(new_best_indices).to(self.device_to_map_to)
-            best_hypothesis_distances = distances.gather(dim=0, index=new_best_indices)
-            wer = self._calculate_wer(best_hypothesis_distances, ground_truths_word_lengths_sum)
-            if wer < best_wer:
-                best_coefficient = coefficient
-                best_wer = wer
-        return best_coefficient, best_wer
-
-    def _get_coefficients(self, scores1, scores2):
-        coefficient_range = [-10, 10]
-        coefficient_steps = 10000
-        if scores1.isnan().any():
-            Logger.warn("scores1 contain NaNs at indices: ", torch.where(scores1.isnan()))
-        if scores2.isnan().any():
-            Logger.warn("scores2 contain NaNs at indices: ", torch.where(scores2.isnan()))
-        scores1_mean = scores1.nanmean().abs().item()
-        scores2_mean = scores2.nanmean().abs().item()
-        normalization_scale = scores1_mean / scores2_mean
-        start = coefficient_range[0] * normalization_scale
-        stop = coefficient_range[1] * normalization_scale
-        coefficients = np.linspace(start, stop, coefficient_steps)
-        return coefficients
-
-    def _calculate_wer(self, distances, ground_truths_length_sum):
-        wer = distances.sum() / ground_truths_length_sum
-        wer = wer.item()
-        return wer
