@@ -100,7 +100,7 @@ def main():
         gradient_accumulation_steps=8,
         max_length=1024,
         optim="adamw_torch",
-        learning_rate=5e-5,
+        learning_rate=1e-5,
         warmup_ratio=0.05,
         weight_decay=0.1,
         adam_beta1=0.9,
