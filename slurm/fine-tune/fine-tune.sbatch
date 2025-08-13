@@ -5,7 +5,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --gres=gpu:H100:4
 #SBATCH --cpus-per-task=64
-#SBATCH --mem-per-gpu=64G
+#SBATCH --mem-per-gpu=128G
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
