@@ -10,7 +10,7 @@
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
-required_vars=(LLM_NAME PER_DEVICE_BATCH_SIZE DATASET_NAME LORA_RANK LORA_ALPHA)
+required_vars=(LLM_NAME PER_DEVICE_BATCH_SIZE DATASET_NAME LORA_RANK LORA_ALPHA MODEL_NAME)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
@@ -96,7 +96,8 @@ accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$NUM_GPU
   --lora_alpha $LORA_ALPHA \
   --lora_dropout 0.05 \
   --per_device_batch_size $PER_DEVICE_BATCH_SIZE \
-  --epochs $EPOCHS
+  --epochs $EPOCHS \
+  --model_name $MODEL_NAME
 
 echo -e \"\"\"
 # finished at \$(date)

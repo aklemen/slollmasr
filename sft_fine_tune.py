@@ -19,6 +19,7 @@ def parse_args():
     parser.add_argument('--prompt_completion_dataset_name', type=str, required=True)
     parser.add_argument('--output_dir_path', type=str, required=True)
     parser.add_argument("--run_name", type=str, default="lora-finetune")
+    parser.add_argument('--model_name', type=str, required=False)
 
     parser.add_argument("--lora_r", type=int, default=8)
     parser.add_argument("--lora_alpha", type=int, default=16)
@@ -125,16 +126,18 @@ def main():
     trainer.train()
 
     if trainer.is_world_process_zero():
-        Logger.info("Training completed. Saving model and tokenizer...")
+        Logger.info("Training completed. Saving model and tokenizer ...")
         trainer.model.save_pretrained(f"{args.output_dir_path}/adapter")
         tokenizer.save_pretrained(f"{args.output_dir_path}/tokenizer")
 
-        Logger.info("Merging and pushing model to Hugging Face Hub...")
-        merged_model = trainer.model.merge_and_unload()
-        was_test_run = args.num_samples is not None
-        model_name = "H2T-LoRA-test" if was_test_run else "H2T-LoRA"
-        merged_model.push_to_hub(f"aklemen/{model_name}")
-        tokenizer.push_to_hub(f"aklemen/{model_name}")
+        Logger.info("Model and tokenizer saved successfully.")
+        if args.model_name is not None:
+            Logger.info("Merging model and adapter ...")
+            merged_model = trainer.model.merge_and_unload()
+
+            Logger.info("Uploading merged model and tokenizer to Hugging Face Hub ...")
+            merged_model.push_to_hub(f"aklemen/{args.model_name}")
+            tokenizer.push_to_hub(f"aklemen/{args.model_name}")
 
 
 if __name__ == '__main__':
