@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 from tqdm import tqdm
 from transformers import AutoModelForMaskedLM, AutoTokenizer
@@ -41,7 +40,7 @@ class MaskedRescorer:
                 char_length = char_length.to(self.device_to_map_to)
                 distance = distance.to(self.device_to_map_to)
 
-                llm_score = self._calculate_pll_for_batch(input_ids, input_mask)
+                llm_score = self._calculate_scores_for_batch(input_ids, input_mask)
 
                 asr_scores.append(asr_score)
                 llm_scores.append(llm_score)
@@ -69,7 +68,7 @@ class MaskedRescorer:
 
         return new_scores.tolist(), alpha_weight, beta_weight
 
-    def _calculate_pll_for_batch(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
+    def _calculate_scores_for_batch(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
         batch_size, seq_len = input_ids.size()
         pll_scores = torch.zeros(batch_size, device=input_ids.device)
 
