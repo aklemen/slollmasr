@@ -27,8 +27,7 @@ class MaskedRescorer:
     def run(self, dataset: HypothesesDataset, alpha_weight: float = None, beta_weight: float = None) -> tuple[
         list[float], float, float]:
         hypotheses_ids = [self.tokenizer.encode(h, add_special_tokens=True) for h in dataset.get_hypotheses_texts()]
-        with_ids_dataset = HypothesesWithIdsDataset(dataset.hypotheses, dataset.ground_truths, hypotheses_ids,
-                                                    self.tokenizer.pad_token_id)
+        with_ids_dataset = HypothesesWithIdsDataset(dataset.hypotheses, dataset.ground_truths, hypotheses_ids, self.tokenizer.pad_token_id)
         data_loader = torch.utils.data.DataLoader(dataset=with_ids_dataset, batch_size=self.batch_size, pin_memory=True)
 
         with torch.no_grad():
