@@ -76,6 +76,7 @@ def main():
         lora_alpha=args.lora_alpha,
         lora_dropout=args.lora_dropout,
         target_modules="all-linear",
+        use_rslora=True,
     )
 
     os.makedirs(args.output_dir_path, exist_ok=True)
