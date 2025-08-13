@@ -14,9 +14,9 @@ class MaskedRescorer:
         self.llm = (
             AutoModelForMaskedLM.from_pretrained(
                 pretrained_model_name_or_path=llm_name,
-                device_map="auto",
                 torch_dtype=torch.bfloat16,
             )
+            .to("cuda")
             .eval()
         )
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
