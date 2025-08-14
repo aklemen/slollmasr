@@ -94,7 +94,7 @@ accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$NUM_GPU
   --run_name $EXPERIMENT_NAME \
   --lora_r $LORA_RANK \
   --lora_alpha $LORA_ALPHA \
-  --lora_dropout 0.05 \
+  --lora_dropout 0.1 \
   --per_device_batch_size $PER_DEVICE_BATCH_SIZE \
   --epochs $EPOCHS \
   --model_name $MODEL_NAME
