@@ -26,6 +26,7 @@ def parse_args():
     parser.add_argument("--lora_dropout", type=float, default=0.05)
     parser.add_argument("--per_device_batch_size", type=int, default=8)
     parser.add_argument("--epochs", type=int, default=5)
+    parser.add_argument("--gradient_accumulation_steps", type=int, default=8)
 
     parser.add_argument("--num_samples", type=int, required=False, help="Number of samples to use from the dataset for testing purposes.")
 
@@ -99,7 +100,7 @@ def main():
         run_name=args.run_name,
         per_device_train_batch_size=args.per_device_batch_size,
         per_device_eval_batch_size=args.per_device_batch_size,
-        gradient_accumulation_steps=8,
+        gradient_accumulation_steps=args.gradient_accumulation_steps,
         max_length=1024,
         optim="adamw_torch",
         learning_rate=1e-5,
