@@ -4,7 +4,7 @@ import os
 import torch
 from datasets import load_dataset
 from peft import LoraConfig, TaskType
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, EarlyStoppingCallback
 from trl import SFTTrainer, SFTConfig
 
 from logger import Logger
@@ -83,7 +83,7 @@ def main():
 
     os.makedirs(args.output_dir_path, exist_ok=True)
 
-    eval_and_save_steps_ratio = 1 / 5 / args.epochs # evaluate and save 5-times per epoch
+    eval_and_save_steps_ratio = 1 / 5 / args.epochs  # evaluate and save 5-times per epoch
     sft_config = SFTConfig(
         output_dir=args.output_dir_path,
         num_train_epochs=args.epochs,
@@ -124,6 +124,7 @@ def main():
         eval_dataset=train_val_dataset['test'],
         processing_class=tokenizer,
         args=sft_config,
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=3, early_stopping_threshold=0.01)]
     )
 
     trainer.train()
