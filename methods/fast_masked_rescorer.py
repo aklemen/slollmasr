@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from numba.cuda.libdevice import llmax
 from torch.nn.functional import batch_norm
+from torch.special import log_ndtr
 from torch.xpu import device
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 
@@ -38,8 +39,12 @@ class FastMaskedRescorer:
             indices_of_sentences_with_mask = mask_positions[0]
             positions_of_masks_in_sentences = mask_positions[1]
 
-            batch_scores = logits[indices_of_sentences_with_mask, positions_of_masks_in_sentences, batch_target_ids]
-            llm_scores[i:i + len(batch_scores)] = batch_scores
+            mask_logits = logits[indices_of_sentences_with_mask, positions_of_masks_in_sentences, :]  # (B, V)
+
+            log_probs = torch.softmax(mask_logits, dim=-1)  # (B, V)
+            batch_scores = log_probs.gather(1, batch_target_ids.unsqueeze(1)).squeeze(1)
+
+            llm_scores[i:i + batch_scores.size(0)] = batch_scores.to(llm_scores.dtype)
 
         hypothesis_scores_gpu = torch.zeros(len(hypotheses_tokens), device=self.device, dtype=torch.float16)
         hypothesis_scores_gpu.scatter_add_(0, hypothesis_indices, llm_scores)
