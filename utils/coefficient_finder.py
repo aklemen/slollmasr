@@ -4,14 +4,14 @@ from tqdm import tqdm
 
 from best_hypotheses_selector import BestHypothesesSelector
 from logger import Logger
-from torch_datasets.hypotheses_with_ids_dataset import HypothesesWithIdsDataset
+from torch_datasets.hypotheses_dataset import HypothesesDataset
 
 
 class CoefficientFinder:
     def __init__(self, device_to_map_to: str):
         self.device_to_map_to = device_to_map_to
 
-    def find_best_coefficient(self, dataset: HypothesesWithIdsDataset, scores1, scores2, distances) -> tuple[float, float]:
+    def find_best_coefficient(self, dataset: HypothesesDataset, scores1, scores2, distances) -> tuple[float, float]:
         ground_truths_word_lengths_sum = sum(len(ground_truth.split()) for ground_truth in dataset.get_ground_truths())
         ground_truths_word_lengths_sum = torch.tensor(ground_truths_word_lengths_sum).to(self.device_to_map_to)
         coefficients = self._get_coefficients(scores1, scores2)
