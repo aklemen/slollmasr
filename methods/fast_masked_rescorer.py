@@ -1,12 +1,11 @@
-import numpy as np
 import torch
-from numba.cuda.libdevice import llmax
-from torch.nn.functional import batch_norm
-from torch.special import log_ndtr
-from torch.xpu import device
+from tqdm import tqdm
+import editdistance
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 
+from logger import Logger
 from torch_datasets.hypotheses_dataset import HypothesesDataset
+from utils.coefficient_finder import CoefficientFinder
 
 """
 Limitation: Works only on one GPU.
@@ -18,15 +17,18 @@ class FastMaskedRescorer:
         self.model.eval()
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
         self.batch_size = batch_size
+        self.coefficient_finder = CoefficientFinder(self.device)
 
     def run(self, dataset: HypothesesDataset, alpha_weight: float = None, beta_weight: float = None) -> tuple[list[float], float, float]:
         hypotheses_tokens = [self.tokenizer.tokenize(h, add_special_tokens=False) for h in dataset.get_hypotheses_texts()]
 
+        Logger.info("Preparing masked sequences for LLM scoring ...")
         masked_sequences, hypothesis_indices, target_ids = self._prepare_masked_sequences(hypotheses_tokens)
 
-        llm_scores = torch.zeros(len(masked_sequences), device=self.device, dtype=torch.float16)
+        per_mask_llm_scores = torch.zeros(len(masked_sequences), device=self.device, dtype=torch.float16)
 
-        for i in range(0, len(masked_sequences), self.batch_size):
+        Logger.info("Scoring hypotheses with LLM ...")
+        for i in tqdm(range(0, len(masked_sequences), self.batch_size)):
             batch_masked_sentences = masked_sequences[i:i + self.batch_size]
             batch_inputs = self.tokenizer(batch_masked_sentences, return_tensors="pt", padding=True).to(self.device)
             batch_target_ids = target_ids[i:i + self.batch_size]
@@ -44,16 +46,37 @@ class FastMaskedRescorer:
             log_probs = torch.softmax(mask_logits, dim=-1)  # (B, V)
             batch_scores = log_probs.gather(1, batch_target_ids.unsqueeze(1)).squeeze(1)
 
-            llm_scores[i:i + batch_scores.size(0)] = batch_scores.to(llm_scores.dtype)
+            per_mask_llm_scores[i:i + batch_scores.size(0)] = batch_scores.to(per_mask_llm_scores.dtype)
 
-        hypothesis_scores = torch.zeros(len(hypotheses_tokens), device=self.device, dtype=torch.float16)
-        hypothesis_scores.scatter_add_(0, hypothesis_indices, llm_scores)
-
+        llm_scores = torch.zeros(len(hypotheses_tokens), device=self.device, dtype=torch.float16)
+        llm_scores.scatter_add_(0, hypothesis_indices, per_mask_llm_scores)
         asr_scores = torch.tensor(dataset.get_hypotheses_scores(), device=self.device, dtype=torch.float16)
-        char_lengths = torch.tensor([len(h) for h in dataset.get_hypotheses_texts()], device=self.device, dtype=torch.int16)
 
-        scores_with_llm = asr_scores + 0.5 * hypothesis_scores
-        new_scores = scores_with_llm + 0.5 * char_lengths
+        if alpha_weight is None or beta_weight is None:
+            Logger.info("Calculating distances for WER calculation ...")
+            ground_truths = dataset.get_ground_truths()
+            distances = []
+            for i, hypothesis in enumerate(tqdm(dataset.get_hypotheses_texts())):
+                ground_truth = ground_truths[i // dataset.get_beam_size()]
+                distance = editdistance.eval(hypothesis.split(), ground_truth.split())
+                distances.append(distance)
+            distances = torch.tensor(distances, device=self.device, dtype=torch.int16)
+
+        if alpha_weight is None:
+            Logger.info("Alpha weight was not provided. Executing linear search for it...")
+            alpha_weight, best_wer = self.coefficient_finder.find_best_coefficient(dataset, asr_scores, llm_scores, distances)
+            Logger.info(f"alpha_weight={alpha_weight} achieved the best WER ({best_wer}).")
+
+        scores_with_llm = asr_scores + alpha_weight * llm_scores
+
+        if beta_weight is None:
+            Logger.info("Beta weight was not provided. Executing linear search for it...")
+            Logger.info("Calculating character lengths for beta weight search ...")
+            char_lengths = torch.tensor([len(h) for h in dataset.get_hypotheses_texts()], device=self.device, dtype=torch.float16)
+            beta_weight, best_wer = self.coefficient_finder.find_best_coefficient(dataset, scores_with_llm, char_lengths, distances)
+            Logger.info(f"beta_weight={beta_weight} achieved the best WER ({best_wer}).")
+
+        new_scores = scores_with_llm + beta_weight * char_lengths
 
         return new_scores.tolist(), alpha_weight, beta_weight
 
@@ -70,7 +93,7 @@ class FastMaskedRescorer:
 
         mask_token = self.tokenizer.mask_token
 
-        for hypothesis_index, hypothesis_tokens in enumerate(hypotheses_tokens):
+        for hypothesis_index, hypothesis_tokens in enumerate(tqdm(hypotheses_tokens)):
             for i, token in enumerate(hypothesis_tokens):
                 masked_tokens = [mask_token if j == i else t for j, t in enumerate(hypothesis_tokens)]
                 masked_sentence = self.tokenizer.convert_tokens_to_string(masked_tokens)
