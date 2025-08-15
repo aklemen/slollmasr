@@ -62,6 +62,9 @@ class FastMaskedRescorer:
                 distances.append(distance)
             distances = torch.tensor(distances, device=self.device, dtype=torch.int16)
 
+        Logger.info("Calculating character lengths for beta weight search ...")
+        char_lengths = torch.tensor([len(h) for h in dataset.get_hypotheses_texts()], device=self.device, dtype=torch.float16)
+
         if alpha_weight is None:
             Logger.info("Alpha weight was not provided. Executing linear search for it...")
             alpha_weight, best_wer = self.coefficient_finder.find_best_coefficient(dataset, asr_scores, llm_scores, distances)
@@ -71,8 +74,6 @@ class FastMaskedRescorer:
 
         if beta_weight is None:
             Logger.info("Beta weight was not provided. Executing linear search for it...")
-            Logger.info("Calculating character lengths for beta weight search ...")
-            char_lengths = torch.tensor([len(h) for h in dataset.get_hypotheses_texts()], device=self.device, dtype=torch.float16)
             beta_weight, best_wer = self.coefficient_finder.find_best_coefficient(dataset, scores_with_llm, char_lengths, distances)
             Logger.info(f"beta_weight={beta_weight} achieved the best WER ({best_wer}).")
 
@@ -104,7 +105,7 @@ class FastMaskedRescorer:
 
         target_ids = self.tokenizer.convert_tokens_to_ids(all_target_tokens)
 
-        hypothesis_indices_gpu = torch.tensor(hypothesis_indices, device=self.device, dtype=torch.int32)
-        target_ids_gpu = torch.tensor(target_ids, device=self.device, dtype=torch.int32)
+        hypothesis_indices_gpu = torch.tensor(hypothesis_indices, device=self.device, dtype=torch.long)
+        target_ids_gpu = torch.tensor(target_ids, device=self.device, dtype=torch.long)
 
         return all_masked_sentences, hypothesis_indices_gpu, target_ids_gpu
