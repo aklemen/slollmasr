@@ -34,9 +34,11 @@ class CoefficientFinder:
         coefficient_range = [-10, 10]
         coefficient_steps = 10000
         if scores1.isnan().any():
-            Logger.warn(f"scores1 contain NaNs at indices: {torch.where(scores1.isnan())}")
+            nan_indices = torch.where(scores1.isnan())
+            Logger.warn(f"scores1 contain NaNs at {len(nan_indices)} indices: {nan_indices}")
         if scores2.isnan().any():
-            Logger.warn(f"scores2 contain NaNs at indices: {torch.where(scores2.isnan())}")
+            nan_indices = torch.where(scores2.isnan())
+            Logger.warn(f"scores2 contain NaNs at {len(nan_indices)} indices: {nan_indices}")
         scores1_mean = scores1.nanmean().abs().item()
         scores2_mean = scores2.nanmean().abs().item()
         normalization_scale = scores1_mean / scores2_mean
