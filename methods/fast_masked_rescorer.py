@@ -46,16 +46,17 @@ class FastMaskedRescorer:
 
             llm_scores[i:i + batch_scores.size(0)] = batch_scores.to(llm_scores.dtype)
 
-        hypothesis_scores_gpu = torch.zeros(len(hypotheses_tokens), device=self.device, dtype=torch.float16)
-        hypothesis_scores_gpu.scatter_add_(0, hypothesis_indices, llm_scores)
+        hypothesis_scores = torch.zeros(len(hypotheses_tokens), device=self.device, dtype=torch.float16)
+        hypothesis_scores.scatter_add_(0, hypothesis_indices, llm_scores)
 
         asr_scores = torch.tensor(dataset.get_hypotheses_scores(), device=self.device, dtype=torch.float16)
         char_lengths = torch.tensor([len(h) for h in dataset.get_hypotheses_texts()], device=self.device, dtype=torch.int16)
 
-        scores_with_llm = asr_scores + 0.5 * hypothesis_scores_gpu
+        scores_with_llm = asr_scores + 0.5 * hypothesis_scores
         new_scores = scores_with_llm + 0.5 * char_lengths
 
         return new_scores.tolist(), alpha_weight, beta_weight
+
 
     """
     all_masked_sentences: List of sentences with one token masked at a time.
