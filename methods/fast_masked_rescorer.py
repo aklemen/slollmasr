@@ -60,10 +60,10 @@ class FastMaskedRescorer:
                 ground_truth = ground_truths[i // dataset.get_beam_size()]
                 distance = editdistance.eval(hypothesis.split(), ground_truth.split())
                 distances.append(distance)
-            distances = torch.tensor(distances, device=self.device, dtype=torch.long)
+            distances = torch.tensor(distances, device=self.device, dtype=torch.float32)
 
         Logger.info("Calculating character lengths for beta weight search ...")
-        char_lengths = torch.tensor([len(h) for h in dataset.get_hypotheses_texts()], device=self.device, dtype=torch.long)
+        char_lengths = torch.tensor([len(h) for h in dataset.get_hypotheses_texts()], device=self.device, dtype=torch.float32)
 
         if alpha_weight is None:
             Logger.info("Alpha weight was not provided. Executing linear search for it...")
