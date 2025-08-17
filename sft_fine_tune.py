@@ -28,6 +28,8 @@ def parse_args():
     parser.add_argument("--epochs", type=int, default=5)
     parser.add_argument("--gradient_accumulation_steps", type=int, default=8)
 
+    parser.add_argument("--checkpoint_dir_to_resume", type=str, required=False, default=None)
+
     parser.add_argument("--num_samples", type=int, required=False, help="Number of samples to use from the dataset for testing purposes.")
 
     arguments = parser.parse_args()
@@ -127,7 +129,7 @@ def main():
         callbacks=[EarlyStoppingCallback(early_stopping_patience=3, early_stopping_threshold=0.01)]
     )
 
-    trainer.train()
+    trainer.train(resume_from_checkpoint=args.checkpoint_dir_to_resume)
 
     if trainer.is_world_process_zero():
         Logger.info("Training completed. Saving model and tokenizer ...")
