@@ -22,7 +22,7 @@ EXPERIMENT_NAME="$(echo "$LLM_NAME" | sed 's/\//_/g')__$(echo "$DATASET_NAME" | 
 
 ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-ddp.yaml"
 NUM_GPUS=4
-EPOCHS=3
+EPOCHS=5
 
 if [ -z "${WANDB_API_KEY:-}" ]; then
   echo "WANDB_API_KEY is not set. Please set it before running the script."
