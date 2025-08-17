@@ -92,7 +92,8 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
-pip install --upgrade huggingface_hub transformers
+pip install --upgrade huggingface_hub
+pip install --upgrade transformers
 
 python /slollmasr/main.py \
    --method h2t-mapping \
