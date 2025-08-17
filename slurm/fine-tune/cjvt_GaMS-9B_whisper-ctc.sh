@@ -1,7 +1,7 @@
 export LLM_NAME="cjvt/GaMS-9B"
 export DATASET_NAME="aklemen/whisper-ctc-h2t"
 export PER_DEVICE_BATCH_SIZE=2
-export LORA_RANK=64
+export LORA_RANK=128
 export LORA_ALPHA=64
 export MODEL_NAME="GaMS-9B-whisper-CTC-H2T-LoRA"
 
