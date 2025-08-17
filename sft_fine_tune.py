@@ -85,15 +85,12 @@ def main():
 
     os.makedirs(args.output_dir_path, exist_ok=True)
 
-    eval_and_save_steps_ratio = 1 / 5 / args.epochs  # evaluate and save 5-times per epoch
+    eval_steps_ratio = 1 / 5 / args.epochs  # evaluate and save 5-times per epoch
     sft_config = SFTConfig(
         output_dir=args.output_dir_path,
         num_train_epochs=args.epochs,
         eval_strategy="steps",
-        eval_steps=eval_and_save_steps_ratio,
-        save_strategy="steps",
-        save_steps=eval_and_save_steps_ratio,
-        save_total_limit=3,
+        eval_steps=eval_steps_ratio,
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
         greater_is_better=False,
