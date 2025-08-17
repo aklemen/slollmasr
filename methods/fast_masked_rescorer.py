@@ -13,7 +13,7 @@ Limitation: Works only on one GPU.
 class FastMaskedRescorer:
     def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 1024):
         self.device = "cuda" if torch.cuda.is_available() else "mps"
-        self.model = AutoModelForMaskedLM.from_pretrained(llm_name, torch_dtype=torch.bfloat16, device_map=self.device)
+        self.model = AutoModelForMaskedLM.from_pretrained(llm_name, device_map=self.device)
         self.model.eval()
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
         self.batch_size = batch_size
@@ -25,7 +25,7 @@ class FastMaskedRescorer:
         Logger.info("Preparing masked sequences for LLM scoring ...")
         masked_sequences, hypothesis_indices, target_ids = self._prepare_masked_sequences(hypotheses_tokens)
 
-        per_mask_llm_scores = torch.zeros(len(masked_sequences), device=self.device, dtype=torch.float16)
+        per_mask_llm_scores = torch.zeros(len(masked_sequences), device=self.device, dtype=torch.float32)
 
         Logger.info("Scoring hypotheses with LLM ...")
         for i in tqdm(range(0, len(masked_sequences), self.batch_size)):
@@ -48,9 +48,9 @@ class FastMaskedRescorer:
 
             per_mask_llm_scores[i:i + batch_scores.size(0)] = batch_scores.to(per_mask_llm_scores.dtype)
 
-        llm_scores = torch.zeros(len(hypotheses_tokens), device=self.device, dtype=torch.float16)
+        llm_scores = torch.zeros(len(hypotheses_tokens), device=self.device, dtype=torch.float32)
         llm_scores.scatter_add_(0, hypothesis_indices, per_mask_llm_scores)
-        asr_scores = torch.tensor(dataset.get_hypotheses_scores(), device=self.device, dtype=torch.float16)
+        asr_scores = torch.tensor(dataset.get_hypotheses_scores(), device=self.device, dtype=torch.float32)
 
         if alpha_weight is None or beta_weight is None:
             Logger.info("Calculating distances for WER calculation ...")
@@ -60,10 +60,10 @@ class FastMaskedRescorer:
                 ground_truth = ground_truths[i // dataset.get_beam_size()]
                 distance = editdistance.eval(hypothesis.split(), ground_truth.split())
                 distances.append(distance)
-            distances = torch.tensor(distances, device=self.device, dtype=torch.int16)
+            distances = torch.tensor(distances, device=self.device, dtype=torch.long)
 
         Logger.info("Calculating character lengths for beta weight search ...")
-        char_lengths = torch.tensor([len(h) for h in dataset.get_hypotheses_texts()], device=self.device, dtype=torch.float16)
+        char_lengths = torch.tensor([len(h) for h in dataset.get_hypotheses_texts()], device=self.device, dtype=torch.long)
 
         if alpha_weight is None:
             Logger.info("Alpha weight was not provided. Executing linear search for it...")
