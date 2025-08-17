@@ -41,9 +41,9 @@ class FastMaskedRescorer:
             indices_of_sentences_with_mask = mask_positions[0]
             positions_of_masks_in_sentences = mask_positions[1]
 
-            mask_logits = logits[indices_of_sentences_with_mask, positions_of_masks_in_sentences, :]  # (B, V)
+            mask_logits = logits[indices_of_sentences_with_mask, positions_of_masks_in_sentences, :]
 
-            log_probs = torch.softmax(mask_logits, dim=-1)  # (B, V)
+            log_probs = torch.nn.functional.log_softmax(mask_logits, dim=-1)
             batch_scores = log_probs.gather(1, batch_target_ids.unsqueeze(1)).squeeze(1)
 
             per_mask_llm_scores[i:i + batch_scores.size(0)] = batch_scores.to(per_mask_llm_scores.dtype)
