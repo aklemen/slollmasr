@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=64
 #SBATCH --mem-per-gpu=128G
 #SBATCH --output=/dev/null
-# SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
+#SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
 required_vars=(LLM_NAME TOKENIZER_NAME ALPHAS BETAS)
