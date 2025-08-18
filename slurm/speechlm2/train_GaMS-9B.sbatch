@@ -9,15 +9,6 @@
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
-# Check if all required environment variables are set
-required_vars=(LLM_NAME TOKENIZER_NAME)
-for var in "${required_vars[@]}"; do
-  if [ -z "${!var}" ]; then
-    echo "Error: $var is not set."
-    exit 1
-  fi
-done
-
 EXPERIMENT_NAME="cjvt_GaMS-9B"
 TRAIN_BATCH_SIZE=8
 
