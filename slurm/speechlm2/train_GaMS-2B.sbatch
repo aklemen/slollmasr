@@ -10,7 +10,7 @@
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 LLM_NAME="cjvt/GaMS-2B"
-PER_GPU_BATCH_SIZE=8
+PER_GPU_BATCH_SIZE=4
 
 EXPERIMENT_NAME=$(echo "$LLM_NAME" | sed 's/\//_/g')
 
