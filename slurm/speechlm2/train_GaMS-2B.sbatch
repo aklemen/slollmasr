@@ -63,6 +63,24 @@ export NCCL_DEBUG=INFO
 
 export WANDB_API_KEY="$WANDB_API_KEY"
 
+IS_RANK_0_DONE=/tmp/rank_0_done
+
+if [[ \"\${SLURM_PROCID:-0}\" == \"0\" ]]; then
+  echo \"# Rank 0 checking out 'main' branch to use most up-to-date SpeechLM2 code ...\"
+  cd /opt/NeMo
+  git branch --show-current
+  git fetch origin main
+  git reset --hard origin/main
+  git branch --show-current
+  cd -
+  echo \"# Rank 0 patching SpeechLM2 invalid device string issue ...\"
+  curl -o /opt/NeMo/nemo/collections/speechlm2/parts/pretrained.py https://raw.githubusercontent.com/aklemen/NeMo/refs/heads/speechlm2-fixes/nemo/collections/speechlm2/parts/pretrained.py
+  touch \"\${IS_RANK_0_DONE}\"
+else
+  echo \"# Rank \${SLURM_PROCID} waiting for NeMo install\"
+  while [[ ! -f \"\${IS_RANK_0_DONE}\" ]]; do sleep 2; done
+fi
+
 python /opt/NeMo/examples/speechlm2/salm_train.py \
   --config-path=/slollmasr/speechlm2 \
   --config-name=gemma_salm.yaml \
