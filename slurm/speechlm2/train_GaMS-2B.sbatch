@@ -3,14 +3,16 @@
 #SBATCH --time=2-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --gpus-per-node=H100:4
+#SBATCH --gpus-per-node=L4:4
 #SBATCH --cpus-per-task=8
-#SBATCH --mem-per-gpu=128G
+#SBATCH --mem-per-gpu=32G
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
-EXPERIMENT_NAME="cjvt_GaMS-9B"
-TRAIN_BATCH_SIZE=8
+LLM_NAME="cjvt/GaMS-2B"
+PER_GPU_BATCH_SIZE=16
+
+EXPERIMENT_NAME=$(echo "$LLM_NAME" | sed 's/\//_/g')
 
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
@@ -62,9 +64,10 @@ export NCCL_DEBUG=INFO
 python /opt/NeMo/examples/speechlm2/salm_train.py \
   --config-path=/slollmasr/speechlm2 \
   --config-name=gemma_salm.yaml \
+  model.pretrained_llm=${LLM_NAME} \
+  data.train_ds.batch_size=${PER_GPU_BATCH_SIZE} \
   exp_manager.name=${EXPERIMENT_NAME} \
-  exp_manager.wandb_logger_kwargs.name=${EXPERIMENT_NAME} \
-  data.train_ds.batch_size=${TRAIN_BATCH_SIZE}
+  exp_manager.wandb_logger_kwargs.name=${EXPERIMENT_NAME}
 
 echo -e \"\"\"
 # finished at \$(date)
@@ -76,6 +79,7 @@ CONTAINER_IMAGE="nvcr.io/nvidia/nemo:25.07"
 EXPERIMENTS="$LOCAL_EXPERIMENT_DIR:/exp"
 
 DATASETS="/shared/workspace/lpt-llm/datasets:/dataset:ro"
+CUSTOM_DATASETS="$HOME/custom-datasets:/custom-datasets:ro"
 MANIFESTS="$HOME/manifests:/manifests:ro"
 MODELS="$HOME/models:/models:ro"
 SLOLLMASR="$HOME/slollmasr:/slollmasr:ro"
@@ -84,7 +88,7 @@ BEAMS="$HOME/beams:/beams"
 TESTING="$HOME/testing:/testing"
 HF_HOME="$HOME/.cache/huggingface:/hf-home"
 
-CONTAINER_MOUNTS="$EXPERIMENTS,$DATASETS,$MANIFESTS,$MODELS,$SLOLLMASR,$BEAMS,$TESTING,$HF_HOME"
+CONTAINER_MOUNTS="$EXPERIMENTS,$DATASETS,$CUSTOM_DATASETS,$MANIFESTS,$MODELS,$SLOLLMASR,$BEAMS,$TESTING,$HF_HOME"
 
 srun \
   --container-image="$CONTAINER_IMAGE" \
