@@ -148,6 +148,7 @@ exp_manager:
   name: salm
   create_tensorboard_logger: false
   create_checkpoint_callback: true
+  create_early_stopping_callback: true
   use_datetime_version: true
 
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
@@ -171,3 +172,11 @@ exp_manager:
     save_top_k: 1
     always_save_nemo: true
     save_nemo_on_train_end: false
+
+  early_stopping_callback_params:
+    monitor: val_acc
+    mode: max
+    min_delta: 0.0
+    patience: 5
+    check_finite: true
+    verbose: true
