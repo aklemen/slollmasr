@@ -64,7 +64,6 @@ python /opt/NeMo/examples/speechlm2/salm_train.py \
   --config-name=gemma_salm.yaml \
   exp_manager.name=${EXPERIMENT_NAME} \
   exp_manager.wandb_logger_kwargs.name=${EXPERIMENT_NAME} \
-  exp_manager.explicit_log_dir=${LOCAL_EXPERIMENT_DIR} \
   data.train_ds.batch_size=${TRAIN_BATCH_SIZE}
 
 echo -e \"\"\"

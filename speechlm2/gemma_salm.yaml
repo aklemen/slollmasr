@@ -144,8 +144,7 @@ data:
     shard_seed: "randomized"
 
 exp_manager:
-  exp_dir: /exp
-  explicit_log_dir: salm_results/
+  explicit_log_dir: /exp/logs
   name: salm
   create_tensorboard_logger: false
   create_checkpoint_callback: true
