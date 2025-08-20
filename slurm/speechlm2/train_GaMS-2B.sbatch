@@ -61,6 +61,8 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
+export WANDB_API_KEY="$WANDB_API_KEY"
+
 python /opt/NeMo/examples/speechlm2/salm_train.py \
   --config-path=/slollmasr/speechlm2 \
   --config-name=gemma_salm.yaml \
