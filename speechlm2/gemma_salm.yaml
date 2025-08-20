@@ -169,5 +169,5 @@ exp_manager:
     every_n_train_steps: ${trainer.val_check_interval}
     every_n_epochs: null
     save_top_k: 1
-    always_save_nemo: false
+    always_save_nemo: true
     save_nemo_on_train_end: false
