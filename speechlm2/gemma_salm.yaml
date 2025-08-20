@@ -163,7 +163,7 @@ exp_manager:
     resume: true
 
   checkpoint_callback_params:
-    filename: "{step}"
+    filename: "{epoch}-{step}-{val_acc:.2f}"
     monitor: val_acc
     mode: max
     every_n_train_steps: ${trainer.val_check_interval}
