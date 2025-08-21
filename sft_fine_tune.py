@@ -128,6 +128,13 @@ def main():
         callbacks=[EarlyStoppingCallback(early_stopping_patience=5)]
     )
 
+    print(f"********* MODEL CONFIGURATION *********")
+    print(trainer.model.config)
+    print(f"****************************************")
+    print(f"********* TRAINABLE PARAMETERS *********")
+    trainer.model.print_trainable_parameters()
+    print(f"****************************************")
+
     trainer.train(resume_from_checkpoint=args.checkpoint_dir_to_resume)
 
     if trainer.is_world_process_zero():
