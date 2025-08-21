@@ -7,7 +7,7 @@
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
-required_vars=(LLM_NAME PER_DEVICE_BATCH_SIZE TARGET_EFFECTIVE_BATCH_SIZE)
+required_vars=(SLURM_GPUS_ON_NODE WANDB_API_KEY LLM_NAME PER_DEVICE_BATCH_SIZE TARGET_EFFECTIVE_BATCH_SIZE)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
@@ -15,7 +15,7 @@ for var in "${required_vars[@]}"; do
   fi
 done
 
-GRADIENT_ACCUMULATION_STEPS=$((TARGET_EFFECTIVE_BATCH_SIZE / (SLURM_NPROCS * PER_DEVICE_BATCH_SIZE)))
+GRADIENT_ACCUMULATION_STEPS=$((TARGET_EFFECTIVE_BATCH_SIZE / (SLURM_GPUS_ON_NODE * PER_DEVICE_BATCH_SIZE)))
 
 EXPERIMENT_NAME=$(echo "$LLM_NAME" | sed 's/\//_/g')
 

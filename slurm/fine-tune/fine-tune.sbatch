@@ -10,7 +10,7 @@
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
-required_vars=(LLM_NAME PER_DEVICE_BATCH_SIZE DATASET_NAME LORA_RANK LORA_ALPHA MODEL_NAME)
+required_vars=(SLURM_GPUS_ON_NODE WANDB_API_KEY LLM_NAME PER_DEVICE_BATCH_SIZE DATASET_NAME LORA_RANK LORA_ALPHA MODEL_NAME)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
@@ -18,16 +18,11 @@ for var in "${required_vars[@]}"; do
   fi
 done
 
+GRADIENT_ACCUMULATION_STEPS=$((TARGET_EFFECTIVE_BATCH_SIZE / (SLURM_GPUS_ON_NODE * PER_DEVICE_BATCH_SIZE)))
+
 EXPERIMENT_NAME="$(echo "$LLM_NAME" | sed 's/\//_/g')__$(echo "$DATASET_NAME" | sed 's/\//_/g')"
 
 ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-ddp.yaml"
-NUM_GPUS=4
-EPOCHS=3
-
-if [ -z "${WANDB_API_KEY:-}" ]; then
-  echo "WANDB_API_KEY is not set. Please set it before running the script."
-  exit 1
-fi
 
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
@@ -89,7 +84,7 @@ fi
 
 cp /slollmasr/sft_fine_tune.py /exp
 
-accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$NUM_GPUS /slollmasr/sft_fine_tune.py \
+accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$SLURM_GPUS_ON_NODE /slollmasr/sft_fine_tune.py \
   --llm_name $LLM_NAME \
   --prompt_completion_dataset_name $DATASET_NAME \
   --output_dir_path \$RESULTS_DIR \
@@ -98,7 +93,8 @@ accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$NUM_GPU
   --lora_alpha $LORA_ALPHA \
   --lora_dropout 0.1 \
   --per_device_batch_size $PER_DEVICE_BATCH_SIZE \
-  --epochs $EPOCHS \
+  --epochs 5 \
+  --gradient_accumulation_steps $GRADIENT_ACCUMULATION_STEPS \
   --model_name $MODEL_NAME
 
 echo -e \"\"\"
