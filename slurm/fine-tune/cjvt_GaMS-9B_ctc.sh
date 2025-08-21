@@ -8,4 +8,5 @@ export TARGET_EFFECTIVE_BATCH_SIZE=128
 export LORA_RANK=128
 export LORA_ALPHA=64
 
-sbatch --job-name=lora-gams-9b-ctc fine-tune.sbatch
+JOB_NAME=h2t-$(echo $MODEL_NAME | sed 's/\//-/g' | sed 's/_/-/g')
+sbatch --job-name="$JOB_NAME" fine-tune.sbatch
