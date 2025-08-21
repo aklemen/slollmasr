@@ -87,7 +87,7 @@ if grep -q \"distributed_type: DEEPSPEED\" $ACCELERATE_CONFIG_FILE; then
   pip install deepspeed
 fi
 
-cp /slollmasr/sft_fine_tune.py $LOCAL_EXPERIMENT_DIR
+cp /slollmasr/sft_fine_tune.py /exp
 
 accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$NUM_GPUS /slollmasr/sft_fine_tune.py \
   --llm_name $LLM_NAME \
