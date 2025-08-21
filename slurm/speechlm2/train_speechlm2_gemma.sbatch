@@ -2,15 +2,20 @@
 #SBATCH --partition=frida
 #SBATCH --time=2-00:00:00
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=4
-#SBATCH --gpus-per-node=L4:4
 #SBATCH --cpus-per-task=8
-#SBATCH --mem-per-gpu=32G
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
-LLM_NAME="cjvt/GaMS-2B"
-PER_GPU_BATCH_SIZE=4
+# Check if all required environment variables are set
+required_vars=(LLM_NAME PER_DEVICE_BATCH_SIZE TARGET_EFFECTIVE_BATCH_SIZE)
+for var in "${required_vars[@]}"; do
+  if [ -z "${!var}" ]; then
+    echo "Error: $var is not set."
+    exit 1
+  fi
+done
+
+GRADIENT_ACCUMULATION_STEPS=$((TARGET_EFFECTIVE_BATCH_SIZE / (SLURM_NPROCS * PER_GPU_BATCH_SIZE)))
 
 EXPERIMENT_NAME=$(echo "$LLM_NAME" | sed 's/\//_/g')
 
@@ -85,7 +90,8 @@ python /opt/NeMo/examples/speechlm2/salm_train.py \
   --config-path=/slollmasr/speechlm2 \
   --config-name=gemma_salm.yaml \
   model.pretrained_llm=${LLM_NAME} \
-  data.train_ds.batch_size=${PER_GPU_BATCH_SIZE} \
+  trainer.accumulate_grad_batches=${GRADIENT_ACCUMULATION_STEPS} \
+  data.train_ds.batch_size=${PER_DEVICE_BATCH_SIZE} \
   exp_manager.name=${EXPERIMENT_NAME} \
   exp_manager.wandb_logger_kwargs.name=${EXPERIMENT_NAME}
 
