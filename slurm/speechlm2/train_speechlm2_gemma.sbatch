@@ -15,7 +15,7 @@ for var in "${required_vars[@]}"; do
   fi
 done
 
-GRADIENT_ACCUMULATION_STEPS=$((TARGET_EFFECTIVE_BATCH_SIZE / (SLURM_NPROCS * PER_GPU_BATCH_SIZE)))
+GRADIENT_ACCUMULATION_STEPS=$((TARGET_EFFECTIVE_BATCH_SIZE / (SLURM_NPROCS * PER_DEVICE_BATCH_SIZE)))
 
 EXPERIMENT_NAME=$(echo "$LLM_NAME" | sed 's/\//_/g')
 
@@ -61,6 +61,10 @@ echo -e \"\"\"
 \$(env | grep -i Slurm | sort | sed \"s/^/# \${SLURMD_NODENAME}.\${SLURM_PROCID}>   /g\")
 \$(cat /etc/nccl.conf | sed \"s/^/# \${SLURMD_NODENAME}.\${SLURM_PROCID}>   /g\")
 \"\"\"
+
+echo \"PER_DEVICE_BATCH_SIZE=${PER_DEVICE_BATCH_SIZE}\"
+echo \"GRADIENT_ACCUMULATION_STEPS=${GRADIENT_ACCUMULATION_STEPS}\"
+echo \"TARGET_EFFECTIVE_BATCH_SIZE=${TARGET_EFFECTIVE_BATCH_SIZE}\"
 
 # set unbuffered python for realtime container logging
 export PYTHONFAULTHANDLER=1
