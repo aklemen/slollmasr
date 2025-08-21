@@ -125,7 +125,7 @@ def main():
         eval_dataset=train_val_dataset['test'],
         processing_class=tokenizer,
         args=sft_config,
-        callbacks=[EarlyStoppingCallback(early_stopping_patience=3, early_stopping_threshold=0.001)]
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=5)]
     )
 
     trainer.train(resume_from_checkpoint=args.checkpoint_dir_to_resume)
