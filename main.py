@@ -105,6 +105,8 @@ if __name__ == '__main__':
         'beta',
         'old_wer',
         'new_wer',
+        'old_cer',
+        'new_cer',
         'run_duration',
         'run_duration_in_seconds',
         'rtfx',
@@ -174,8 +176,8 @@ if __name__ == '__main__':
             results_df.to_csv(results_file_path, sep='\t', index=False)
             Logger.info(f"Results saved to {results_file_path}!")
 
-            old_wer_score = calc.calculate_wer(old_best_hypotheses, ground_truths)
-            new_wer_score = calc.calculate_wer(new_best_hypotheses, ground_truths)
+            old_wer_score, old_cer_score = calc.calculate_wer_and_cer(old_best_hypotheses, ground_truths)
+            new_wer_score, new_cer_score = calc.calculate_wer_and_cer(new_best_hypotheses, ground_truths)
             rtfx = calc.calculate_rtfx(manifest.get_dataset_duration_in_seconds(), run_duration)
             gpu_names = [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())]
             new_eval_df = pd.DataFrame({
@@ -185,6 +187,8 @@ if __name__ == '__main__':
                 'beta': [used_beta],
                 'old_wer': [old_wer_score],
                 'new_wer': [new_wer_score],
+                'old_cer': [old_cer_score],
+                'new_cer': [new_cer_score],
                 'run_duration': [str(datetime.timedelta(seconds=run_duration))],
                 'run_duration_in_seconds': [round(run_duration, 3)],
                 'rtfx': [round(rtfx, 3)],
