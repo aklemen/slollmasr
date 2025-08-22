@@ -182,6 +182,10 @@ if __name__ == '__main__':
                 'run_duration': [str(datetime.timedelta(seconds=run_duration))],
                 'run_duration_in_seconds': [round(run_duration, 3)],
             })
-            eval_df = pd.concat([eval_df, new_eval_df], ignore_index=True)
+            if eval_df is None or eval_df.empty:
+                eval_df = new_eval_df
+            else:
+                eval_df = pd.concat([eval_df, new_eval_df], ignore_index=True)
+            eval_df = eval_df.dropna(axis='columns', how='all')
             eval_df.to_csv(f'{args.evaluation_dir_path}/evaluation.tsv', sep='\t', index=False)
             Logger.info(eval_df.to_string())
