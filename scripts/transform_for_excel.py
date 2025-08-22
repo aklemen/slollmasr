@@ -28,7 +28,7 @@ def transform_for_excel(eval_df: pd.DataFrame, llm_name: str, batch_size: int) -
                 excel_row[col] = ''
         excel_rows.append(excel_row)
 
-    columns = ['LLM', 'BEAM SIZE', 'ALPHA', 'BETA'] + dataset_columns + ['BATCH SIZE']
+    columns = ['LLM', 'BEAM SIZE', 'ALPHA', 'BETA'] + dataset_columns + ['BATCH SIZE', 'RTFX', 'GPUS']
     if 'ALPHA' not in excel_rows[0]:
         columns.remove('ALPHA')
     if 'BETA' not in excel_rows[0]:
