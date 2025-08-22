@@ -4,6 +4,7 @@ import time
 from pathlib import Path
 
 import pandas as pd
+import torch
 
 from best_hypotheses_selector import BestHypothesesSelector
 from logger import Logger
@@ -106,6 +107,8 @@ if __name__ == '__main__':
         'new_wer',
         'run_duration',
         'run_duration_in_seconds',
+        'rtfx',
+        'gpus'
     ])
 
     num_of_beam_sizes = len(args.beam_sizes)
@@ -173,6 +176,8 @@ if __name__ == '__main__':
 
             old_wer_score = calc.calculate_wer(old_best_hypotheses, ground_truths)
             new_wer_score = calc.calculate_wer(new_best_hypotheses, ground_truths)
+            rtfx = calc.calculate_rtfx(manifest.get_dataset_duration_in_seconds(), run_duration)
+            gpu_names = [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())]
             new_eval_df = pd.DataFrame({
                 'results_file': [results_file_path],
                 'beam_size': [beam_size],
@@ -182,6 +187,8 @@ if __name__ == '__main__':
                 'new_wer': [new_wer_score],
                 'run_duration': [str(datetime.timedelta(seconds=run_duration))],
                 'run_duration_in_seconds': [round(run_duration, 3)],
+                'rtfx': [round(rtfx, 3)],
+                'gpus': ', '.join(gpu_names)
             })
             if eval_df is None or eval_df.empty:
                 eval_df = new_eval_df
@@ -191,4 +198,5 @@ if __name__ == '__main__':
             eval_df.to_csv(f'{args.evaluation_dir_path}/evaluation.tsv', sep='\t', index=False)
             eval_df_for_excel = transform_for_excel(eval_df, args.llm_name, args.batch_size)
             eval_df_for_excel.to_csv(f'{args.evaluation_dir_path}/evaluation_for_excel.tsv', sep='\t', index=False, decimal=",")
+
             Logger.info(eval_df.to_string())

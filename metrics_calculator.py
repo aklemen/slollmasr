@@ -15,3 +15,6 @@ class MetricsCalculator:
         w = self.calculate_wer(predictions, references)
         c = self.calculate_cer(predictions, references)
         return w, c
+
+    def calculate_rtfx(self, input_duration: float, infer_duration: float) -> float:
+        return input_duration / infer_duration

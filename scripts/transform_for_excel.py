@@ -12,7 +12,9 @@ def transform_for_excel(eval_df: pd.DataFrame, llm_name: str, batch_size: int) -
         excel_row = {
             'LLM': llm_name,
             'BEAM SIZE': row['beam_size'],
-            'BATCH SIZE': batch_size
+            'BATCH SIZE': batch_size,
+            'RTFX': row['rtfx'],
+            'GPUS': row['gpus'],
         }
         if row['alpha'] is not None:
             excel_row['ALPHA'] = row['alpha']
