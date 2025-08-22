@@ -16,6 +16,7 @@ from methods.task_activating_gec import TaskActivatingGec
 from methods.zero_shot_gec import ZeroShotGec
 from methods.zero_shot_selection import ZeroShotSelection
 from metrics_calculator import MetricsCalculator
+from scripts.transform_for_excel import transform_for_excel
 from torch_datasets.hypotheses_dataset import HypothesesDataset
 from torch_datasets.manifest_dataset import ManifestDataset
 
@@ -188,4 +189,6 @@ if __name__ == '__main__':
                 eval_df = pd.concat([eval_df, new_eval_df], ignore_index=True)
             eval_df = eval_df.dropna(axis='columns', how='all')
             eval_df.to_csv(f'{args.evaluation_dir_path}/evaluation.tsv', sep='\t', index=False)
+            eval_df_for_excel = transform_for_excel(eval_df, args.llm_name, args.batch_size)
+            eval_df_for_excel.to_csv(f'{args.evaluation_dir_path}/evaluation_for_excel.tsv', sep='\t', index=False, decimal=",")
             Logger.info(eval_df.to_string())
