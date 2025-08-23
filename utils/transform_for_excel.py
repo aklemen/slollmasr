@@ -14,6 +14,7 @@ def transform_for_excel(eval_df: pd.DataFrame, llm_name: str, batch_size: int) -
             'BEAM SIZE': row['beam_size'],
             'BATCH SIZE': batch_size,
             'RTFX': row['rtfx'],
+            'DURATION': row['run_duration_in_seconds'],
             'GPUS': row['gpus'],
         }
         if row['alpha'] is not None:
@@ -28,7 +29,7 @@ def transform_for_excel(eval_df: pd.DataFrame, llm_name: str, batch_size: int) -
                 excel_row[col] = ''
         excel_rows.append(excel_row)
 
-    columns = ['LLM', 'BEAM SIZE', 'ALPHA', 'BETA'] + dataset_columns + ['BATCH SIZE', 'RTFX', 'GPUS']
+    columns = ['LLM', 'BEAM SIZE', 'ALPHA', 'BETA'] + dataset_columns + ['BATCH SIZE', 'DURATION', 'RTFX', 'GPUS']
     if 'ALPHA' not in excel_rows[0]:
         columns.remove('ALPHA')
     if 'BETA' not in excel_rows[0]:
