@@ -12,7 +12,6 @@ from rescoring.causal.causal_rescorer import CausalReScorer
 from prompting.h2t.h2t_mapping import H2TMapping
 from prompting.gec.one_shot.one_shot_gec import OneShotGec
 from rescoring.masked.fast_masked_rescorer import FastMaskedRescorer
-from rescoring.causal.simple_causal_rescorer import SimpleCausalReScorer
 from prompting.gec.task_activating.task_activating_gec import TaskActivatingGec
 from prompting.gec.zero_shot.zero_shot_gec import ZeroShotGec
 from prompting.selection.zero_shot.zero_shot_selection import ZeroShotSelection
@@ -81,8 +80,6 @@ if __name__ == '__main__':
     method = None
     if args.method == 'causal-rescore':
         method = CausalReScorer(args.llm_name, args.tokenizer_name, args.batch_size)
-    elif args.method == 'simple-causal-rescore':
-        method = SimpleCausalReScorer(args.llm_name, args.tokenizer_name, args.batch_size)
     elif args.method == 'zero-shot-gec':
         method = ZeroShotGec(args.llm_name, args.tokenizer_name, args.batch_size)
     elif args.method == 'one-shot-gec':
