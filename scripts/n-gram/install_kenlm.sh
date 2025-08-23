@@ -1,8 +1,0 @@
-apt-get update
-apt-get install -y libeigen3-dev libboost-all-dev
-cd /usr/local || exit
-git clone https://github.com/kpu/kenlm.git
-cd kenlm && mkdir build && cd build && cmake .. && make -j
-
-pip3 install git+https://github.com/kpu/kenlm.git
-pip3 install git+https://github.com/flashlight/text.git

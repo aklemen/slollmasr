@@ -7,17 +7,17 @@ import pandas as pd
 import torch
 
 from utils.best_hypotheses_selector import BestHypothesesSelector
-from logger import Logger
-from methods.causal_rescorer import CausalReScorer
-from methods.h2t_mapping import H2TMapping
-from methods.one_shot_gec import OneShotGec
-from methods.fast_masked_rescorer import FastMaskedRescorer
-from methods.simple_causal_rescorer import SimpleCausalReScorer
-from methods.task_activating_gec import TaskActivatingGec
-from methods.zero_shot_gec import ZeroShotGec
-from methods.zero_shot_selection import ZeroShotSelection
-from metrics_calculator import MetricsCalculator
-from scripts.transform_for_excel import transform_for_excel
+from utils.logger import Logger
+from rescoring.causal.causal_rescorer import CausalReScorer
+from prompting.h2t.h2t_mapping import H2TMapping
+from prompting.gec.one_shot.one_shot_gec import OneShotGec
+from rescoring.masked.fast_masked_rescorer import FastMaskedRescorer
+from rescoring.causal.simple_causal_rescorer import SimpleCausalReScorer
+from prompting.gec.task_activating.task_activating_gec import TaskActivatingGec
+from prompting.gec.zero_shot.zero_shot_gec import ZeroShotGec
+from prompting.selection.zero_shot.zero_shot_selection import ZeroShotSelection
+from utils.metrics_calculator import MetricsCalculator
+from utils.transform_for_excel import transform_for_excel
 from torch_datasets.hypotheses_dataset import HypothesesDataset
 from torch_datasets.manifest_dataset import ManifestDataset
 
