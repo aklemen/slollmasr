@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 import torch
 
-from best_hypotheses_selector import BestHypothesesSelector
+from utils.best_hypotheses_selector import BestHypothesesSelector
 from logger import Logger
 from methods.causal_rescorer import CausalReScorer
 from methods.h2t_mapping import H2TMapping

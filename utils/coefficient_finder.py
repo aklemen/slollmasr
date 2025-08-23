@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-from best_hypotheses_selector import BestHypothesesSelector
+from utils.best_hypotheses_selector import BestHypothesesSelector
 from logger import Logger
 from torch_datasets.hypotheses_dataset import HypothesesDataset
 
