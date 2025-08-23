@@ -14,7 +14,7 @@ from rescoring.coefficient_finder import CoefficientFinder
 class CausalReScorer:
     def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 128):
         self.llm_name = llm_name
-        self.llm = (
+        self.model = (
             AutoModelForCausalLM.from_pretrained(
                 pretrained_model_name_or_path=llm_name,
                 is_decoder=True,
@@ -24,6 +24,7 @@ class CausalReScorer:
             )
             .eval()
         )
+        Logger.info(f'Model "{llm_name}" loaded to {self.model.device}.')
         self.tokenizer = CustomTokenizer(tokenizer_name)
         self.device_to_map_to = "cuda"
         self.coefficient_finder = CoefficientFinder("cuda")
@@ -34,7 +35,7 @@ class CausalReScorer:
         with_ids_dataset = HypothesesWithIdsDataset(dataset.hypotheses, dataset.ground_truths, hypotheses_ids, self.tokenizer.pad_id)
         data_loader = torch.utils.data.DataLoader(dataset=with_ids_dataset, batch_size=self.batch_size, pin_memory=True)
 
-        if "attention_mask" in inspect.getfullargspec(self.llm.forward).args:
+        if "attention_mask" in inspect.getfullargspec(self.model.forward).args:
             Logger.info(f'Attention mask is supported by "{self.llm_name}" and will be used.')
             support_attention_mask = True
         else:
@@ -54,9 +55,9 @@ class CausalReScorer:
                 distance = distance.to(self.device_to_map_to)
 
                 if support_attention_mask:
-                    output = self.llm(input_ids=input_ids, attention_mask=input_mask)
+                    output = self.model(input_ids=input_ids, attention_mask=input_mask)
                 else:
-                    output = self.llm(input_ids=input_ids)
+                    output = self.model(input_ids=input_ids)
 
                 log_probs = torch.nn.functional.log_softmax(output.logits, dim=-1)  # [batch_size, sequence_length, vocab_size]
 

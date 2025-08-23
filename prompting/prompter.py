@@ -27,6 +27,7 @@ class Prompter:
             device_map="auto",
             torch_dtype=torch.bfloat16,
         )
+        Logger.info(f'Model "{llm_name_or_path}" loaded to {model.device}.')
 
         self._generator = pipeline(
             "text-generation",

@@ -46,6 +46,15 @@ if __name__ == '__main__':
     Logger.info(args)
     Logger.info("===================================")
 
+    Logger.info("============ TORCH INFO ===========")
+    Logger.info(f"Torch version: {torch.__version__}")
+    Logger.info(f"Is CUDA available: {torch.cuda.is_available()}")
+    if torch.cuda.is_available():
+        Logger.info(f"Number of available GPUs: {torch.cuda.device_count()}")
+        for i in range(torch.cuda.device_count()):
+            Logger.info(f"  {i}. {torch.cuda.get_device_name(i)}")
+    Logger.info("===================================")
+
     if args.tokenizer_name is None:
         Logger.info(f"Tokenizer name was not given, using LLM name '{args.llm_name}'")
         args.tokenizer_name = args.llm_name
@@ -75,8 +84,10 @@ if __name__ == '__main__':
             f"should be the same as len(args.beams_file_paths) // len(args.beam_sizes) ({num_of_datasets})!"
         )
 
+    Logger.info("Instantiating MetricsCalculator ...")
     calc = MetricsCalculator()
 
+    Logger.info(f"Instantiating method '{args.method}' ...")
     method = None
     if args.method == 'causal-rescore':
         method = CausalReScorer(args.llm_name, args.tokenizer_name, args.batch_size)

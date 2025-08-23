@@ -14,6 +14,7 @@ class FastMaskedRescorer:
     def __init__(self, llm_name: str, tokenizer_name: str, batch_size: int = 1024):
         self.device = "cuda" if torch.cuda.is_available() else "mps"
         self.model = AutoModelForMaskedLM.from_pretrained(llm_name, device_map=self.device)
+        Logger.info(f'Model "{llm_name}" loaded to {self.device}.')
         self.model.eval()
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
         self.batch_size = batch_size
