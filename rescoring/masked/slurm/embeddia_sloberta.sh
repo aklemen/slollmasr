@@ -5,4 +5,4 @@ export BETAS="-0.007 -0.159 -0.175 -0.359"
 export METHOD="masked-rescore"
 
 JOB_NAME="$METHOD-$(basename "$LLM_NAME")"
-sbatch --job-name="$JOB_NAME" ../../../rescoring.sbatch
+sbatch --job-name="$JOB_NAME" ../../rescoring.sbatch

@@ -5,4 +5,4 @@ export BETAS="0.080 0.092 0.49 0.201"
 export METHOD="causal-rescore"
 
 JOB_NAME="$METHOD-$(basename "$LLM_NAME")"
-sbatch --job-name="$JOB_NAME" ../../../rescoring.sbatch
+sbatch --job-name="$JOB_NAME" ../../rescoring.sbatch
