@@ -94,9 +94,6 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
-pip install huggingface_hub==0.34.4
-pip install transformers==4.55.4
-
 python /slollmasr/main.py \
    --method $METHOD \
    --llm_name $LLM_NAME \
