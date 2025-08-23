@@ -6,19 +6,19 @@ from pathlib import Path
 import pandas as pd
 import torch
 
-from utils.best_hypotheses_selector import BestHypothesesSelector
-from utils.logger import Logger
-from rescoring.causal.causal_rescorer import CausalReScorer
-from prompting.h2t.h2t_mapping import H2TMapping
 from prompting.gec.one_shot.one_shot_gec import OneShotGec
-from rescoring.masked.fast_masked_rescorer import FastMaskedRescorer
 from prompting.gec.task_activating.task_activating_gec import TaskActivatingGec
 from prompting.gec.zero_shot.zero_shot_gec import ZeroShotGec
+from prompting.h2t.h2t_mapping import H2TMapping
 from prompting.selection.zero_shot.zero_shot_selection import ZeroShotSelection
-from utils.metrics_calculator import MetricsCalculator
-from utils.transform_for_excel import transform_for_excel
+from rescoring.causal.causal_rescorer import CausalReScorer
+from rescoring.masked.fast_masked_rescorer import FastMaskedRescorer
 from torch_datasets.hypotheses_dataset import HypothesesDataset
 from torch_datasets.manifest_dataset import ManifestDataset
+from utils.best_hypotheses_selector import BestHypothesesSelector
+from utils.logger import Logger
+from utils.metrics_calculator import MetricsCalculator
+from utils.transform_for_excel import transform_for_excel
 
 
 def parse_args():
@@ -141,7 +141,7 @@ if __name__ == '__main__':
             used_alpha, used_beta = None, None
 
             start_time = time.time()
-            if isinstance(method, CausalReScorer) or isinstance(method, SimpleCausalReScorer) or isinstance(method, FastMaskedRescorer):
+            if isinstance(method, CausalReScorer) or isinstance(method, FastMaskedRescorer):
                 new_scores, used_alpha, used_beta = method.run(dataset, alpha, beta)
                 run_duration = time.time() - start_time
                 new_best_hypotheses, new_best_scores, new_best_indices = BestHypothesesSelector.select(dataset, new_scores)
