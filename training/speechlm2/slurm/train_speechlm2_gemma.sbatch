@@ -75,11 +75,12 @@ export WANDB_API_KEY="$WANDB_API_KEY"
 IS_RANK_0_DONE=/tmp/rank_0_done
 
 if [[ \"\${SLURM_PROCID:-0}\" == \"0\" ]]; then
-  echo \"# Rank 0 checking out 'main' branch to use most up-to-date SpeechLM2 code ...\"
+  echo \"# Rank 0 checking out 'main' branch to get newer SpeechLM2 code ...\"
   cd /opt/NeMo
   git branch --show-current
   git fetch origin main
-  git reset --hard origin/main
+  git checkout main
+  git reset --hard ddcb75fb0237d0384f5cfbb50414da609662cb07
   git branch --show-current
   cd -
   echo \"# Rank 0 patching SpeechLM2 invalid device string issue ...\"
