@@ -17,7 +17,7 @@ done
 
 GRADIENT_ACCUMULATION_STEPS=$((TARGET_EFFECTIVE_BATCH_SIZE / (SLURM_GPUS_ON_NODE * PER_DEVICE_BATCH_SIZE)))
 
-EXPERIMENT_NAME=$(echo "$LLM_NAME" | sed 's/\//_/g')
+EXPERIMENT_NAME="$(basename "$LLM_NAME")"
 
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
@@ -30,7 +30,7 @@ fi
 DATETIME=$(TZ="Europe/Ljubljana" date "+%Y-%m-%d___%H-%M-%S_%3N")
 
 # experiment dir
-EXPERIMENT_DIR="speechlm2/$EXPERIMENT_NAME/$DATETIME"
+EXPERIMENT_DIR="training/speechlm2/$EXPERIMENT_NAME/$DATETIME"
 LOCAL_EXPERIMENT_DIR="$HOME/exp/$EXPERIMENT_DIR"
 mkdir -p "$LOCAL_EXPERIMENT_DIR"
 

@@ -20,7 +20,7 @@ done
 
 GRADIENT_ACCUMULATION_STEPS=$((TARGET_EFFECTIVE_BATCH_SIZE / (SLURM_GPUS_ON_NODE * PER_DEVICE_BATCH_SIZE)))
 
-EXPERIMENT_NAME="$(echo "$LLM_NAME" | sed 's/\//_/g')__$(echo "$DATASET_NAME" | sed 's/\//_/g')"
+EXPERIMENT_NAME="$MODEL_NAME"
 
 ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-ddp.yaml"
 
@@ -35,7 +35,7 @@ fi
 DATETIME=$(TZ="Europe/Ljubljana" date "+%Y-%m-%d___%H-%M-%S_%3N")
 
 # experiment dir
-EXPERIMENT_DIR="lora-fine-tune/$EXPERIMENT_NAME/$DATETIME"
+EXPERIMENT_DIR="training/h2t/$EXPERIMENT_NAME/$DATETIME"
 LOCAL_EXPERIMENT_DIR="$HOME/exp/$EXPERIMENT_DIR"
 mkdir -p "$LOCAL_EXPERIMENT_DIR"
 
