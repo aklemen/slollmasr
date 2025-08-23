@@ -8,5 +8,5 @@ export TARGET_EFFECTIVE_BATCH_SIZE=128
 export LORA_RANK=128
 export LORA_ALPHA=64
 
-JOB_NAME=h2t-$(echo $MODEL_NAME | sed 's/\//-/g' | sed 's/_/-/g')
-sbatch --job-name="$JOB_NAME" fine-tune.sbatch
+JOB_NAME="train-h2t-$MODEL_NAME"
+sbatch --job-name="$JOB_NAME" finetune_h2t.sbatch

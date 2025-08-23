@@ -63,7 +63,7 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
-/slollmasr/scripts/beam-search/install-whisper.sh
+/slollmasr/beam_search/whisper/scripts/install-whisper.sh
 
 RESULTS_DIR=\"/exp/results\"
 mkdir -p \$RESULTS_DIR

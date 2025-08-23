@@ -75,16 +75,13 @@ export WANDB_API_KEY=$WANDB_API_KEY
 
 RESULTS_DIR=\"/exp/results\"
 
-pip install --upgrade transformers accelerate
-pip install trl
-
-if grep -q \"distributed_type: DEEPSPEED\" $ACCELERATE_CONFIG_FILE; then
-  pip install deepspeed
-fi
+pip install transformers==4.55.4
+pip install accelerate==1.10.0
+pip install trl==0.21.0
 
 cp /slollmasr/prompting/h2t/h2t_finetune.py /exp
 
-accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$SLURM_GPUS_ON_NODE /slollmasr/prompting/h2t/h2t_finetune.py \
+accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$SLURM_GPUS_ON_NODE /slollmasr/training/h2t/h2t_finetune.py \
   --llm_name $LLM_NAME \
   --prompt_completion_dataset_name $DATASET_NAME \
   --output_dir_path \$RESULTS_DIR \

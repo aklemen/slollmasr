@@ -4,7 +4,7 @@ TIMESTAMP=$(date +%Y%m%d%H%M%S)
 
 if ! pip show whisper; then
   echo "Installing whisper..."
-  /slollmasr/scripts/beam-search/install-whisper.sh
+  /slollmasr/beam_search/whisper/scripts/install-whisper.sh
 fi
 
 RESULTS_DIR="/testing/parallel-whisper/$TIMESTAMP"
