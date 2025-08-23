@@ -1,5 +1,6 @@
 export LLM_NAME="utter-project/EuroLLM-9B-Instruct"
 export TOKENIZER_NAME=$LLM_NAME
-export BATCH_SIZE=64
+export METHOD="one-shot-gec"
 
-sbatch --job-name=one-shot-gec-eurollm-9b-instruct one-shot-gec.sbatch
+JOB_NAME="$METHOD-$(basename "$LLM_NAME")"
+sbatch --job-name="$JOB_NAME" ../../../prompting.sbatch

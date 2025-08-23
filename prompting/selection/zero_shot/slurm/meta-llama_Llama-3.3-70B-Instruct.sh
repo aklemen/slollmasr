@@ -1,5 +1,6 @@
 export LLM_NAME="meta-llama/Llama-3.3-70B-Instruct"
 export TOKENIZER_NAME=$LLM_NAME
-export BATCH_SIZE=128
+export METHOD="zero-shot-selection"
 
-sbatch --job-name=zero-shot-selection-llama-33-70b-instruct zero-shot-selection.sbatch
+JOB_NAME="$METHOD-$(basename "$LLM_NAME")"
+sbatch --job-name="$JOB_NAME" ../../../prompting.sbatch

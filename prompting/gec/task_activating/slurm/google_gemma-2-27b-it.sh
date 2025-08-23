@@ -1,5 +1,6 @@
 export LLM_NAME="google/gemma-2-27b-it"
 export TOKENIZER_NAME=$LLM_NAME
-export BATCH_SIZE=32
+export METHOD="task-activating-gec"
 
-sbatch --job-name=task-activating-gec-gemma-2-27b-it task-activating-gec.sbatch
+JOB_NAME="$METHOD-$(basename "$LLM_NAME")"
+sbatch --job-name="$JOB_NAME" ../../../prompting.sbatch

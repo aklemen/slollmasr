@@ -1,5 +1,6 @@
 export LLM_NAME="cjvt/GaMS-1B-Chat"
 export TOKENIZER_NAME=$LLM_NAME
-export BATCH_SIZE=128
+export METHOD="zero-shot-gec"
 
-sbatch --job-name=zero-shot-gec-cjvt-GaMS-1B-Chat zero-shot-gec.sbatch
+JOB_NAME="$METHOD-$(basename "$LLM_NAME")"
+sbatch --job-name="$JOB_NAME" ../../../prompting.sbatch

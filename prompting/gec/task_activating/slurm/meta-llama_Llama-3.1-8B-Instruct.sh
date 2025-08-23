@@ -1,5 +1,6 @@
 export LLM_NAME="meta-llama/Llama-3.1-8B-Instruct"
 export TOKENIZER_NAME=$LLM_NAME
-export BATCH_SIZE=64
+export METHOD="task-activating-gec"
 
-sbatch --job-name=task-activating-gec-llama-31-8b-instruct task-activating-gec.sbatch
+JOB_NAME="$METHOD-$(basename "$LLM_NAME")"
+sbatch --job-name="$JOB_NAME" ../../../prompting.sbatch
