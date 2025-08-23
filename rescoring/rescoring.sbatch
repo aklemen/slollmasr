@@ -3,14 +3,14 @@
 #SBATCH --time=2-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=H100:4
-#SBATCH --cpus-per-task=64
+#SBATCH --gpus-per-node=A100_80GB:1
+#SBATCH --cpus-per-task=16
 #SBATCH --mem-per-gpu=128G
 #SBATCH --output=/dev/null
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
-required_vars=(LLM_NAME TOKENIZER_NAME)
+required_vars=(METHOD LLM_NAME TOKENIZER_NAME)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
@@ -18,8 +18,9 @@ for var in "${required_vars[@]}"; do
   fi
 done
 
-EXPERIMENT_NAME=$(echo "$LLM_NAME" | sed 's/\//_/g')
-BATCH_SIZE=64
+EXPERIMENT_NAME="$(basename "$LLM_NAME")"
+
+BATCH_SIZE=32
 
 BEAM_SIZES="5 10 50 100"
 
@@ -28,7 +29,7 @@ if [ "$SHOULD_LINEAR_SEARCH_ARTUR_DEV" = true ]; then
   TEST_DATASETS=("artur/v1.0/nemo/dev_without_utterance_AJO-3114-500056-0202")
   TEST_MANIFESTS=("/manifests/artur/dev_without_utterance_AJO-3114-500056-0202.nemo")
 else
-  echo "Running causal rescoring on test datasets."
+  echo "Running masked rescoring on test datasets."
   if [ -z "$ALPHAS" ] || [ -z "$BETAS" ]; then
     echo "Error: ALPHAS and BETAS must be set when SHOULD_LINEAR_SEARCH_ARTUR_DEV=false."
     exit 1
@@ -72,9 +73,9 @@ DATETIME=$(TZ="Europe/Ljubljana" date "+%Y-%m-%d___%H-%M-%S_%3N")
 
 # experiment dir
 if [ "$SHOULD_LINEAR_SEARCH_ARTUR_DEV" = true ]; then
-  EXPERIMENT_DIR="causal-rescore/linear-search/$EXPERIMENT_NAME/$DATETIME"
+  EXPERIMENT_DIR="$METHOD/linear-search/$EXPERIMENT_NAME/$DATETIME"
 else
-  EXPERIMENT_DIR="causal-rescore/$EXPERIMENT_NAME/$DATETIME"
+  EXPERIMENT_DIR="$METHOD/$EXPERIMENT_NAME/$DATETIME"
 fi
 LOCAL_EXPERIMENT_DIR="$HOME/exp/$EXPERIMENT_DIR"
 mkdir -p "$LOCAL_EXPERIMENT_DIR"
@@ -111,13 +112,11 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
-# Fix for bug causing Gemma 2 to not work with multiple GPUs - https://github.com/huggingface/transformers/issues/34706
-if [[ "$LLM_NAME" == \"google/gemma-2\"* ]]; then
-  pip install transformers==4.43.4
-fi
+pip install huggingface_hub==0.34.4
+pip install transformers==4.55.4
 
 python /slollmasr/main.py \
-   --method causal-rescore \
+   --method $METHOD \
    --llm_name $LLM_NAME \
    --tokenizer_name $TOKENIZER_NAME \
    --manifest_file_paths ${TEST_MANIFESTS[*]} \

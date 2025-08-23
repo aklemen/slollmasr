@@ -94,8 +94,8 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
-pip install --upgrade huggingface_hub
-pip install --upgrade transformers
+pip install huggingface_hub==0.34.4
+pip install transformers==4.55.4
 
 python /slollmasr/main.py \
    --method $METHOD \
