@@ -94,6 +94,8 @@ echo -e \"\"\"
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
+export WANDB_API_KEY="$WANDB_API_KEY"
+
 python /slollmasr/main.py \
    --method $METHOD \
    --llm_name $LLM_NAME \
