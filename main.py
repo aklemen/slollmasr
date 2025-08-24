@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 import torch
+import wandb
 
 from prompting.gec.one_shot.one_shot_gec import OneShotGec
 from prompting.gec.task_activating.task_activating_gec import TaskActivatingGec
@@ -125,6 +126,19 @@ if __name__ == '__main__':
     grouped_beam_file_paths = [
         args.beams_file_paths[i:i + num_of_beam_sizes] for i in range(0, len(args.beams_file_paths), num_of_beam_sizes)
     ]
+
+    Logger.info("Initializing WandB run ...")
+    llm_base_name = args.llm_name.split('/')[-1]
+    run_name = f"{args.method}_{llm_base_name}"
+    wandb_run = wandb.init(
+        project="ASR+LLM",
+        name=run_name,
+        config=vars(args),
+        tags=[args.method, llm_base_name],
+        group=args.method
+    )
+
+
     for manifest_file_path, results_dir_path, beams_file_paths in zip(
             args.manifest_file_paths,
             args.results_dir_paths,
@@ -211,4 +225,23 @@ if __name__ == '__main__':
             eval_df_for_excel = transform_for_excel(eval_df, args.llm_name, args.batch_size)
             eval_df_for_excel.to_csv(f'{args.evaluation_dir_path}/evaluation_for_excel.tsv', sep='\t', index=False, decimal=",")
 
+            dataset_name = Path(manifest_file_path).stem
+            wandb.log({
+                "dataset": dataset_name,
+                "beam_size": beam_size,
+                "alpha": used_alpha,
+                "beta": used_beta,
+                "old/wer": old_wer_score,
+                "new/wer": new_wer_score,
+                "old/cer": old_cer_score,
+                "new/cer": new_cer_score,
+                "runtime/seconds": round(run_duration, 3),
+                "runtime/rtfx": round(rtfx, 3),
+            })
+
             Logger.info(eval_df.to_string())
+
+    wandb.log({
+        "evaluation_table": wandb.Table(dataframe=eval_df)
+    })
+    wandb_run.finish()
