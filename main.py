@@ -129,7 +129,10 @@ if __name__ == '__main__':
 
     Logger.info("Initializing WandB run ...")
     llm_base_name = args.llm_name.split('/')[-1]
-    run_name = f"{args.method}_{llm_base_name}"
+    if args.method in ["causal-rescore", "masked-rescore"] and (args.alphas == [None] * len(args.alphas) or args.betas == [None] * len(args.betas)):
+        run_name = f"{args.method}_{llm_base_name}_search"
+    else:
+        run_name = f"{args.method}_{llm_base_name}"
     wandb_run = wandb.init(
         project="ASR+LLM",
         name=run_name,
