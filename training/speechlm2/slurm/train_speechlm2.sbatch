@@ -7,7 +7,7 @@
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
-required_vars=(SLURM_GPUS_ON_NODE WANDB_API_KEY LLM_NAME PER_DEVICE_BATCH_SIZE TARGET_EFFECTIVE_BATCH_SIZE)
+required_vars=(SLURM_GPUS_ON_NODE WANDB_API_KEY LLM_NAME PROMPT_FORMAT PER_DEVICE_BATCH_SIZE TARGET_EFFECTIVE_BATCH_SIZE)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
@@ -93,8 +93,9 @@ fi
 
 python /opt/NeMo/examples/speechlm2/salm_train.py \
   --config-path=/slollmasr/speechlm2 \
-  --config-name=gemma_salm.yaml \
+  --config-name=salm.yaml \
   model.pretrained_llm=${LLM_NAME} \
+  model.prompt_format=${PROMPT_FORMAT} \
   trainer.accumulate_grad_batches=${GRADIENT_ACCUMULATION_STEPS} \
   data.train_ds.batch_size=${PER_DEVICE_BATCH_SIZE} \
   exp_manager.name=${EXPERIMENT_NAME} \

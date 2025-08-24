@@ -1,4 +1,5 @@
 export LLM_NAME="cjvt/GaMS-9B"
+export PROMPT_FORMAT="gemma"
 export PER_DEVICE_BATCH_SIZE=8
 export TARGET_EFFECTIVE_BATCH_SIZE=128
 
@@ -8,4 +9,4 @@ sbatch \
   --ntasks-per-node=4 \
   --gpus-per-node=H100:4 \
   --mem-per-gpu=128G \
-  train_speechlm2_gemma.sbatch
+  train_speechlm2.sbatch

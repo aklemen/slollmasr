@@ -3,7 +3,7 @@
 
 model:
   # Every name/path here starting with 'pretrained' is used to initialize the model weights.
-  pretrained_llm: cjvt/GaMS-9B
+  pretrained_llm: ???
   pretrained_asr: aklemen/slovene-conformer-ctc
 
   pretrained_weights: True
@@ -18,7 +18,7 @@ model:
     - "^perception\\.encoder\\..+$"
   prevent_freeze_params: [ ]  # Use to make specific submodules trainable; overrides freeze_params
 
-  prompt_format: gemma
+  prompt_format: ???
   audio_locator_tag: "<audio>"  # placeholder token for audio turn is expected
 
   # Note: Uncomment the block below to enable LoRA on LLM via HuggingFace PEFT library.
@@ -88,7 +88,7 @@ trainer:
   log_every_n_steps: 10
   num_sanity_val_steps: 1
   gradient_clip_val: 1.0
-  accumulate_grad_batches: 1
+  accumulate_grad_batches: ???
   strategy:
     _target_: lightning.pytorch.strategies.DDPStrategy
     gradient_as_bucket_view: true
@@ -109,7 +109,7 @@ data:
     shuffle: true
     shard_seed: "randomized"
     num_workers: 1
-    batch_size: 8
+    batch_size: ???
     # Optional bucketing:
     # batch_size: null
     # use_bucketing: true
@@ -145,7 +145,7 @@ data:
 
 exp_manager:
   explicit_log_dir: /exp/logs
-  name: salm
+  name: ???
   create_tensorboard_logger: false
   create_checkpoint_callback: true
   create_early_stopping_callback: true
@@ -159,7 +159,7 @@ exp_manager:
   # You may use this section to create a W&B logger
   create_wandb_logger: true
   wandb_logger_kwargs:
-    name: GaMS-9B-SALM
+    name: ???
     project: SpeechLLM
     resume: true
 
