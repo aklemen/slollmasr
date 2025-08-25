@@ -17,7 +17,7 @@ class ToAudio(torch.utils.data.Dataset):
 
 class SalmSpeechLM:
     def __init__(self, llm_name_or_path: str, batch_size: int = 8):
-        self.model = SALM.from_pretrained(llm_name_or_path).eval().to("bfloat16").to("cuda")
+        self.model = SALM.from_pretrained(llm_name_or_path).eval().to(torch.bfloat16).to("cuda")
         self.batch_size = batch_size
 
     def run(self, manifest_file_path: str) -> tuple[list[str], float]:
