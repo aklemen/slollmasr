@@ -37,7 +37,7 @@ def main():
     training_cfg = OmegaConf.load("/slollmasr/training/speechlm2/salm.yaml")
     model_cfg = OmegaConf.to_container(training_cfg.model, resolve=True)
     model_cfg["torch_dtype"] = "bfloat16"
-    model_cfg["pretrained_name"] = args.llm_name
+    model_cfg["pretrained_llm"] = args.llm_name
     model_cfg["prompt_format"] = args.prompt_format
 
     Logger.info("Loading model ...")
