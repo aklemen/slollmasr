@@ -1,6 +1,5 @@
 import pandas as pd
 
-
 def transform_for_excel(eval_df: pd.DataFrame, llm_name: str, batch_size: int) -> pd.DataFrame:
     dataset_names = ['ARTUR', 'COMMONVOICE', 'FLEURS', 'GVL', 'SOFES', 'VOXPOPULI']
     dataset_keys = ['artur', 'commonvoice', 'fleurs', 'gvl', 'sofes', 'voxpopuli']
@@ -22,8 +21,8 @@ def transform_for_excel(eval_df: pd.DataFrame, llm_name: str, batch_size: int) -
             "BATCH SIZE": batch_size,
         }
         subset = eval_df[eval_df['beam_size'] == beam_size]
-        row["ALPHA"] = subset['alpha'].iloc[0]
-        row["BETA"] = subset['beta'].iloc[0]
+        row["ALPHA"] = subset['alpha'].iloc[0] if 'alpha' in subset.columns and not subset.empty else None
+        row["BETA"] = subset['beta'].iloc[0] if 'beta' in subset.columns and not subset.empty else None
 
         for name, key in dataset_map.items():
             ds_row = subset[subset['results_file'].str.contains(key, case=False)]
