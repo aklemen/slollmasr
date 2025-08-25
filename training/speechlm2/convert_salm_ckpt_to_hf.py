@@ -25,8 +25,9 @@ def load_checkpoint(model: torch.nn.Module, checkpoint_path: str):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--ckpt_dir', nargs='+', type=str, required=True)
-    parser.add_argument('--model_name', type=str, required=True)
-    parser.add_argument('--upload_to_hub', action='store_true')
+    parser.add_argument('--llm_name', type=str, required=True)
+    parser.add_argument('--prompt_format', type=str, required=True)
+    parser.add_argument('--model_name_for_hf_upload', type=str, required=False)
     args = parser.parse_args()
     Logger.info("============ ARGUMENTS ============")
     Logger.info(args)
@@ -36,6 +37,8 @@ def main():
     training_cfg = OmegaConf.load("/slollmasr/training/speechlm2/salm.yaml")
     model_cfg = OmegaConf.to_container(training_cfg.model, resolve=True)
     model_cfg["torch_dtype"] = "bfloat16"
+    model_cfg["pretrained_name"] = args.llm_name
+    model_cfg["prompt_format"] = args.prompt_format
 
     Logger.info("Loading model ...")
     model = SALM(model_cfg)
@@ -51,9 +54,9 @@ def main():
     Logger.info("Saving model in HF format ...")
     model.save_pretrained(args.ckpt_dir)
     Logger.info(f"Model saved to {args.ckpt_dir}")
-    if args.upload_to_hub:
+    if args.model_name_for_hf_upload:
         Logger.info("Pushing model to HuggingFace Hub ...")
-        repo_id = f"aklemen/{args.model_name}"
+        repo_id = f"aklemen/{args.model_name_for_hf_upload}"
         model.push_to_hub(repo_id)
         Logger.info(f"Model pushed to HuggingFace Hub as {repo_id}")
 
