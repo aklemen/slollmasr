@@ -15,7 +15,7 @@ def _find_best_checkpoint(ckpt_dir: str) -> str:
     ckpt_files = list(ckpt_dir.glob("*.ckpt"))
     if not ckpt_files:
         raise ValueError(f"No checkpoint files found in {ckpt_dir}")
-    best_ckpt = min(ckpt_files, key=lambda x: float(x.stem.split("val_loss=")[-1]))
+    best_ckpt = min(ckpt_files, key=lambda x: float(x.stem.split("val_acc=")[-1]))
     return str(best_ckpt)
 
 def load_checkpoint(model: torch.nn.Module, checkpoint_path: str):
