@@ -27,7 +27,7 @@ class SalmSpeechLM:
             for t in extra_eos_tokens:
                 tid = self.model.tokenizer.token_to_id(t)
                 assert tid is not None, f"Token '{t}' is not in the model's vocabulary."
-                extra_eos_tokens.append(tid)
+                self.eos_tokens.append(tid)
 
     def run(self, manifest_file_path: str) -> tuple[list[str], float]:
         Logger.info("Loading cuts ...")
