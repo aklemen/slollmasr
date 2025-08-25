@@ -5,9 +5,11 @@ import torch
 from lhotse import CutSet
 from nemo.collections.common.data.lhotse.cutset import guess_parse_cutset
 from nemo.collections.speechlm2 import SALM
+from tqdm import tqdm
 from transformers import GenerationConfig
 
 from prompting.sanitize_string import sanitize_string
+from utils.logger import Logger
 
 
 class ToAudio(torch.utils.data.Dataset):
@@ -21,11 +23,14 @@ class SalmSpeechLM:
         self.batch_size = batch_size
 
     def run(self, manifest_file_path: str) -> tuple[list[str], float]:
+        Logger.info("Loading cuts ...")
         cuts = guess_parse_cutset(manifest_file_path)
-        for idx, cut in enumerate(cuts):
-            cut.custom["original_index"] = idx
+        cut_original_idx_by_id = {cut.id: idx for idx, cut in enumerate(cuts)}
+        Logger.info(f"Loaded {len(cuts)} cuts.")
+        Logger.info("Sorting cuts by duration ...")
         cuts = cuts.sort_by_duration()
 
+        Logger.info("Creating data loader ...")
         dloader = torch.utils.data.DataLoader(
             dataset=ToAudio(),
             sampler=lhotse.dataset.DynamicCutSampler(cuts, max_cuts=self.batch_size),
@@ -38,7 +43,7 @@ class SalmSpeechLM:
 
         start_time = time.time()
         hypotheses = []
-        for batch_idx, batch in enumerate(dloader):
+        for batch_idx, batch in enumerate(tqdm(dloader, desc="Running inference")):
             batch_answer_ids = self.model.generate(
                 prompts=[prompt] * len(batch["cuts"]),  # identical prompt for each example
                 audios=batch["audios"].to(self.model.device, non_blocking=True),
@@ -59,10 +64,11 @@ class SalmSpeechLM:
 
             hypotheses.extend(batch_hypotheses)
         inference_time = time.time() - start_time
+        Logger.info(f"Inference completed in {inference_time:.2f} seconds.")
 
-        original_indices = [cut.custom["original_index"] for cut in cuts]
+        original_indices = [cut_original_idx_by_id[cut.id] for cut in cuts]
         ordered_hypotheses = ["EMPTY HYPOTHESIS"] * len(hypotheses)
-        for idx, orig_idx in enumerate(original_indices):
+        for idx, orig_idx in enumerate(tqdm(original_indices, desc="Re-ordering hypotheses")):
             ordered_hypotheses[orig_idx] = hypotheses[idx]
 
         return ordered_hypotheses, inference_time
