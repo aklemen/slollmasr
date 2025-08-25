@@ -58,7 +58,7 @@ class SalmSpeechLM:
                 generation_config=GenerationConfig(
                     max_new_tokens=256,
                     bos_token_id=self.model.text_bos_id,
-                    eos_token_id=self.model.text_eos_id,
+                    eos_token_id=self.eos_tokens,
                     pad_token_id=self.model.text_pad_id,
                 ),
             )
@@ -82,7 +82,7 @@ class SalmSpeechLM:
 
 
     def _truncate_to_eos(self, answer: torch.Tensor):
-        end = torch.isin(answer, torch.tensor([self.model.text_eos_id])).nonzero(as_tuple=True)[0]
+        end = torch.isin(answer, torch.tensor(self.eos_tokens)).nonzero(as_tuple=True)[0]
         if end.numel() == 0:
             return answer
         end = end[0]
