@@ -46,7 +46,7 @@ class Prompter:
         is_chat = isinstance(prompts_or_chats[0], list)
         if is_chat:
             Logger.info("Detected chat format, applying chat template to transform chats to prompts ...")
-            if not self._are_chat_templates_supported(self._tokenizer):
+            if not self._are_chat_templates_supported():
                 raise Exception(
                     f"Chat templates are not supported by the given tokenizer: {self._tokenizer.name_or_path}.")
             prompts = [self._transform_chat_to_prompt(chat) for chat in prompts_or_chats]
