@@ -25,7 +25,9 @@ class SalmSpeechLM:
     def run(self, manifest_file_path: str) -> tuple[list[str], float]:
         Logger.info("Loading cuts ...")
         cuts = guess_parse_cutset(manifest_file_path)
-        cut_original_idx_by_id = {cut.id: idx for idx, cut in enumerate(cuts)}
+        for i, cut in enumerate(tqdm(cuts, desc="Adding indices to cuts")):
+            cut_with_id = cut.with_id(i)
+            cuts[i] = cut_with_id
         Logger.info(f"Loaded {len(cuts)} cuts.")
         Logger.info("Sorting cuts by duration ...")
         cuts = cuts.sort_by_duration()
@@ -66,7 +68,7 @@ class SalmSpeechLM:
         inference_time = time.time() - start_time
         Logger.info(f"Inference completed in {inference_time:.2f} seconds.")
 
-        original_indices = [cut_original_idx_by_id[cut.id] for cut in cuts]
+        original_indices = [cut.id for cut in cuts]
         ordered_hypotheses = ["EMPTY HYPOTHESIS"] * len(hypotheses)
         for idx, orig_idx in enumerate(tqdm(original_indices, desc="Re-ordering hypotheses")):
             ordered_hypotheses[orig_idx] = hypotheses[idx]
