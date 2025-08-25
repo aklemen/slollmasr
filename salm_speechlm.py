@@ -1,3 +1,4 @@
+import math
 import time
 
 import lhotse.dataset
@@ -45,7 +46,7 @@ class SalmSpeechLM:
 
         start_time = time.time()
         hypotheses = []
-        for batch_idx, batch in enumerate(tqdm(dloader, desc="Running inference", total=len(cuts))):
+        for batch in tqdm(dloader, desc="Running inference", total=math.ceil(len(cuts) // self.batch_size)):
             batch_answer_ids = self.model.generate(
                 prompts=[prompt] * len(batch["cuts"]),  # identical prompt for each example
                 audios=batch["audios"].to(self.model.device, non_blocking=True),
