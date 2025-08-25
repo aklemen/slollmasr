@@ -19,7 +19,11 @@ class SalmSpeechLM:
         self.batch_size = batch_size
 
     def run(self, manifest_file_path: str) -> list[str]:
-        cuts = guess_parse_cutset(manifest_file_path).sort_by_duration()
+        cuts = guess_parse_cutset(manifest_file_path)
+        for idx, cut in enumerate(cuts):
+            cut.custom["original_index"] = idx
+        cuts = cuts.sort_by_duration()
+
         dloader = torch.utils.data.DataLoader(
             dataset=ToAudio(),
             sampler=lhotse.dataset.DynamicCutSampler(cuts, max_cuts=self.batch_size),
@@ -52,7 +56,12 @@ class SalmSpeechLM:
 
             hypotheses.extend(batch_hypotheses)
 
-        return hypotheses
+        original_indices = [cut.custom["original_index"] for cut in cuts]
+        ordered_hypotheses = [None] * len(hypotheses)
+        for idx, orig_idx in enumerate(original_indices):
+            ordered_hypotheses[orig_idx] = hypotheses[idx]
+
+        return ordered_hypotheses
 
 
     def _truncate_to_eos(self, answer: torch.Tensor):
