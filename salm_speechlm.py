@@ -26,9 +26,7 @@ class SalmSpeechLM:
     def run(self, manifest_file_path: str) -> tuple[list[str], float]:
         Logger.info("Loading cuts ...")
         cuts = guess_parse_cutset(manifest_file_path)
-        for i, cut in enumerate(tqdm(cuts, desc="Adding indices to cuts")):
-            cut_with_id = cut.with_id(i)
-            cuts[i] = cut_with_id
+        cuts = CutSet.from_cuts([cut.with_id(i) for i, cut in enumerate(cuts)])
         Logger.info(f"Loaded {len(cuts)} cuts.")
         Logger.info("Sorting cuts by duration ...")
         cuts = cuts.sort_by_duration()
