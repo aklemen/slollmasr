@@ -19,9 +19,15 @@ class ToAudio(torch.utils.data.Dataset):
         return {"cuts": cuts, "audios": audios, "audio_lens": audio_lens}
 
 class SalmSpeechLM:
-    def __init__(self, llm_name_or_path: str, batch_size: int = 8):
+    def __init__(self, llm_name_or_path: str, batch_size: int = 8, extra_eos_tokens = None):
         self.model = SALM.from_pretrained(llm_name_or_path).eval().to(torch.bfloat16).to("cuda")
         self.batch_size = batch_size
+        self.eos_tokens = [self.model.text_eos_id]
+        if extra_eos_tokens is not None:
+            for t in extra_eos_tokens:
+                tid = self.model.tokenizer.token_to_id(t)
+                assert tid is not None, f"Token '{t}' is not in the model's vocabulary."
+                extra_eos_tokens.append(tid)
 
     def run(self, manifest_file_path: str) -> tuple[list[str], float]:
         Logger.info("Loading cuts ...")

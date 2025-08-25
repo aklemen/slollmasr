@@ -15,6 +15,7 @@ from utils.metrics_calculator import MetricsCalculator
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--llm_name', type=str, required=True)
+    parser.add_argument('--extra_eos_tokens', nargs='+', type=str, required=False, default=None)
     parser.add_argument('--manifest_file_paths', nargs='+', type=str, required=True)
     parser.add_argument('--results_dir_paths', nargs='+', type=str, required=True)
     parser.add_argument('--evaluation_dir_path', type=str, required=True)
@@ -49,7 +50,7 @@ if __name__ == '__main__':
     calc = MetricsCalculator()
 
     Logger.info(f"Instantiating SalmSpeechLM' ...")
-    speechlm = SalmSpeechLM(args.llm_name, args.batch_size)
+    speechlm = SalmSpeechLM(args.llm_name, args.batch_size, args.extra_eos_tokens)
 
     eval_df = pd.DataFrame(columns=[
         'results_file',
