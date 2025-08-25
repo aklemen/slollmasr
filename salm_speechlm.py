@@ -1,3 +1,5 @@
+import time
+
 import lhotse.dataset
 import torch
 from lhotse import CutSet
@@ -18,7 +20,7 @@ class SalmSpeechLM:
         self.model = SALM.from_pretrained(llm_name_or_path).eval().to("bfloat16").to("cuda")
         self.batch_size = batch_size
 
-    def run(self, manifest_file_path: str) -> list[str]:
+    def run(self, manifest_file_path: str) -> tuple[list[str], float]:
         cuts = guess_parse_cutset(manifest_file_path)
         for idx, cut in enumerate(cuts):
             cut.custom["original_index"] = idx
@@ -34,6 +36,7 @@ class SalmSpeechLM:
         user_prompt = "Transkribiraj naslednji posnetek:"
         prompt = [{"role": "user", "content": f"{user_prompt} {self.model.audio_locator_tag}"}]
 
+        start_time = time.time()
         hypotheses = []
         for batch_idx, batch in enumerate(dloader):
             batch_answer_ids = self.model.generate(
@@ -55,13 +58,14 @@ class SalmSpeechLM:
                 batch_hypotheses.append(sanitized_answer_text)
 
             hypotheses.extend(batch_hypotheses)
+        inference_time = time.time() - start_time
 
         original_indices = [cut.custom["original_index"] for cut in cuts]
-        ordered_hypotheses = [None] * len(hypotheses)
+        ordered_hypotheses = ["EMPTY HYPOTHESIS"] * len(hypotheses)
         for idx, orig_idx in enumerate(original_indices):
             ordered_hypotheses[orig_idx] = hypotheses[idx]
 
-        return ordered_hypotheses
+        return ordered_hypotheses, inference_time
 
 
     def _truncate_to_eos(self, answer: torch.Tensor):
