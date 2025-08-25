@@ -4,7 +4,7 @@
 model:
   # Every name/path here starting with 'pretrained' is used to initialize the model weights.
   pretrained_llm: ???
-  pretrained_asr: aklemen/slovene-conformer-ctc
+  pretrained_asr: aklemen/conformer-ctc
 
   pretrained_weights: True
 

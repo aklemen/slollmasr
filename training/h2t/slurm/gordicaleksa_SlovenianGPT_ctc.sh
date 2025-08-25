@@ -1,6 +1,6 @@
 export LLM_NAME="aklemen/SlovenianGPT"
 export DATASET_NAME="aklemen/ctc-h2t"
-export MODEL_NAME="SlovenianGPT-CTC-H2T-LoRA"
+export MODEL_NAME="sloveniangpt-ctc-h2t"
 
 export PER_DEVICE_BATCH_SIZE=2
 export TARGET_EFFECTIVE_BATCH_SIZE=128

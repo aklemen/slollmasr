@@ -1,6 +1,6 @@
 export LLM_NAME="cjvt/GaMS-9B"
 export DATASET_NAME="aklemen/whisper-ctc-h2t"
-export MODEL_NAME="GaMS-9B-whisper-CTC-H2T-LoRA"
+export MODEL_NAME="gams-9b-whisper-ctc-h2t"
 
 export PER_DEVICE_BATCH_SIZE=2
 export TARGET_EFFECTIVE_BATCH_SIZE=128
