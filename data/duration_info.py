@@ -2,8 +2,6 @@ import datetime
 import json
 from argparse import ArgumentParser
 
-import matplotlib.pyplot as plt
-
 from utils.logger import Logger
 
 
@@ -16,6 +14,7 @@ def print_duration_stats(durations: list[float]):
     Logger.info(f'Sum of all durations formatted: {str(datetime.timedelta(seconds=sum(durations)))}')
 
 def display_duration_histogram(durations: list[float]):
+    import matplotlib.pyplot as plt
     plt.figure(figsize=(10, 6))
     plt.hist(durations, bins=50, edgecolor='black')
     plt.title('Distribution of Durations')
@@ -33,6 +32,11 @@ def main():
         required=True,
         help="Path to the manifest file."
     )
+    parser.add_argument(
+        "--display_histogram",
+        action='store_true',
+        help="Whether to display a histogram of durations."
+    )
     args = parser.parse_args()
 
     durations_from_manifest = []
@@ -42,7 +46,8 @@ def main():
             durations_from_manifest.append(entry['duration'])
 
     print_duration_stats(durations_from_manifest)
-    display_duration_histogram(durations_from_manifest)
+    if args.display_histogram:
+        display_duration_histogram(durations_from_manifest)
 
 
 if __name__ == "__main__":
