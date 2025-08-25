@@ -24,7 +24,7 @@ def load_checkpoint(model: torch.nn.Module, checkpoint_path: str):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ckpt_dir', nargs='+', type=str, required=True)
+    parser.add_argument('--ckpt_dir', type=str, required=True)
     parser.add_argument('--llm_name', type=str, required=True)
     parser.add_argument('--prompt_format', type=str, required=True)
     parser.add_argument('--model_name_for_hf_upload', type=str, required=False)
