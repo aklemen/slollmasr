@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 import wandb
 
-from salm_speechlm import SalmSpeechLM
+from speechlm.salm_speechlm import SalmSpeechLM
 from torch_datasets.manifest_dataset import ManifestDataset
 from utils.logger import Logger
 from utils.metrics_calculator import MetricsCalculator
