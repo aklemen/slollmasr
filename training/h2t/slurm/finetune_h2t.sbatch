@@ -22,7 +22,7 @@ GRADIENT_ACCUMULATION_STEPS=$((TARGET_EFFECTIVE_BATCH_SIZE / (SLURM_GPUS_ON_NODE
 
 EXPERIMENT_NAME="$MODEL_NAME"
 
-ACCELERATE_CONFIG_FILE="/slollmasr/slurm/fine-tune/accelerate-ddp.yaml"
+ACCELERATE_CONFIG_FILE="/slollmasr/training/h2t/slurm/accelerate-ddp.yaml"
 
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
