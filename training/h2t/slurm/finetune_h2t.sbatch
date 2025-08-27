@@ -10,7 +10,7 @@
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
-required_vars=(SLURM_GPUS_ON_NODE WANDB_API_KEY LLM_NAME PER_DEVICE_BATCH_SIZE DATASET_NAME LORA_RANK LORA_ALPHA MODEL_NAME)
+required_vars=(SLURM_GPUS_ON_NODE WANDB_API_KEY LLM_NAME PER_DEVICE_BATCH_SIZE DATASET_NAME LORA_RANK LORA_ALPHA MODEL_NAME TARGET_EFFECTIVE_BATCH_SIZE)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
