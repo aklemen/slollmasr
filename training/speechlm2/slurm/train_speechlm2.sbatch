@@ -92,7 +92,7 @@ else
 fi
 
 python /opt/NeMo/examples/speechlm2/salm_train.py \
-  --config-path=/slollmasr/speechlm2 \
+  --config-path=/slollmasr/training/speechlm2 \
   --config-name=salm.yaml \
   model.pretrained_llm=${LLM_NAME} \
   model.prompt_format=${PROMPT_FORMAT} \
