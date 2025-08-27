@@ -53,11 +53,6 @@ def main():
         Logger.info(f"Tokenizer name was not given, using LLM name '{args.llm_name}'")
         args.tokenizer_name = args.llm_name
 
-    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name, use_fast=True)
-    if tokenizer.pad_token is None:
-        Logger.info(f"No pad_token available. Setting pad_token to eos_token: {tokenizer.eos_token}")
-        tokenizer.pad_token = tokenizer.eos_token
-
     dataset = load_dataset(args.prompt_completion_dataset_name)['train']
     if args.num_samples is not None:
         Logger.warn(f"Only using {args.num_samples} samples from the dataset. Only use this for testing purposes!")
@@ -73,6 +68,16 @@ def main():
         attn_implementation="flash_attention_2",
         torch_dtype=torch.bfloat16,
     )
+
+    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name, use_fast=True)
+    if tokenizer.pad_token is None:
+        Logger.info("No pad_token available. Adding '<pad>' token to the tokenizer.")
+        new_special_tokens = {"pad_token": "<pad>"}
+        num_added_tokens = tokenizer.add_special_tokens({"pad_token": "<pad>"})
+        model.resize_token_embeddings(len(tokenizer))
+        Logger.info(f"Added {num_added_tokens} special tokens: {new_special_tokens}")
+    else:
+        Logger.info(f"Pad token already exists: {tokenizer.pad_token}")
 
     peft_config = LoraConfig(
         task_type=TaskType.CAUSAL_LM,
