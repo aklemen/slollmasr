@@ -81,6 +81,8 @@ pip install trl==0.21.0
 
 cp /slollmasr/prompting/h2t/h2t_finetune.py /exp
 
+export PYTHONPATH=\"/slollmasr:$PYTHONPATH\"
+
 accelerate launch --config_file=$ACCELERATE_CONFIG_FILE --num_processes=$SLURM_GPUS_ON_NODE /slollmasr/training/h2t/h2t_finetune.py \
   --llm_name $LLM_NAME \
   --prompt_completion_dataset_name $DATASET_NAME \
