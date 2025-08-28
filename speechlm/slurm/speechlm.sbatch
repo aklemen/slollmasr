@@ -10,7 +10,7 @@
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
-required_vars=(LLM_NAME EXTRA_EOS_TOKENS)
+required_vars=(LLM_NAME EXTRA_EOS_TOKEN_ID)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
@@ -92,7 +92,7 @@ export WANDB_API_KEY=\"$WANDB_API_KEY\"
 
 python /slollmasr/salm_speechlm_eval.py \
    --llm_name $LLM_NAME \
-   --extra_eos_tokens \"${EXTRA_EOS_TOKENS}\" \
+   --extra_eos_token_id ${EXTRA_EOS_TOKEN_ID} \
    --manifest_file_paths ${TEST_MANIFESTS[*]} \
    --results_dir_paths ${RESULT_DIR_PATHS_ARRAY[*]} \
    --evaluation_dir_path $BASE_CONTAINER_RESULTS_PATH \
