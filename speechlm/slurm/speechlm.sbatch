@@ -92,7 +92,7 @@ export WANDB_API_KEY="$WANDB_API_KEY"
 
 python /slollmasr/salm_speechlm_eval.py \
    --llm_name $LLM_NAME \
-   --extra_eos_tokens ${EXTRA_EOS_TOKENS} \
+   --extra_eos_tokens \"${EXTRA_EOS_TOKENS}\" \
    --manifest_file_paths ${TEST_MANIFESTS[*]} \
    --results_dir_paths ${RESULT_DIR_PATHS_ARRAY[*]} \
    --evaluation_dir_path $BASE_CONTAINER_RESULTS_PATH \
