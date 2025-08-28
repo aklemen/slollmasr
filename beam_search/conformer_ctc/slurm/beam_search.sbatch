@@ -4,7 +4,7 @@
 #SBATCH --time=2-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=A100_80GB:1
+#SBATCH --gpus-per-node=H100:1
 #SBATCH --cpus-per-task=24
 #SBATCH --mem-per-gpu=128G
 #SBATCH --output=/dev/null
@@ -12,7 +12,7 @@
 
 EXPERIMENT_NAME="beam-search"
 
-BATCH_SIZE=64
+BATCH_SIZE=32
 
 TEST_DATASETS=(
 #  "artur/v1.0/nemo/clean/train"
