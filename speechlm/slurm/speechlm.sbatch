@@ -90,6 +90,17 @@ export NCCL_DEBUG=INFO
 
 export WANDB_API_KEY=\"$WANDB_API_KEY\"
 
+
+echo \"Installing NeMo with SpeechLM2 support ...\"
+cd /opt/NeMo
+git fetch origin main
+git checkout main
+git reset --hard 294ddff187f68c055d87ffe9400e65975b38693d
+pip uninstall -y nemo_toolkit && \
+pip install -e \".[all]\"
+cd -
+
+
 python /slollmasr/salm_speechlm_eval.py \
    --llm_name $LLM_NAME \
    --extra_eos_token_id ${EXTRA_EOS_TOKEN_ID} \
