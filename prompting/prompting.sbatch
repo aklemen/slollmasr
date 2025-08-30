@@ -20,7 +20,7 @@ done
 
 EXPERIMENT_NAME="$(basename "$LLM_NAME")"
 
-BATCH_SIZE=32
+BATCH_SIZE="${BATCH_SIZE:-32}"
 
 BEAM_SIZES="5 10"
 
