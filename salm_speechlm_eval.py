@@ -15,7 +15,7 @@ from utils.metrics_calculator import MetricsCalculator
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--llm_name', type=str, required=True)
-    parser.add_argument('--extra_eos_token_id', type=str, required=False, default=None)
+    parser.add_argument('--extra_eos_token_id', type=int, required=False, default=None)
     parser.add_argument('--manifest_file_paths', nargs='+', type=str, required=True)
     parser.add_argument('--results_dir_paths', nargs='+', type=str, required=True)
     parser.add_argument('--evaluation_dir_path', type=str, required=True)
