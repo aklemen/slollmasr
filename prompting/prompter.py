@@ -86,7 +86,9 @@ class Prompter:
                 last_best_hypotheses[original_index] = sanitized_text
                 last_processed_idx += 1
         except torch.cuda.OutOfMemoryError as e:
-            Logger.warn("Ran out of GPU memory! Freeing GPU memory ...")
+
+            Logger.warn(f"Ran out of GPU memory: {e}")
+            Logger.info("Freeing up GPU memory ...")
             gc.collect()
             torch.cuda.empty_cache()
             if batch_size == 1:
