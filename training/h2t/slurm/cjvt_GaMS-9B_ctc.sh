@@ -1,7 +1,7 @@
 export LLM_NAME="cjvt/GaMS-9B"
 export DATASET_NAME="aklemen/ctc-h2t"
 
-export PER_DEVICE_BATCH_SIZE=2
+export PER_DEVICE_BATCH_SIZE=1
 export TARGET_EFFECTIVE_BATCH_SIZE=128
 
 export LORA_RANK=128
