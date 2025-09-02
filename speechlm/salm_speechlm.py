@@ -49,6 +49,7 @@ class SalmSpeechLM:
 
         start_time = time.time()
         hypotheses = []
+        should_log_hypotheses = True
         for batch in tqdm(dloader, desc="Running inference", total=math.ceil(len(cuts) // self.batch_size)):
             batch_answer_ids = self.model.generate(
                 prompts=[prompt] * len(batch["cuts"]),  # identical prompt for each example
@@ -69,6 +70,10 @@ class SalmSpeechLM:
                 batch_hypotheses.append(sanitized_answer_text)
 
             hypotheses.extend(batch_hypotheses)
+            if should_log_hypotheses:
+                for i in range(min(3, len(batch_hypotheses))):
+                    Logger.info(f"Hypothesis {i}: {batch_hypotheses[i]}")
+                should_log_hypotheses = False
         inference_time = time.time() - start_time
         Logger.info(f"Inference completed in {inference_time:.2f} seconds.")
 
