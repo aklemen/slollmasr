@@ -10,7 +10,7 @@
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
-required_vars=(LLM_NAME EXTRA_EOS_TOKEN_ID)
+required_vars=(LLM_NAME)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
