@@ -50,7 +50,8 @@ if __name__ == '__main__':
     calc = MetricsCalculator()
 
     Logger.info(f"Instantiating SalmSpeechLM' ...")
-    speechlm = SalmSpeechLM(args.llm_name, args.batch_size, [args.extra_eos_token_id])
+    extra_eos_token_ids = [args.extra_eos_token_id] if args.extra_eos_token_id is not None else None
+    speechlm = SalmSpeechLM(args.llm_name, args.batch_size, extra_eos_token_ids)
 
     eval_df = pd.DataFrame(columns=[
         'results_file',
