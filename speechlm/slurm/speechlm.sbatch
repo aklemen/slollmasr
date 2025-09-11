@@ -103,7 +103,7 @@ cd -
 
 python /slollmasr/salm_speechlm_eval.py \
    --llm_name $LLM_NAME \
-   --extra_eos_token_id ${EXTRA_EOS_TOKEN_ID} \
+$(if [ -n "$EXTRA_EOS_TOKEN_ID" ]; then echo "   --extra_eos_token_id $EXTRA_EOS_TOKEN_ID \\"; fi)
    --manifest_file_paths ${TEST_MANIFESTS[*]} \
    --results_dir_paths ${RESULT_DIR_PATHS_ARRAY[*]} \
    --evaluation_dir_path $BASE_CONTAINER_RESULTS_PATH \
