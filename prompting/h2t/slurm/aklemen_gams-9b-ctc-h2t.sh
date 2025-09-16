@@ -1,4 +1,4 @@
-export LLM_NAME="aklemen/gams-9b-ctc-h2t"
+export LLM_NAME="aklemen/gams-9b-ctc-h2t-128-64"
 export TOKENIZER_NAME=$LLM_NAME
 export METHOD="h2t-mapping"
 
