@@ -2,16 +2,13 @@ import datetime
 import json
 from argparse import ArgumentParser
 
-from utils.logger import Logger
-
-
 def print_duration_stats(durations: list[float]):
-    Logger.info(f'Total number of audio clips: {len(durations)}')
-    Logger.info(f'Min [s]: {min(durations)}')
-    Logger.info(f'Max [s]: {max(durations)}')
-    Logger.info(f'Avg [s]: {sum(durations) / len(durations)}')
-    Logger.info(f'Sum [s]: {sum(durations)}')
-    Logger.info(f'Sum:     {str(datetime.timedelta(seconds=sum(durations)))}')
+    print(f'Total number of audio clips: {len(durations)}')
+    print(f'Min [s]: {min(durations)}')
+    print(f'Max [s]: {max(durations)}')
+    print(f'Avg [s]: {sum(durations) / len(durations)}')
+    print(f'Sum [s]: {sum(durations)}')
+    print(f'Sum:     {str(datetime.timedelta(seconds=sum(durations)))}')
 
 def display_duration_histogram(durations: list[float]):
     import matplotlib.pyplot as plt
