@@ -46,7 +46,6 @@ def main():
                 durations_from_manifest.append(entry['duration'])
         print(f"================= {manifest_path} ================= ")
         print_duration_stats(durations_from_manifest)
-        print("\n")
 
         if args.display_histogram:
             display_duration_histogram(durations_from_manifest)
