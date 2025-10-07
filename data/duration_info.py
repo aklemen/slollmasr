@@ -8,7 +8,7 @@ def print_duration_stats(durations: list[float]):
     print(f'Max [s]: {max(durations)}')
     print(f'Avg [s]: {sum(durations) / len(durations)}')
     print(f'Sum [s]: {sum(durations)}')
-    print(f'Sum [h]:     {sum(durations) / 3600}')
+    print(f'Sum [h]: {sum(durations) / 3600}')
     print(f'Sum:     {str(datetime.timedelta(seconds=sum(durations)))}')
 
 def display_duration_histogram(durations: list[float]):
