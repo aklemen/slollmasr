@@ -37,16 +37,18 @@ def main():
     )
     args = parser.parse_args()
 
-    durations_from_manifest = []
     for manifest_path in args.manifest_file_paths:
+        durations_from_manifest = []
         with open(manifest_path, 'r') as file:
             for line in file:
                 entry = json.loads(line)
                 durations_from_manifest.append(entry['duration'])
+        print(f"================= {manifest_path} ================= ")
+        print_duration_stats(durations_from_manifest)
+        print("\n")
 
-    print_duration_stats(durations_from_manifest)
-    if args.display_histogram:
-        display_duration_histogram(durations_from_manifest)
+        if args.display_histogram:
+            display_duration_histogram(durations_from_manifest)
 
 
 if __name__ == "__main__":
