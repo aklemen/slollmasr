@@ -1,7 +1,7 @@
 export LLM_NAME="aklemen/SlovenianGPT"
 export PROMPT_FORMAT="mistral"
 export PER_DEVICE_BATCH_SIZE=8
-export TARGET_EFFECTIVE_BATCH_SIZE=128
+export TARGET_EFFECTIVE_BATCH_SIZE=64
 
 export LORA_RANK=128
 export LORA_ALPHA=128
