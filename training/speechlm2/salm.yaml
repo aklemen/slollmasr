@@ -26,8 +26,8 @@ model:
   #   and prevent freezing any parameter that has the string '.lora_' in its name.
   lora:
     task_type: CAUSAL_LM
-    r: 8
-    lora_alpha: 32
+    r: 128
+    lora_alpha: 128
     lora_dropout: 0.1
 
   perception:
