@@ -17,7 +17,7 @@ done
 
 GRADIENT_ACCUMULATION_STEPS=$((TARGET_EFFECTIVE_BATCH_SIZE / (SLURM_GPUS_ON_NODE * PER_DEVICE_BATCH_SIZE)))
 
-EXPERIMENT_NAME="$(basename "$LLM_NAME")"
+EXPERIMENT_NAME="$(basename "$LLM_NAME")_r${LORA_RANK}-a${LORA_ALPHA}"
 
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
