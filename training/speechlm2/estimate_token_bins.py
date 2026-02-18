@@ -3,7 +3,8 @@
 Estimate token-based bucketing configuration for SpeechLM2.
 
 Analyzes a Lhotse shar dataset to determine optimal bucket_duration_bins
-and bucket_batch_size for efficient training.
+and bucket_batch_size for efficient training. Supports multiple tokenizers
+in a single run.
 """
 
 import argparse
@@ -27,8 +28,10 @@ def parse_args():
     parser.add_argument(
         "--tokenizer",
         type=str,
+        action="append",
         required=True,
-        help="HuggingFace tokenizer name or path",
+        dest="tokenizers",
+        help="HuggingFace tokenizer name or path (can specify multiple times)",
     )
     parser.add_argument(
         "--token-equivalent-duration",
@@ -57,8 +60,9 @@ def parse_args():
     parser.add_argument(
         "--base-memory-usage",
         type=float,
-        default=0.6,
-        help="GPU memory fraction used at base batch size (0-1)",
+        action="append",
+        dest="base_memory_usages",
+        help="GPU memory fraction used at base batch size (0-1). Can specify multiple times, one per tokenizer. If fewer values than tokenizers, last value is reused.",
     )
     parser.add_argument(
         "--min-batch-size",
@@ -99,37 +103,40 @@ def load_lhotse_shar(shar_path: str, num_samples: int):
     return cuts
 
 
-def calculate_token_counts(
-    cuts: list,
-    tokenizer,
-    token_equivalent_duration: float,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Calculate audio, text, and total token counts for each cut."""
-    audio_tokens_list = []
-    text_tokens_list = []
-    total_tokens_list = []
+def extract_texts_and_durations(cuts: list) -> tuple[list[str], np.ndarray]:
+    """Extract texts and durations from cuts (do this once)."""
+    texts = []
+    durations = []
 
-    for cut in tqdm(cuts, desc="Calculating token counts"):
-        duration = cut.duration
-        audio_tokens = duration / token_equivalent_duration
-
+    for cut in tqdm(cuts, desc="Extracting metadata"):
+        durations.append(cut.duration)
         text = ""
         if cut.supervisions:
             text = cut.supervisions[0].text or ""
+        texts.append(text)
 
+    return texts, np.array(durations)
+
+
+def calculate_token_counts(
+    texts: list[str],
+    durations: np.ndarray,
+    tokenizer,
+    token_equivalent_duration: float,
+    tokenizer_name: str,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Calculate audio, text, and total token counts."""
+    audio_tokens = durations / token_equivalent_duration
+
+    text_tokens_list = []
+    for text in tqdm(texts, desc=f"Tokenizing ({tokenizer_name})"):
         text_tokens = len(tokenizer.encode(text)) if text else 0
-
-        total_tokens = audio_tokens + text_tokens
-
-        audio_tokens_list.append(audio_tokens)
         text_tokens_list.append(text_tokens)
-        total_tokens_list.append(total_tokens)
 
-    return (
-        np.array(audio_tokens_list),
-        np.array(text_tokens_list),
-        np.array(total_tokens_list),
-    )
+    text_tokens = np.array(text_tokens_list)
+    total_tokens = audio_tokens + text_tokens
+
+    return audio_tokens, text_tokens, total_tokens
 
 
 def estimate_bucket_bins(total_tokens: np.ndarray, num_buckets: int) -> list[int]:
@@ -169,15 +176,12 @@ def estimate_batch_sizes(
 
 
 def print_statistics(
+    tokenizer_name: str,
     audio_tokens: np.ndarray,
     text_tokens: np.ndarray,
     total_tokens: np.ndarray,
 ):
     """Print dataset statistics."""
-    print("\n" + "=" * 60)
-    print("DATASET STATISTICS")
-    print("=" * 60)
-
     print(f"\nSamples analyzed: {len(total_tokens)}")
 
     print(f"\nAudio tokens:")
@@ -185,7 +189,7 @@ def print_statistics(
     print(f"  Mean: {audio_tokens.mean():.1f}, Std: {audio_tokens.std():.1f}")
     print(f"  Median: {np.median(audio_tokens):.1f}")
 
-    print(f"\nText tokens:")
+    print(f"\nText tokens ({tokenizer_name}):")
     print(f"  Min: {text_tokens.min():.0f}, Max: {text_tokens.max():.0f}")
     print(f"  Mean: {text_tokens.mean():.1f}, Std: {text_tokens.std():.1f}")
     print(f"  Median: {np.median(text_tokens):.0f}")
@@ -208,9 +212,7 @@ def print_bucket_distribution(
     batch_sizes: list[int],
 ):
     """Print how samples are distributed across buckets."""
-    print("\n" + "=" * 60)
-    print("BUCKET DISTRIBUTION")
-    print("=" * 60)
+    print("\nBUCKET DISTRIBUTION:")
 
     prev_bin = 0
     for i, (bin_max, batch_size) in enumerate(zip(bucket_bins, batch_sizes)):
@@ -221,6 +223,7 @@ def print_bucket_distribution(
 
 
 def print_yaml_config(
+    tokenizer_name: str,
     bucket_bins: list[int],
     batch_sizes: list[int],
     total_tokens: np.ndarray,
@@ -229,9 +232,8 @@ def print_yaml_config(
     min_tokens = int(np.percentile(total_tokens, 1))
     max_tokens = int(np.percentile(total_tokens, 99))
 
-    print("\n" + "=" * 60)
-    print("YAML CONFIG (paste into salm.yaml data.train_ds)")
-    print("=" * 60)
+    print(f"\nYAML CONFIG for {tokenizer_name}:")
+    print(f"# Paste into salm.yaml data.train_ds")
     print(f"""
 use_bucketing: true
 use_multimodal_sampling: true
@@ -244,43 +246,76 @@ bucket_buffer_size: 5000
 """)
 
 
+def get_model_short_name(tokenizer_name: str) -> str:
+    """Extract short name from tokenizer path."""
+    return tokenizer_name.split("/")[-1]
+
+
 def main():
     args = parse_args()
 
-    print(f"Loading tokenizer: {args.tokenizer}")
-    tokenizer = load_tokenizer(args.tokenizer)
+    # Handle base_memory_usages - default to 0.6 if not specified
+    if args.base_memory_usages is None:
+        args.base_memory_usages = [0.6]
+
+    # Extend memory usages to match number of tokenizers
+    while len(args.base_memory_usages) < len(args.tokenizers):
+        args.base_memory_usages.append(args.base_memory_usages[-1])
 
     print(f"Loading Lhotse shar dataset from {args.shar_path}")
     cuts = load_lhotse_shar(args.shar_path, args.num_samples)
     print(f"Loaded {len(cuts)} cuts")
 
-    audio_tokens, text_tokens, total_tokens = calculate_token_counts(
-        cuts,
-        tokenizer,
-        args.token_equivalent_duration,
-    )
+    # Extract texts and durations once
+    texts, durations = extract_texts_and_durations(cuts)
 
-    print_statistics(audio_tokens, text_tokens, total_tokens)
+    # Free memory from cuts
+    del cuts
 
-    bucket_bins = estimate_bucket_bins(total_tokens, args.num_buckets)
+    # Process each tokenizer
+    for tokenizer_name, base_memory_usage in zip(args.tokenizers, args.base_memory_usages):
+        short_name = get_model_short_name(tokenizer_name)
 
-    median_tokens = np.median(total_tokens)
-    batch_sizes = estimate_batch_sizes(
-        bucket_bins,
-        median_tokens,
-        args.base_batch_size,
-        args.base_memory_usage,
-        args.min_batch_size,
-        args.safety_factor,
-    )
+        print("\n" + "=" * 70)
+        print(f"RESULTS FOR: {tokenizer_name}")
+        print(f"Base memory usage: {base_memory_usage:.0%}")
+        print("=" * 70)
 
-    print_bucket_distribution(total_tokens, bucket_bins, batch_sizes)
-    print_yaml_config(bucket_bins, batch_sizes, total_tokens)
+        print(f"\nLoading tokenizer: {tokenizer_name}")
+        tokenizer = load_tokenizer(tokenizer_name)
 
-    print("=" * 60)
+        audio_tokens, text_tokens, total_tokens = calculate_token_counts(
+            texts,
+            durations,
+            tokenizer,
+            args.token_equivalent_duration,
+            short_name,
+        )
+
+        print_statistics(short_name, audio_tokens, text_tokens, total_tokens)
+
+        bucket_bins = estimate_bucket_bins(total_tokens, args.num_buckets)
+
+        median_tokens = np.median(total_tokens)
+        batch_sizes = estimate_batch_sizes(
+            bucket_bins,
+            median_tokens,
+            args.base_batch_size,
+            base_memory_usage,
+            args.min_batch_size,
+            args.safety_factor,
+        )
+
+        print_bucket_distribution(total_tokens, bucket_bins, batch_sizes)
+        print_yaml_config(short_name, bucket_bins, batch_sizes, total_tokens)
+
+        # Free tokenizer memory
+        del tokenizer
+
+    print("\n" + "=" * 70)
     print("NOTE: These are estimates. Monitor GPU memory during training")
     print("and adjust bucket_batch_size as needed.")
-    print("=" * 60)
+    print("=" * 70)
 
 
 if __name__ == "__main__":
