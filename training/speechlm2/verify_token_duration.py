@@ -6,13 +6,32 @@ Runs audio samples through the ASR encoder + modality adapter and compares
 the output sequence length to the audio duration.
 """
 
+# ==============================================================================
+# WORKAROUND: Patch torch dispatcher before importing NeMo to avoid
+# torchvision operator registration error in NeMo 25.07 container.
+# This must happen before any other imports that might trigger NeMo loading.
+# ==============================================================================
+import torch
+
+_original_dispatch_has_kernel = torch._C._dispatch_has_kernel_for_dispatch_key
+
+
+def _patched_dispatch_has_kernel(name, key):
+    """Patch to handle missing torchvision operators gracefully."""
+    if name.startswith("torchvision::"):
+        return True
+    return _original_dispatch_has_kernel(name, key)
+
+
+torch._C._dispatch_has_kernel_for_dispatch_key = _patched_dispatch_has_kernel
+# ==============================================================================
+
 import argparse
 import json
 import random
 from pathlib import Path
 
 import numpy as np
-import torch
 import torchaudio
 from omegaconf import OmegaConf
 from tqdm import tqdm
@@ -32,8 +51,8 @@ def parse_args():
     parser.add_argument(
         "--asr-model",
         type=str,
-        default="aklemen/slovene-conformer-ctc",
-        help="ASR encoder model name or path",
+        default="/models/asr/conformer_ctc_bpe.nemo",
+        help="ASR encoder model: HuggingFace name, or path to .nemo file",
     )
     parser.add_argument(
         "--config-path",
@@ -76,11 +95,15 @@ def load_manifest(manifest_path: str, num_samples: int) -> list[dict]:
     return entries
 
 
-def load_asr_encoder(model_name: str, device: str):
-    """Load ASR encoder from NeMo."""
+def load_asr_encoder(model_name_or_path: str, device: str):
+    """Load ASR encoder from NeMo (.nemo file or HuggingFace)."""
     from nemo.collections.asr.models import EncDecCTCModel
 
-    model = EncDecCTCModel.from_pretrained(model_name, map_location=device)
+    if model_name_or_path.endswith(".nemo"):
+        model = EncDecCTCModel.restore_from(model_name_or_path, map_location=device)
+    else:
+        model = EncDecCTCModel.from_pretrained(model_name_or_path, map_location=device)
+
     model.eval()
     model.freeze()
     return model
