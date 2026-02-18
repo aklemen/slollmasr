@@ -5,14 +5,14 @@ export PROMPT_FORMAT="gemma"
 export LORA_RANK=128
 export LORA_ALPHA=128
 
-# Bucketing config (scaled ~2.5x for H100 80GB from A100 40GB estimates)
+# Bucketing config (scaled ~10x for H100 80GB from A100 40GB estimates)
 export MIN_TOKENS=6
 export MAX_TOKENS=95
 export BUCKET_DURATION_BINS="[11,14,18,22,26,32,39,48,63,134]"
-export BUCKET_BATCH_SIZE="[17,12,10,7,7,5,5,2,2,2]"
+export BUCKET_BATCH_SIZE="[72,50,42,30,30,20,20,8,8,8]"
 
-# Gradient accumulation (2 gives ~50 avg effective batch, max 136)
-export GRADIENT_ACCUMULATION_STEPS=2
+# Gradient accumulation (1 gives ~100 avg effective batch, max 288)
+export GRADIENT_ACCUMULATION_STEPS=1
 
 JOB_NAME="train-speechlm2-$(basename "$LLM_NAME")"
 sbatch \
