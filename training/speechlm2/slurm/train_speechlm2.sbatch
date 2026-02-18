@@ -7,15 +7,13 @@
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
-required_vars=(SLURM_GPUS_ON_NODE WANDB_API_KEY LLM_NAME PROMPT_FORMAT PER_DEVICE_BATCH_SIZE TARGET_EFFECTIVE_BATCH_SIZE LORA_RANK LORA_ALPHA)
+required_vars=(SLURM_GPUS_ON_NODE WANDB_API_KEY LLM_NAME PROMPT_FORMAT LORA_RANK LORA_ALPHA MIN_TOKENS MAX_TOKENS BUCKET_DURATION_BINS BUCKET_BATCH_SIZE GRADIENT_ACCUMULATION_STEPS)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
     exit 1
   fi
 done
-
-GRADIENT_ACCUMULATION_STEPS=$((TARGET_EFFECTIVE_BATCH_SIZE / (SLURM_GPUS_ON_NODE * PER_DEVICE_BATCH_SIZE)))
 
 EXPERIMENT_NAME="$(basename "$LLM_NAME")_r${LORA_RANK}-a${LORA_ALPHA}"
 
@@ -62,9 +60,12 @@ echo -e \"\"\"
 \$(cat /etc/nccl.conf | sed \"s/^/# \${SLURMD_NODENAME}.\${SLURM_PROCID}>   /g\")
 \"\"\"
 
-echo \"PER_DEVICE_BATCH_SIZE=${PER_DEVICE_BATCH_SIZE}\"
-echo \"GRADIENT_ACCUMULATION_STEPS=${GRADIENT_ACCUMULATION_STEPS}\"
-echo \"TARGET_EFFECTIVE_BATCH_SIZE=${TARGET_EFFECTIVE_BATCH_SIZE}\"
+echo \"Bucketing config:\"
+echo \"  MIN_TOKENS=${MIN_TOKENS}\"
+echo \"  MAX_TOKENS=${MAX_TOKENS}\"
+echo \"  BUCKET_DURATION_BINS=${BUCKET_DURATION_BINS}\"
+echo \"  BUCKET_BATCH_SIZE=${BUCKET_BATCH_SIZE}\"
+echo \"  GRADIENT_ACCUMULATION_STEPS=${GRADIENT_ACCUMULATION_STEPS}\"
 
 # set unbuffered python for realtime container logging
 export PYTHONFAULTHANDLER=1
@@ -91,16 +92,19 @@ else
   while [[ ! -f \"\${IS_RANK_0_DONE}\" ]]; do sleep 2; done
 fi
 
-python /opt/NeMo/examples/speechlm2/salm_train.py \
-  --config-path=/slollmasr/training/speechlm2 \
-  --config-name=salm.yaml \
-  model.pretrained_llm=${LLM_NAME} \
-  model.prompt_format=${PROMPT_FORMAT} \
-  model.lora.r=${LORA_RANK} \
-  model.lora.lora_alpha=${LORA_ALPHA} \
-  trainer.accumulate_grad_batches=${GRADIENT_ACCUMULATION_STEPS} \
-  data.train_ds.batch_size=${PER_DEVICE_BATCH_SIZE} \
-  exp_manager.name=${EXPERIMENT_NAME} \
+python /opt/NeMo/examples/speechlm2/salm_train.py \\
+  --config-path=/slollmasr/training/speechlm2 \\
+  --config-name=salm.yaml \\
+  model.pretrained_llm=${LLM_NAME} \\
+  model.prompt_format=${PROMPT_FORMAT} \\
+  model.lora.r=${LORA_RANK} \\
+  model.lora.lora_alpha=${LORA_ALPHA} \\
+  trainer.accumulate_grad_batches=${GRADIENT_ACCUMULATION_STEPS} \\
+  data.train_ds.min_tokens=${MIN_TOKENS} \\
+  data.train_ds.max_tokens=${MAX_TOKENS} \\
+  'data.train_ds.bucket_duration_bins=${BUCKET_DURATION_BINS}' \\
+  'data.train_ds.bucket_batch_size=${BUCKET_BATCH_SIZE}' \\
+  exp_manager.name=${EXPERIMENT_NAME} \\
   exp_manager.wandb_logger_kwargs.name=${EXPERIMENT_NAME}
 
 echo -e \"\"\"

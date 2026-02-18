@@ -109,20 +109,17 @@ data:
     shuffle: true
     shard_seed: "randomized"
     num_workers: 4
-    batch_size: ???
-    # Optional bucketing:
-    # batch_size: null
-    # use_bucketing: true
-    # use_multimodal_sampling: true
-    # measure_total_length: true
-    # Note: `batch_tokens`, `bucket_duration_bins`, and `max_tokens` all represent tokens as
-    #  the sum of input audio frames and output text tokens. Number of audio frames is
-    #  calculated using `token_equivalent_duration`.
-    # batch_tokens: 4000
-    # max_tokens: 2048
-    # bucket_duration_bins: [64, 128, 256, 384, 512, 768, 1024, 1280, 1536, 2048]
-    # num_buckets: 10
-    # bucket_buffer_size: 5000
+
+    batch_size: null
+
+    use_bucketing: true
+    use_multimodal_sampling: true
+    min_tokens: ???
+    max_tokens: ???
+    bucket_duration_bins: ???
+    bucket_batch_size: ???
+    num_buckets: 10
+    bucket_buffer_size: 20000
 
   validation_ds:
     # The entries under 'datasets' are a list of separate dataloaders.

@@ -1,10 +1,18 @@
+#!/bin/bash
 export LLM_NAME="aklemen/SlovenianGPT"
 export PROMPT_FORMAT="mistral"
-export PER_DEVICE_BATCH_SIZE=2
-export TARGET_EFFECTIVE_BATCH_SIZE=64
 
 export LORA_RANK=128
 export LORA_ALPHA=128
+
+# Bucketing config (from estimate_token_bins.py with 50% base memory usage)
+export MIN_TOKENS=7
+export MAX_TOKENS=109
+export BUCKET_DURATION_BINS="[13,16,20,25,30,36,44,55,72,164]"
+export BUCKET_BATCH_SIZE="[8,6,5,4,3,3,2,2,1,1]"
+
+# Gradient accumulation (4 gives ~48 avg effective batch, max 128)
+export GRADIENT_ACCUMULATION_STEPS=4
 
 JOB_NAME="train-speechlm2-$(basename "$LLM_NAME")"
 sbatch \
