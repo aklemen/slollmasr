@@ -19,5 +19,5 @@ sbatch \
   --job-name="$JOB_NAME" \
   --ntasks-per-node=4 \
   --gpus-per-node=H100:4 \
-  --mem-per-gpu=256G \
+  --mem-per-gpu=128G \
   train_speechlm2.sbatch
