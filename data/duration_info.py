@@ -1,6 +1,8 @@
 import datetime
 import json
 from argparse import ArgumentParser
+import numpy as np
+
 
 def print_duration_stats(durations: list[float]):
     print(f'Total number of audio clips: {len(durations)}')
@@ -46,6 +48,13 @@ def main():
                 durations_from_manifest.append(entry['duration'])
         print(f"================= {manifest_path} ================= ")
         print_duration_stats(durations_from_manifest)
+
+        # split lengths into bins with numpy and print the counts
+        # the bins are 0-10, 10-20, 20-30, ...
+        bins = np.arange(0, max(durations_from_manifest) + 5, 5)
+        counts, _ = np.histogram(durations_from_manifest, bins=bins)
+        for i in range(len(bins) - 1):
+            print(f"{bins[i]:>5} - {bins[i+1]:>5} s: {counts[i]}")
 
         if args.display_histogram:
             display_duration_histogram(durations_from_manifest)
