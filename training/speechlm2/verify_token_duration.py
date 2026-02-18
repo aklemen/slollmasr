@@ -26,6 +26,10 @@ def _patched_register_fake(op_name, *args, **kwargs):
 
 
 torch.library.register_fake = _patched_register_fake
+
+# Disable NeMo type checking globally (must happen before NeMo imports)
+import nemo.core.classes.common as nemo_common
+nemo_common.typecheck.set_typecheck_enabled(False)
 # ==============================================================================
 
 import argparse
