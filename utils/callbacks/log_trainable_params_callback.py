@@ -6,6 +6,7 @@ from typing import Dict, Tuple
 
 import lightning.pytorch as pl
 from lightning.pytorch.callbacks import Callback
+from lightning.pytorch.utilities import rank_zero_only
 
 
 class LogTrainableParamsCallback(Callback):
@@ -100,6 +101,7 @@ class LogTrainableParamsCallback(Callback):
         # Convert to dict of tuples
         return {name: (total, trainable) for name, (total, trainable) in module_stats.items()}
 
+    @rank_zero_only
     def _print_summary(
         self,
         total_params: int,
