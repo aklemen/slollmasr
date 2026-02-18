@@ -190,7 +190,8 @@ def main():
                     length=processed_len,
                 )
                 # Run through modality adapter
-                adapter_out, adapter_len = adapter(
+                # Use forward() directly to bypass NeMo's type checking
+                adapter_out, adapter_len = adapter.forward(
                     audio_signal=encoded,
                     length=encoded_len,
                 )
