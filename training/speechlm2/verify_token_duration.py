@@ -126,13 +126,25 @@ def create_modality_adapter(config_path: str, device: str):
 
 def load_audio(audio_path: str, sample_rate: int) -> torch.Tensor:
     """Load and resample audio file."""
-    waveform, sr = torchaudio.load(audio_path)
+    import soundfile as sf
+
+    # Use soundfile directly (most reliable in NeMo containers)
+    audio_data, sr = sf.read(audio_path, dtype="float32")
+
+    # Convert to torch tensor
+    waveform = torch.from_numpy(audio_data)
+
+    # Handle stereo -> mono
+    if waveform.ndim == 2:
+        waveform = waveform.mean(dim=1)
+
+    # Resample if needed
     if sr != sample_rate:
+        waveform = waveform.unsqueeze(0)  # Add channel dim for resampler
         resampler = torchaudio.transforms.Resample(sr, sample_rate)
-        waveform = resampler(waveform)
-    if waveform.shape[0] > 1:
-        waveform = waveform.mean(dim=0, keepdim=True)
-    return waveform.squeeze(0)
+        waveform = resampler(waveform).squeeze(0)
+
+    return waveform
 
 
 def main():
@@ -156,6 +168,9 @@ def main():
     token_durations = []
 
     print("\nProcessing samples...")
+    error_count = 0
+    max_errors_to_show = 5
+
     for entry in tqdm(entries):
         audio_path = entry["audio_filepath"]
         duration = entry["duration"]
@@ -165,10 +180,16 @@ def main():
             audio_len = torch.tensor([audio.shape[0]], device=args.device)
 
             with torch.no_grad():
-                encoded, encoded_len = asr_model.encoder(
-                    audio_signal=audio.unsqueeze(0),
+                # Run through ASR encoder
+                processed, processed_len = asr_model.preprocessor(
+                    input_signal=audio.unsqueeze(0),
                     length=audio_len,
                 )
+                encoded, encoded_len = asr_model.encoder(
+                    audio_signal=processed,
+                    length=processed_len,
+                )
+                # Run through modality adapter
                 adapter_out, adapter_len = adapter(
                     audio_signal=encoded,
                     length=encoded_len,
@@ -182,8 +203,17 @@ def main():
             token_durations.append(token_dur)
 
         except Exception as e:
-            print(f"Error processing {audio_path}: {e}")
+            error_count += 1
+            if error_count <= max_errors_to_show:
+                import traceback
+                print(f"\nError processing {audio_path}:")
+                traceback.print_exc()
+            elif error_count == max_errors_to_show + 1:
+                print(f"\n... suppressing further error messages ...")
             continue
+
+    if error_count > 0:
+        print(f"\nTotal errors: {error_count}/{len(entries)} samples failed")
 
     durations = np.array(durations)
     output_lengths = np.array(output_lengths)
@@ -193,6 +223,12 @@ def main():
     print("RESULTS")
     print("=" * 60)
     print(f"\nAnalyzed {len(durations)} samples")
+
+    if len(durations) == 0:
+        print("\nERROR: No samples were processed successfully!")
+        print("Check the error messages above for details.")
+        return
+
     print(f"Audio durations: {durations.min():.1f}s - {durations.max():.1f}s (mean: {durations.mean():.1f}s)")
     print(f"Output lengths: {output_lengths.min()} - {output_lengths.max()} tokens (mean: {output_lengths.mean():.0f})")
     print(f"\nActual token_equivalent_duration: {token_durations.mean():.4f}s ± {token_durations.std():.4f}s")
