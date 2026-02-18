@@ -173,7 +173,7 @@ exp_manager:
   early_stopping_callback_params:
     monitor: val_acc
     mode: max
-    min_delta: 0.0
-    patience: 5
+    min_delta: 0.002  # Ignore improvements < 0.2%
+    patience: 3       # Stop after 3 checks without meaningful improvement
     check_finite: true
     verbose: true
