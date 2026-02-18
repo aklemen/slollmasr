@@ -108,7 +108,7 @@ data:
     seed: 42
     shuffle: true
     shard_seed: "randomized"
-    num_workers: 1
+    num_workers: 4
     batch_size: ???
     # Optional bucketing:
     # batch_size: null
