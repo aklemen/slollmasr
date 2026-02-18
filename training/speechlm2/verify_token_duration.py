@@ -7,23 +7,25 @@ the output sequence length to the audio duration.
 """
 
 # ==============================================================================
-# WORKAROUND: Patch torch dispatcher before importing NeMo to avoid
+# WORKAROUND: Patch torch.library.register_fake before importing NeMo to avoid
 # torchvision operator registration error in NeMo 25.07 container.
 # This must happen before any other imports that might trigger NeMo loading.
 # ==============================================================================
 import torch
+import torch.library
 
-_original_dispatch_has_kernel = torch._C._dispatch_has_kernel_for_dispatch_key
-
-
-def _patched_dispatch_has_kernel(name, key):
-    """Patch to handle missing torchvision operators gracefully."""
-    if name.startswith("torchvision::"):
-        return True
-    return _original_dispatch_has_kernel(name, key)
+_original_register_fake = torch.library.register_fake
 
 
-torch._C._dispatch_has_kernel_for_dispatch_key = _patched_dispatch_has_kernel
+def _patched_register_fake(op_name, *args, **kwargs):
+    """Skip registration for torchvision operators to avoid conflicts."""
+    if isinstance(op_name, str) and op_name.startswith("torchvision::"):
+        # Return a no-op decorator
+        return lambda fn: fn
+    return _original_register_fake(op_name, *args, **kwargs)
+
+
+torch.library.register_fake = _patched_register_fake
 # ==============================================================================
 
 import argparse
