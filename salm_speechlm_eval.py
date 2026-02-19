@@ -22,6 +22,10 @@ def parse_args():
 
     parser.add_argument('--batch_size', type=int, required=True)
 
+    parser.add_argument('--do_sample', action='store_true', help='Enable nucleus sampling')
+    parser.add_argument('--top_p', type=float, default=0.9, help='Top-p value for nucleus sampling')
+    parser.add_argument('--temperature', type=float, default=1.0, help='Temperature for sampling')
+
     return parser.parse_args()
 
 
@@ -51,7 +55,14 @@ if __name__ == '__main__':
 
     Logger.info(f"Instantiating SalmSpeechLM' ...")
     extra_eos_token_ids = [args.extra_eos_token_id] if args.extra_eos_token_id is not None else None
-    speechlm = SalmSpeechLM(args.llm_name, args.batch_size, extra_eos_token_ids)
+    speechlm = SalmSpeechLM(
+        args.llm_name,
+        args.batch_size,
+        extra_eos_token_ids,
+        do_sample=args.do_sample,
+        top_p=args.top_p,
+        temperature=args.temperature,
+    )
 
     eval_df = pd.DataFrame(columns=[
         'results_file',

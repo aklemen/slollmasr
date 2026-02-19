@@ -20,13 +20,27 @@ class ToAudio(torch.utils.data.Dataset):
         return {"cuts": cuts, "audios": audios, "audio_lens": audio_lens}
 
 class SalmSpeechLM:
-    def __init__(self, llm_name_or_path: str, batch_size: int = 8, extra_eos_token_ids: Union[list[int], None] = None):
+    def __init__(
+        self,
+        llm_name_or_path: str,
+        batch_size: int = 8,
+        extra_eos_token_ids: Union[list[int], None] = None,
+        do_sample: bool = False,
+        top_p: float = 0.9,
+        temperature: float = 1.0,
+    ):
         self.model = SALM.from_pretrained(llm_name_or_path).eval().to(torch.bfloat16).to("cuda")
         self.batch_size = batch_size
         self.eos_tokens = [self.model.text_eos_id]
         if extra_eos_token_ids is not None:
             self.eos_tokens.extend(extra_eos_token_ids)
         Logger.info(f"Using EOS tokens: {self.eos_tokens} -> {self.model.tokenizer.ids_to_tokens(self.eos_tokens)}")
+        
+        self.do_sample = do_sample
+        self.top_p = top_p
+        self.temperature = temperature
+        if do_sample:
+            Logger.info(f"Nucleus sampling enabled: top_p={top_p}, temperature={temperature}")
 
     def run(self, manifest_file_path: str) -> tuple[list[str], float]:
         Logger.info("Loading cuts ...")
@@ -60,6 +74,9 @@ class SalmSpeechLM:
                     bos_token_id=self.model.text_bos_id,
                     eos_token_id=self.eos_tokens,
                     pad_token_id=self.model.text_pad_id,
+                    do_sample=self.do_sample,
+                    top_p=self.top_p if self.do_sample else None,
+                    temperature=self.temperature if self.do_sample else None,
                 ),
             )
             batch_answer_ids = batch_answer_ids.cpu()
