@@ -7,7 +7,7 @@
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
-required_vars=(SLURM_GPUS_ON_NODE WANDB_API_KEY LLM_NAME PROMPT_FORMAT LORA_RANK LORA_ALPHA MIN_TOKENS MAX_TOKENS BUCKET_DURATION_BINS BUCKET_BATCH_SIZE GRADIENT_ACCUMULATION_STEPS)
+required_vars=(SLURM_GPUS_ON_NODE WANDB_API_KEY LLM_NAME PROMPT_FORMAT LORA_RANK LORA_ALPHA GRADIENT_ACCUMULATION_STEPS)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
@@ -15,7 +15,22 @@ for var in "${required_vars[@]}"; do
   fi
 done
 
-EXPERIMENT_NAME="$(basename "$LLM_NAME")_r${LORA_RANK}-a${LORA_ALPHA}"
+# Set defaults for optional variables
+: "${RUN_NAME:=$(basename "$LLM_NAME")_r${LORA_RANK}-a${LORA_ALPHA}}"
+: "${FREEZE_ENCODER:=true}"
+: "${ADAPTER_SUBSAMPLING:=8}"
+: "${ADAPTER_N_LAYERS:=2}"
+: "${ADAPTER_D_MODEL:=1024}"
+: "${LORA_TARGET_MODULES:=[\"q_proj\", \"v_proj\"]}"
+: "${WANDB_PROJECT:=salm-ablations}"
+: "${WANDB_GROUP:=}"
+: "${WANDB_TAGS:=}"
+
+# Calculate token_equivalent_duration from subsampling factor (subsampling * 0.04s frame shift)
+TOKEN_EQUIVALENT_DURATION=$(echo "$ADAPTER_SUBSAMPLING * 0.04" | bc)
+export TOKEN_EQUIVALENT_DURATION
+
+EXPERIMENT_NAME="$RUN_NAME"
 
 # get the name of this script
 if [ -n "${SLURM_JOB_ID:-}" ] ; then
@@ -28,7 +43,7 @@ fi
 DATETIME=$(TZ="Europe/Ljubljana" date "+%Y-%m-%d___%H-%M-%S_%3N")
 
 # experiment dir
-EXPERIMENT_DIR="training/speechlm2/$EXPERIMENT_NAME/$DATETIME"
+EXPERIMENT_DIR="salm-ablations/$EXPERIMENT_NAME/$DATETIME"
 LOCAL_EXPERIMENT_DIR="$HOME/exp/$EXPERIMENT_DIR"
 mkdir -p "$LOCAL_EXPERIMENT_DIR"
 
@@ -60,18 +75,36 @@ echo -e \"\"\"
 \$(cat /etc/nccl.conf | sed \"s/^/# \${SLURMD_NODENAME}.\${SLURM_PROCID}>   /g\")
 \"\"\"
 
-echo \"Bucketing config:\"
-echo \"  MIN_TOKENS=${MIN_TOKENS}\"
-echo \"  MAX_TOKENS=${MAX_TOKENS}\"
-echo \"  BUCKET_DURATION_BINS=${BUCKET_DURATION_BINS}\"
-echo \"  BUCKET_BATCH_SIZE=${BUCKET_BATCH_SIZE}\"
+echo \"Training config:\"
+echo \"  FREEZE_ENCODER=${FREEZE_ENCODER}\"
+echo \"  ADAPTER_SUBSAMPLING=${ADAPTER_SUBSAMPLING}\"
+echo \"  ADAPTER_N_LAYERS=${ADAPTER_N_LAYERS}\"
+echo \"  ADAPTER_D_MODEL=${ADAPTER_D_MODEL}\"
+echo \"  TOKEN_EQUIVALENT_DURATION=${TOKEN_EQUIVALENT_DURATION}\"
+echo \"  LORA_RANK=${LORA_RANK}\"
+echo \"  LORA_ALPHA=${LORA_ALPHA}\"
+echo \"  LORA_TARGET_MODULES=${LORA_TARGET_MODULES}\"
 echo \"  GRADIENT_ACCUMULATION_STEPS=${GRADIENT_ACCUMULATION_STEPS}\"
+echo \"  WANDB_PROJECT=${WANDB_PROJECT}\"
+echo \"  WANDB_GROUP=${WANDB_GROUP}\"
+echo \"  WANDB_TAGS=${WANDB_TAGS}\"
 
 # set unbuffered python for realtime container logging
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
 export WANDB_API_KEY=\"$WANDB_API_KEY\"
+
+# Export env vars for OmegaConf interpolation
+export LORA_RANK=\"$LORA_RANK\"
+export LORA_ALPHA=\"$LORA_ALPHA\"
+export ADAPTER_SUBSAMPLING=\"$ADAPTER_SUBSAMPLING\"
+export ADAPTER_N_LAYERS=\"$ADAPTER_N_LAYERS\"
+export ADAPTER_D_MODEL=\"$ADAPTER_D_MODEL\"
+export TOKEN_EQUIVALENT_DURATION=\"$TOKEN_EQUIVALENT_DURATION\"
+export WANDB_PROJECT=\"$WANDB_PROJECT\"
+export WANDB_GROUP=\"$WANDB_GROUP\"
+export WANDB_TAGS=\"$WANDB_TAGS\"
 
 IS_RANK_0_DONE=/tmp/rank_0_done
 
@@ -92,20 +125,23 @@ else
   while [[ ! -f \"\${IS_RANK_0_DONE}\" ]]; do sleep 2; done
 fi
 
+# Build CLI overrides for list-type parameters
+EXTRA_ARGS=\"model.lora.target_modules='${LORA_TARGET_MODULES}'\"
+
+# If FREEZE_ENCODER is false, add prevent_freeze_params to unfreeze encoder
+if [ \"${FREEZE_ENCODER}\" = \"false\" ]; then
+  EXTRA_ARGS=\"\${EXTRA_ARGS} model.prevent_freeze_params='[\\\"^perception\\\\.encoder\\\\..+\$\\\"]'\"
+fi
+
 python /opt/NeMo/examples/speechlm2/salm_train.py \\
   --config-path=/slollmasr/training/speechlm2 \\
   --config-name=salm.yaml \\
   model.pretrained_llm=${LLM_NAME} \\
   model.prompt_format=${PROMPT_FORMAT} \\
-  model.lora.r=${LORA_RANK} \\
-  model.lora.lora_alpha=${LORA_ALPHA} \\
   trainer.accumulate_grad_batches=${GRADIENT_ACCUMULATION_STEPS} \\
-  data.train_ds.min_tokens=${MIN_TOKENS} \\
-  data.train_ds.max_tokens=${MAX_TOKENS} \\
-  'data.train_ds.bucket_duration_bins=${BUCKET_DURATION_BINS}' \\
-  'data.train_ds.bucket_batch_size=${BUCKET_BATCH_SIZE}' \\
   exp_manager.name=${EXPERIMENT_NAME} \\
-  exp_manager.wandb_logger_kwargs.name=${EXPERIMENT_NAME}
+  exp_manager.wandb_logger_kwargs.name=${EXPERIMENT_NAME} \\
+  \${EXTRA_ARGS}
 
 echo -e \"\"\"
 # finished at \$(date)

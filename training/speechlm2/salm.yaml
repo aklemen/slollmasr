@@ -26,9 +26,10 @@ model:
   #   and prevent freezing any parameter that has the string '.lora_' in its name.
   lora:
     task_type: CAUSAL_LM
-    r: 128
-    lora_alpha: 128
-    lora_dropout: 0.1
+    r: ${oc.env:LORA_RANK,???}
+    lora_alpha: ${oc.env:LORA_ALPHA,???}
+    lora_dropout: 0.05
+    target_modules: ???  # set via CLI override
 
   perception:
     target: nemo.collections.speechlm2.modules.perception.AudioPerceptionModule
@@ -36,10 +37,10 @@ model:
       _target_: nemo.collections.asr.modules.ConformerEncoder
       feat_in: 512
       feat_out: -1 # you may set it if you need different output size other than the default d_model
-      n_layers: 2
-      d_model: 1024
+      n_layers: ${oc.env:ADAPTER_N_LAYERS,???}
+      d_model: ${oc.env:ADAPTER_D_MODEL,???}
       subsampling: dw_striding # vggnet, striding, stacking or stacking_norm, dw_striding
-      subsampling_factor: 8 # must be power of 2 for striding and vggnet
+      subsampling_factor: ${oc.env:ADAPTER_SUBSAMPLING,???} # must be power of 2 for striding and vggnet
       subsampling_conv_channels: 256 # set to -1 to make it equal to the d_model
       causal_downsampling: false
       ff_expansion_factor: 4
@@ -101,7 +102,7 @@ data:
   train_ds:
     sample_rate: 16000
     prompt_format: ${model.prompt_format}
-    token_equivalent_duration: 0.32
+    token_equivalent_duration: ${oc.env:TOKEN_EQUIVALENT_DURATION,???}
     input_cfg:
       - type: lhotse_as_conversation
         shar_path: /custom-datasets/artur/clean/lhotse/shar/train
@@ -117,10 +118,9 @@ data:
 
     use_bucketing: true
     use_multimodal_sampling: true
-    min_tokens: ???
-    max_tokens: ???
-    bucket_duration_bins: ???
-    bucket_batch_size: ???
+    min_tokens: 1
+    max_tokens: 1024
+    batch_tokens: 4000
     num_buckets: 10
     bucket_buffer_size: 60000
 
@@ -129,7 +129,7 @@ data:
     # The structure is <dataset-name>: {<dataloader-dict-config>}
     # They inherit all settings from validation_ds, but can individually override them.
     prompt_format: ${model.prompt_format}
-    token_equivalent_duration: 0.32
+    token_equivalent_duration: ${oc.env:TOKEN_EQUIVALENT_DURATION,???}
     datasets:
       artur_clean_val:
         input_cfg:
@@ -160,7 +160,9 @@ exp_manager:
   create_wandb_logger: true
   wandb_logger_kwargs:
     name: ???
-    project: SpeechLLM
+    project: ${oc.env:WANDB_PROJECT,salm-ablations}
+    group: ${oc.env:WANDB_GROUP,null}
+    tags: ${oc.env:WANDB_TAGS,null}
     resume: true
 
   checkpoint_callback_params:
