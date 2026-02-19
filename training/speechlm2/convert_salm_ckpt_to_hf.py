@@ -25,6 +25,8 @@ def load_checkpoint(model: torch.nn.Module, checkpoint_path: str):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--ckpt_dir', type=str, required=True)
+    parser.add_argument('--config_path', type=str, required=True,
+                        help='Path to experiment config (exp_config.yaml from NeMo logs directory)')
     parser.add_argument('--llm_name', type=str, required=True)
     parser.add_argument('--prompt_format', type=str, required=True)
     parser.add_argument('--model_name_for_hf_upload', type=str, required=False)
@@ -34,7 +36,8 @@ def main():
     Logger.info("===================================")
 
     Logger.info("Creating model config ...")
-    training_cfg = OmegaConf.load("/slollmasr/training/speechlm2/salm.yaml")
+    Logger.info(f"Loading config from: {args.config_path}")
+    training_cfg = OmegaConf.load(args.config_path)
     model_cfg = OmegaConf.to_container(training_cfg.model, resolve=True)
     model_cfg["torch_dtype"] = "bfloat16"
     model_cfg["pretrained_llm"] = args.llm_name
