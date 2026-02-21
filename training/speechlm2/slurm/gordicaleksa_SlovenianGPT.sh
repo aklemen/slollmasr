@@ -5,8 +5,6 @@ export PROMPT_FORMAT="mistral"
 export LORA_RANK=128
 export LORA_ALPHA=128
 
-export GRADIENT_ACCUMULATION_STEPS=1
-
 JOB_NAME="train-speechlm2-$(basename "$LLM_NAME")"
 sbatch \
   --job-name="$JOB_NAME" \

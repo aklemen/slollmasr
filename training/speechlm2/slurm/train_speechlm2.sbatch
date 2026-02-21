@@ -7,7 +7,7 @@
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
-required_vars=(SLURM_GPUS_ON_NODE WANDB_API_KEY LLM_NAME PROMPT_FORMAT LORA_RANK LORA_ALPHA GRADIENT_ACCUMULATION_STEPS)
+required_vars=(SLURM_GPUS_ON_NODE WANDB_API_KEY LLM_NAME PROMPT_FORMAT LORA_RANK LORA_ALPHA)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
@@ -68,7 +68,6 @@ echo \"Training config:\"
 echo \"  FREEZE_ENCODER=${FREEZE_ENCODER}\"
 echo \"  LORA_RANK=${LORA_RANK}\"
 echo \"  LORA_ALPHA=${LORA_ALPHA}\"
-echo \"  GRADIENT_ACCUMULATION_STEPS=${GRADIENT_ACCUMULATION_STEPS}\"
 
 # set unbuffered python for realtime container logging
 export PYTHONFAULTHANDLER=1
@@ -112,7 +111,6 @@ python /opt/NeMo/examples/speechlm2/salm_train.py \\
   --config-name=salm.yaml \\
   model.pretrained_llm=${LLM_NAME} \\
   model.prompt_format=${PROMPT_FORMAT} \\
-  trainer.accumulate_grad_batches=${GRADIENT_ACCUMULATION_STEPS} \\
   exp_manager.name=${EXPERIMENT_NAME} \\
   exp_manager.wandb_logger_kwargs.name=${EXPERIMENT_NAME} \\
   \${EXTRA_ARGS}

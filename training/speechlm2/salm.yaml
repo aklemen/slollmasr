@@ -89,7 +89,7 @@ trainer:
   log_every_n_steps: 10
   num_sanity_val_steps: 1
   gradient_clip_val: 5.0
-  accumulate_grad_batches: ???
+  accumulate_grad_batches: 1
   callbacks:
     - _target_: utils.callbacks.LogTrainableParamsCallback
       log_by_module: true
