@@ -118,6 +118,7 @@ data:
 
     use_bucketing: true
     use_multimodal_sampling: true
+    measure_total_length: true
     max_tokens: 2048
     batch_tokens: 4096
     num_buckets: 10
