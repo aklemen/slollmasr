@@ -171,11 +171,3 @@ exp_manager:
     save_top_k: 1
     always_save_nemo: false
     save_nemo_on_train_end: false
-
-  early_stopping_callback_params:
-    monitor: val_acc
-    mode: max
-    min_delta: 0.002  # Ignore improvements < 0.2%
-    patience: 3       # Stop after 3 checks without meaningful improvement
-    check_finite: true
-    verbose: true
