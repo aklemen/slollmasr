@@ -1,0 +1,158 @@
+# Static configuration for SALM with SlovenianGPT LLM.
+# For use with oomptimizer.py and other tools requiring resolved configs.
+# Based on salm.yaml - see that file for parametrized version.
+
+model:
+  pretrained_llm: aklemen/SlovenianGPT
+  pretrained_asr: aklemen/slovene-conformer-ctc
+
+  pretrained_weights: True
+
+  freeze_params:
+    - "^llm\\..+$"
+    - "^embed_tokens\\..+$"
+    - "^perception\\.preprocessor\\..+$"
+    - "^perception\\.encoder\\..+$"
+  prevent_freeze_params: [ ]
+
+  prompt_format: mistral
+  audio_locator_tag: "<audio>"
+
+  lora:
+    task_type: CAUSAL_LM
+    r: 128
+    lora_alpha: 256
+    lora_dropout: 0.05
+    target_modules: ["q_proj", "v_proj"]
+
+  perception:
+    target: nemo.collections.speechlm2.modules.perception.AudioPerceptionModule
+    modality_adapter:
+      _target_: nemo.collections.asr.modules.ConformerEncoder
+      feat_in: 512
+      feat_out: -1
+      n_layers: 2
+      d_model: 1024
+      subsampling: dw_striding
+      subsampling_factor: 8
+      subsampling_conv_channels: 256
+      causal_downsampling: false
+      ff_expansion_factor: 4
+      self_attention_model: rel_pos
+      n_heads: 8
+      att_context_size: [ -1, -1 ]
+      att_context_style: regular
+      xscaling: true
+      untie_biases: true
+      pos_emb_max_len: 5000
+      conv_kernel_size: 9
+      conv_norm_type: batch_norm
+      conv_context_size: null
+      dropout: 0.1
+      dropout_pre_encoder: 0.1
+      dropout_emb: 0.0
+      dropout_att: 0.1
+
+  optimizer:
+    _target_: torch.optim.AdamW
+    lr: 1e-4
+    betas: [0.9, 0.98]
+    weight_decay: 1e-3
+    foreach: true
+
+  lr_scheduler:
+    _target_: nemo.core.optim.lr_scheduler.CosineAnnealing
+    warmup_steps: 2000
+    min_lr: 1e-6
+    max_steps: 50000
+
+trainer:
+  devices: auto
+  accelerator: gpu
+  num_nodes: 1
+  precision: bf16-true
+  logger: False
+  enable_checkpointing: False
+  use_distributed_sampler: False
+  max_steps: 50000
+  val_check_interval: 2000
+  log_every_n_steps: 10
+  num_sanity_val_steps: 1
+  gradient_clip_val: 5.0
+  accumulate_grad_batches: 1
+  callbacks:
+    - _target_: utils.callbacks.LogTrainableParamsCallback
+      log_by_module: true
+  strategy:
+    _target_: lightning.pytorch.strategies.DDPStrategy
+    gradient_as_bucket_view: true
+    find_unused_parameters: true
+
+data:
+  train_ds:
+    sample_rate: 16000
+    prompt_format: mistral
+    token_equivalent_duration: 0.32
+    input_cfg:
+      - type: lhotse_as_conversation
+        shar_path: /custom-datasets/artur/clean/lhotse/shar/train
+        audio_locator_tag: "<audio>"
+        tags:
+          context: "Prepiši govor v slovensko besedilo:"
+    seed: 42
+    shuffle: true
+    shard_seed: "randomized"
+    num_workers: 8
+
+    batch_size: null
+
+    use_bucketing: true
+    use_multimodal_sampling: true
+    measure_total_length: true
+    max_tokens: 2048
+    batch_tokens: 4096
+    num_buckets: 10
+    bucket_buffer_size: 60000
+
+  validation_ds:
+    prompt_format: mistral
+    token_equivalent_duration: 0.32
+    datasets:
+      artur_clean_val:
+        input_cfg:
+          - type: lhotse_as_conversation
+            shar_path: /custom-datasets/artur/clean/lhotse/shar/val
+            audio_locator_tag: "<audio>"
+            tags:
+              context: "Prepiši govor v slovensko besedilo:"
+    sample_rate: 16000
+    batch_size: 2
+    seed: 42
+    shard_seed: "randomized"
+
+exp_manager:
+  explicit_log_dir: /exp/logs
+  name: salm_slovenian_gpt
+  create_tensorboard_logger: false
+  create_checkpoint_callback: true
+  create_early_stopping_callback: true
+  use_datetime_version: true
+
+  resume_from_checkpoint: null
+  resume_if_exists: true
+  resume_ignore_no_checkpoint: true
+
+  create_wandb_logger: true
+  wandb_logger_kwargs:
+    name: salm_slovenian_gpt
+    project: SALM
+    resume: true
+
+  checkpoint_callback_params:
+    filename: "{step}-{val_acc:.2f}"
+    monitor: val_acc
+    mode: max
+    every_n_train_steps: null
+    every_n_epochs: 1
+    save_top_k: 1
+    always_save_nemo: false
