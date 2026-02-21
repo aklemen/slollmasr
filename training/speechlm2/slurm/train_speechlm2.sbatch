@@ -17,7 +17,7 @@ done
 
 # Set defaults for optional variables
 : "${RUN_NAME:=$(basename "$LLM_NAME")_r${LORA_RANK}-a${LORA_ALPHA}}"
-: "${FREEZE_ENCODER:=true}"
+: "${FREEZE_ENCODER:=false}"
 
 EXPERIMENT_NAME="$RUN_NAME"
 
