@@ -3,7 +3,7 @@ export LLM_NAME="cjvt/GaMS-9B"
 export PROMPT_FORMAT="gemma"
 
 export LORA_RANK=128
-export LORA_ALPHA=128
+export LORA_ALPHA=256
 
 JOB_NAME="train-speechlm2-$(basename "$LLM_NAME")"
 sbatch \
