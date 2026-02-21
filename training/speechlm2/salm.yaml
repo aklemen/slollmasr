@@ -85,7 +85,7 @@ trainer:
   enable_checkpointing: False
   use_distributed_sampler: False
   max_steps: 50000
-  val_check_interval: 1000
+  val_check_interval: 2000
   log_every_n_steps: 10
   num_sanity_val_steps: 1
   gradient_clip_val: 5.0
