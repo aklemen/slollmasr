@@ -118,8 +118,7 @@ data:
 
     use_bucketing: true
     use_multimodal_sampling: true
-    min_tokens: 1
-    max_tokens: 1024
+    max_tokens: 2048
     batch_tokens: 4096
     num_buckets: 10
     bucket_buffer_size: 60000
