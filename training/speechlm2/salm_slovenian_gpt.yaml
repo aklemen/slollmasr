@@ -109,10 +109,11 @@ data:
     use_bucketing: true
     use_multimodal_sampling: true
     measure_total_length: true
-    max_tokens: 2048
-    batch_tokens: 4096
+    max_tokens: 1024
+    bucket_duration_bins: [44,52,59,67,76,87,99,114,136]
+    bucket_batch_size: [112,94,81,72,62,57,48,42,36]
     num_buckets: 10
-    bucket_buffer_size: 60000
+    bucket_buffer_size: 20000
 
   validation_ds:
     prompt_format: mistral

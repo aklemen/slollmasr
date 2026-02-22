@@ -119,10 +119,11 @@ data:
     use_bucketing: true
     use_multimodal_sampling: true
     measure_total_length: true
-    max_tokens: 2048
-    batch_tokens: 4096
+    max_tokens: 1024
+    bucket_duration_bins: ???
+    bucket_batch_size: ???
     num_buckets: 10
-    bucket_buffer_size: 60000
+    bucket_buffer_size: 20000
 
   validation_ds:
     # The entries under 'datasets' are a list of separate dataloaders.

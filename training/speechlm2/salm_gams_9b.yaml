@@ -109,10 +109,11 @@ data:
     use_bucketing: true
     use_multimodal_sampling: true
     measure_total_length: true
-    max_tokens: 2048
-    batch_tokens: 4096
+    max_tokens: 1024
+    bucket_duration_bins: [47,55,64,73,83,94,108,125,148]
+    bucket_batch_size: [200,168,146,126,116,97,86,74,58]
     num_buckets: 10
-    bucket_buffer_size: 60000
+    bucket_buffer_size: 20000
 
   validation_ds:
     prompt_format: gemma
