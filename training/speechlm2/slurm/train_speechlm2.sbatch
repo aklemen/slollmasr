@@ -82,14 +82,6 @@ export LORA_ALPHA=\"$LORA_ALPHA\"
 IS_RANK_0_DONE=/tmp/rank_0_done
 
 if [[ \"\${SLURM_PROCID:-0}\" == \"0\" ]]; then
-  echo \"# Rank 0 checking out 'main' branch to get newer SpeechLM2 code ...\"
-  cd /opt/NeMo
-  git branch --show-current
-  git fetch origin main
-  git checkout main
-  git reset --hard ddcb75fb0237d0384f5cfbb50414da609662cb07
-  git branch --show-current
-  cd -
   echo \"# Rank 0 patching SpeechLM2 invalid device string issue ...\"
   curl -o /opt/NeMo/nemo/collections/speechlm2/parts/pretrained.py https://raw.githubusercontent.com/aklemen/NeMo/refs/heads/speechlm2-fixes/nemo/collections/speechlm2/parts/pretrained.py
   touch \"\${IS_RANK_0_DONE}\"
@@ -122,7 +114,7 @@ echo -e \"\"\"
 \"\"\"
 """ >> $SCRIPT_FILE_PATH
 
-CONTAINER_IMAGE="nvcr.io/nvidia/nemo:25.07"
+CONTAINER_IMAGE="nvcr.io/nvidia/nemo:25.11"
 
 EXPERIMENTS="$LOCAL_EXPERIMENT_DIR:/exp"
 
