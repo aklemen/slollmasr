@@ -106,6 +106,8 @@ if [ \"${FREEZE_ENCODER}\" = \"false\" ]; then
   EXTRA_ARGS=\"\${EXTRA_ARGS} model.prevent_freeze_params='[\\\"^perception\\\\.preprocessor\\\\..+\$\\\", \\\"^perception\\\\.encoder\\\\..+\$\\\"]'\"
 fi
 
+export PYTHONPATH=/slollmasr:\${PYTHONPATH:-}
+
 python /opt/NeMo/examples/speechlm2/salm_train.py \\
   --config-path=/slollmasr/training/speechlm2 \\
   --config-name=salm.yaml \\
