@@ -4,5 +4,6 @@
 - type: lhotse_as_conversation
   shar_path: /custom-datasets/artur/clean/lhotse/shar/train
   audio_locator_tag: "<audio>"
+  token_equivalent_duration: 0.16
   tags:
     context: "Prepiši govor v slovensko besedilo:"

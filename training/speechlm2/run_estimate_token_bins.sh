@@ -53,9 +53,6 @@ INPUT_CONFIG="${SCRIPT_DIR}/estimate_token_bins_input.yaml"
 NUM_BUCKETS=10
 NUM_SAMPLES="${2:-10000}"
 
-# token_equivalent_duration from config
-TOKEN_EQUIV_DURATION=0.32
-
 echo "=============================================="
 echo "Estimating token bins for SALM training"
 echo "=============================================="
@@ -65,7 +62,6 @@ echo "Tokenizer: $TOKENIZER"
 echo "Prompt format: $PROMPT_FORMAT"
 echo "Number of buckets: $NUM_BUCKETS"
 echo "Number of samples: $NUM_SAMPLES"
-echo "Token equivalent duration: $TOKEN_EQUIV_DURATION"
 echo "=============================================="
 echo ""
 
