@@ -1,0 +1,8 @@
+# Input config for estimate_token_bins.py
+# Points to the artur/train dataset for SALM token bin estimation
+
+- type: lhotse_as_conversation
+  shar_path: /custom-datasets/artur/clean/lhotse/shar/train
+  audio_locator_tag: "<audio>"
+  tags:
+    context: "Prepiši govor v slovensko besedilo:"
