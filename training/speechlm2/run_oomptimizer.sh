@@ -18,9 +18,15 @@ fi
 case "$CONFIG_NAME" in
     slovenian_gpt)
         CONFIG_PATH="${SCRIPT_DIR}/salm_slovenian_gpt.yaml"
+        # SlovenianGPT: ~5.11 tokens/sec, token_equivalent_duration ~0.196s
+        # Bucket bins in total tokens (adjust based on estimate_token_bins.py output)
+        BUCKET_BINS="[47,55,64,73,83,94,108,125,148]"
         ;;
     gams_9b)
         CONFIG_PATH="${SCRIPT_DIR}/salm_gams_9b.yaml"
+        # GaMS-9B: ~4.08 tokens/sec, token_equivalent_duration ~0.245s
+        # Bucket bins in total tokens (adjust based on estimate_token_bins.py output)
+        BUCKET_BINS="[44,52,59,67,76,87,99,114,136]"
         ;;
     *)
         echo "Unknown config: $CONFIG_NAME"
@@ -33,8 +39,6 @@ if [[ ! -f "$CONFIG_PATH" ]]; then
     echo "Config file not found: $CONFIG_PATH"
     exit 1
 fi
-
-BUCKET_BINS="[2.254,3.182,4.068,4.983,5.942,7.002,8.22,9.686,11.738]"
 
 echo "Running oomptimizer with config: $CONFIG_PATH"
 echo "Bucket bins: $BUCKET_BINS"
