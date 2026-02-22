@@ -58,7 +58,7 @@ class SalmSpeechLM:
             batch_size=None,
         )
 
-        user_prompt = "Transkribiraj naslednji posnetek:"
+        user_prompt = "Prepiši govor v slovensko besedilo:"
         prompt = [{"role": "user", "content": f"{user_prompt} {self.model.audio_locator_tag}"}]
 
         start_time = time.time()
