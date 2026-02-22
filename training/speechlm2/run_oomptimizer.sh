@@ -6,7 +6,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OOMPTIMIZER_PATH="/opt/NeMo/scripts/speechlm2/oomptimizer.py"
+OOMPTIMIZER_PATH="${SCRIPT_DIR}/oomptimizer_wrapper.py"
 
 CONFIG_NAME="${1:-}"
 if [[ -z "$CONFIG_NAME" ]]; then
@@ -39,7 +39,7 @@ BUCKET_BINS="[2.254,3.182,4.068,4.983,5.942,7.002,8.22,9.686,11.738]"
 echo "Running oomptimizer with config: $CONFIG_PATH"
 echo "Bucket bins: $BUCKET_BINS"
 
-torchrun --nproc_per_node=4 "$OOMPTIMIZER_PATH" \
+python "$OOMPTIMIZER_PATH" \
     --module-name nemo.collections.speechlm2.SALM \
     --config-path "$CONFIG_PATH" \
     --buckets "$BUCKET_BINS"
