@@ -31,7 +31,7 @@ fi
 DATETIME=$(TZ="Europe/Ljubljana" date "+%Y-%m-%d___%H-%M-%S_%3N")
 
 # experiment dir
-EXPERIMENT_DIR="salm-ablations/$EXPERIMENT_NAME/$DATETIME"
+EXPERIMENT_DIR="salm/$EXPERIMENT_NAME/$DATETIME"
 LOCAL_EXPERIMENT_DIR="$HOME/exp/$EXPERIMENT_DIR"
 mkdir -p "$LOCAL_EXPERIMENT_DIR"
 
