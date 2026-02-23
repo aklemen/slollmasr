@@ -127,7 +127,7 @@ exp_manager:
   name: GaMS-9B_baseline
   create_tensorboard_logger: false
   create_checkpoint_callback: true
-  create_early_stopping_callback: true
+  create_early_stopping_callback: false
   use_datetime_version: true
 
   resume_from_checkpoint: null
