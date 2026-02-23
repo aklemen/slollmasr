@@ -7,7 +7,7 @@
 #SBATCH --error=/shared/home/anton.klemen/logs/error/%x/%j.log
 
 # Check if all required environment variables are set
-required_vars=(SLURM_GPUS_ON_NODE WANDB_API_KEY LLM_NAME PROMPT_FORMAT LORA_RANK LORA_ALPHA)
+required_vars=(SLURM_GPUS_ON_NODE WANDB_API_KEY CONFIG_NAME)
 for var in "${required_vars[@]}"; do
   if [ -z "${!var}" ]; then
     echo "Error: $var is not set."
@@ -16,8 +16,7 @@ for var in "${required_vars[@]}"; do
 done
 
 # Set defaults for optional variables
-: "${RUN_NAME:=$(basename "$LLM_NAME")_r${LORA_RANK}-a${LORA_ALPHA}}"
-: "${FREEZE_ENCODER:=false}"
+: "${RUN_NAME:=$(basename "$CONFIG_NAME")}"
 
 EXPERIMENT_NAME="$RUN_NAME"
 
@@ -64,20 +63,11 @@ echo -e \"\"\"
 \$(cat /etc/nccl.conf | sed \"s/^/# \${SLURMD_NODENAME}.\${SLURM_PROCID}>   /g\")
 \"\"\"
 
-echo \"Training config:\"
-echo \"  FREEZE_ENCODER=${FREEZE_ENCODER}\"
-echo \"  LORA_RANK=${LORA_RANK}\"
-echo \"  LORA_ALPHA=${LORA_ALPHA}\"
-
 # set unbuffered python for realtime container logging
 export PYTHONFAULTHANDLER=1
 export NCCL_DEBUG=INFO
 
 export WANDB_API_KEY=\"$WANDB_API_KEY\"
-
-# Export env vars for OmegaConf interpolation
-export LORA_RANK=\"$LORA_RANK\"
-export LORA_ALPHA=\"$LORA_ALPHA\"
 
 IS_RANK_0_DONE=/tmp/rank_0_done
 
@@ -90,24 +80,11 @@ else
   while [[ ! -f \"\${IS_RANK_0_DONE}\" ]]; do sleep 2; done
 fi
 
-# Build CLI overrides for list-type parameters
-EXTRA_ARGS=\"\"
-
-# If FREEZE_ENCODER is false, add prevent_freeze_params to unfreeze encoder
-if [ \"${FREEZE_ENCODER}\" = \"false\" ]; then
-  EXTRA_ARGS=\"\${EXTRA_ARGS} model.prevent_freeze_params='[\\\"^perception\\\\.preprocessor\\\\..+\$\\\", \\\"^perception\\\\.encoder\\\\..+\$\\\"]'\"
-fi
-
 export PYTHONPATH=/slollmasr:\${PYTHONPATH:-}
 
 python /opt/NeMo/examples/speechlm2/salm_train.py \\
   --config-path=/slollmasr/training/speechlm2 \\
-  --config-name=salm.yaml \\
-  model.pretrained_llm=${LLM_NAME} \\
-  model.prompt_format=${PROMPT_FORMAT} \\
-  exp_manager.name=${EXPERIMENT_NAME} \\
-  exp_manager.wandb_logger_kwargs.name=${EXPERIMENT_NAME} \\
-  \${EXTRA_ARGS}
+  --config-name=salm_$CONFIG_NAME.yaml
 
 echo -e \"\"\"
 # finished at \$(date)

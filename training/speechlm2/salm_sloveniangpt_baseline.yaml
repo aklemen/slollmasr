@@ -1,7 +1,3 @@
-# Static configuration for SALM with SlovenianGPT LLM.
-# For use with oomptimizer.py and other tools requiring resolved configs.
-# Based on salm.yaml - see that file for parametrized version.
-
 model:
   pretrained_llm: aklemen/SlovenianGPT
   pretrained_asr: aklemen/slovene-conformer-ctc
@@ -11,8 +7,6 @@ model:
   freeze_params:
     - "^llm\\..+$"
     - "^embed_tokens\\..+$"
-    - "^perception\\.preprocessor\\..+$"
-    - "^perception\\.encoder\\..+$"
   prevent_freeze_params: [ ]
 
   prompt_format: mistral
@@ -110,8 +104,8 @@ data:
     use_multimodal_sampling: true
     measure_total_length: true
     max_tokens: 1024
-    bucket_duration_bins: [44,52,59,67,76,87,99,114,136]
-    bucket_batch_size: [112,94,81,72,62,57,48,42,36]
+    bucket_duration_bins: [47,55,64,73,83,94,108,125,148]
+    bucket_batch_size: [127,107,92,80,68,62,52,44,38]
     num_buckets: 10
     bucket_buffer_size: 20000
 
@@ -133,7 +127,7 @@ data:
 
 exp_manager:
   explicit_log_dir: /exp/logs
-  name: salm_slovenian_gpt
+  name: SlovenianGPT_baseline
   create_tensorboard_logger: false
   create_checkpoint_callback: true
   create_early_stopping_callback: true
@@ -145,7 +139,7 @@ exp_manager:
 
   create_wandb_logger: true
   wandb_logger_kwargs:
-    name: salm_slovenian_gpt
+    name: SlovenianGPT_baseline
     project: SALM
     resume: true
 

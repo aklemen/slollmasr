@@ -1,11 +1,7 @@
 #!/bin/bash
-export LLM_NAME="aklemen/SlovenianGPT"
-export PROMPT_FORMAT="mistral"
+export CONFIG_NAME="sloveniangpt_baseline"
 
-export LORA_RANK=128
-export LORA_ALPHA=256
-
-JOB_NAME="train-speechlm2-$(basename "$LLM_NAME")"
+JOB_NAME="train-salm-$(basename "$CONFIG_NAME")"
 sbatch \
   --job-name="$JOB_NAME" \
   --ntasks-per-node=4 \

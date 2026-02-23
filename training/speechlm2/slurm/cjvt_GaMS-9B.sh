@@ -1,11 +1,7 @@
 #!/bin/bash
-export LLM_NAME="cjvt/GaMS-9B"
-export PROMPT_FORMAT="gemma"
+export CONFIG_NAME="gams-9b_baseline"
 
-export LORA_RANK=128
-export LORA_ALPHA=256
-
-JOB_NAME="train-speechlm2-$(basename "$LLM_NAME")"
+JOB_NAME="train-salm-$(basename "$CONFIG_NAME")"
 sbatch \
   --job-name="$JOB_NAME" \
   --ntasks-per-node=4 \
