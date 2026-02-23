@@ -58,7 +58,7 @@ model:
     _target_: nemo.core.optim.lr_scheduler.CosineAnnealing
     warmup_steps: 2000
     min_lr: 1e-6
-    max_steps: 15000
+    max_steps: 10000
 
 trainer:
   devices: auto
@@ -68,7 +68,7 @@ trainer:
   logger: False
   enable_checkpointing: False
   use_distributed_sampler: False
-  max_steps: 15000
+  max_steps: 10000
   val_check_interval: 1000
   log_every_n_steps: 10
   num_sanity_val_steps: 1
