@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 
 import torch
+from huggingface_hub import add_collection_item, metadata_update
 from nemo.collections.speechlm2 import SALM
 from omegaconf import OmegaConf
 
@@ -30,6 +31,10 @@ def main():
     parser.add_argument('--llm_name', type=str, required=True)
     parser.add_argument('--prompt_format', type=str, required=True)
     parser.add_argument('--model_name_for_hf_upload', type=str, required=False)
+    parser.add_argument('--tags', type=str, nargs='*', default=[],
+                        help='Tags for HuggingFace model (e.g., --tags 2026-02-23 librispeech v1)')
+    parser.add_argument('--collection_slug', type=str, required=False,
+                        help='HuggingFace collection slug to add model to')
     args = parser.parse_args()
     Logger.info("============ ARGUMENTS ============")
     Logger.info(args)
@@ -64,6 +69,18 @@ def main():
         repo_id = f"aklemen/{args.model_name_for_hf_upload}"
         model.push_to_hub(repo_id)
         Logger.info(f"Model pushed to HuggingFace Hub as {repo_id}")
+
+        if args.tags:
+            Logger.info(f"Adding tags: {args.tags}")
+            metadata_update(repo_id=repo_id, metadata={"tags": args.tags})
+
+        if args.collection_slug:
+            Logger.info(f"Adding to collection: {args.collection_slug}")
+            add_collection_item(
+                collection_slug=args.collection_slug,
+                item_id=repo_id,
+                item_type="model"
+            )
 
 
 if __name__ == "__main__":
