@@ -43,6 +43,8 @@ def main():
                         help='Tags for HuggingFace model (e.g., --tags 2026-02-23 librispeech v1)')
     parser.add_argument('--collection_slug', type=str, required=False,
                         help='HuggingFace collection slug to add model to')
+    parser.add_argument('--skip_local_save', action='store_true',
+                        help='Skip saving model locally, only push to HuggingFace')
     args = parser.parse_args()
     Logger.info("============ ARGUMENTS ============")
     Logger.info(args)
@@ -67,11 +69,13 @@ def main():
     load_checkpoint(model, best_checkpoint_path)
     model = model.to(getattr(torch, "bfloat16"))
 
-    Logger.info("Saving model in HF format ...")
-    hf_save_dir = Path(args.ckpt_dir) / "hf"
-    hf_save_dir.mkdir(parents=True, exist_ok=True)
-    model.save_pretrained(hf_save_dir)
-    Logger.info(f"Model saved to {hf_save_dir}")
+    if not args.skip_local_save:
+        Logger.info("Saving model in HF format ...")
+        hf_save_dir = Path(args.ckpt_dir) / "hf"
+        hf_save_dir.mkdir(parents=True, exist_ok=True)
+        model.save_pretrained(hf_save_dir)
+        Logger.info(f"Model saved to {hf_save_dir}")
+
     if args.model_name_for_hf_upload:
         Logger.info("Pushing model to HuggingFace Hub ...")
         repo_id = f"aklemen/{args.model_name_for_hf_upload}"
