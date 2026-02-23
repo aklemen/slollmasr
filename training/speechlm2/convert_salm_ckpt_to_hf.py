@@ -9,6 +9,14 @@ from omegaconf import OmegaConf
 from utils.logger import Logger
 
 
+def _extract_val_acc(ckpt_path: Path) -> float:
+    stem = ckpt_path.stem
+    if "val_acc=" not in stem:
+        return float('inf')
+    val_part = stem.split("val_acc=")[-1]
+    val_part = val_part.split("-")[0]
+    return float(val_part)
+
 def _find_best_checkpoint(ckpt_dir: str) -> str:
     ckpt_dir = Path(ckpt_dir)
     if not ckpt_dir.is_dir():
@@ -16,7 +24,7 @@ def _find_best_checkpoint(ckpt_dir: str) -> str:
     ckpt_files = list(ckpt_dir.glob("*.ckpt"))
     if not ckpt_files:
         raise ValueError(f"No checkpoint files found in {ckpt_dir}")
-    best_ckpt = min(ckpt_files, key=lambda x: float(x.stem.split("val_acc=")[-1]))
+    best_ckpt = min(ckpt_files, key=_extract_val_acc)
     return str(best_ckpt)
 
 def load_checkpoint(model: torch.nn.Module, checkpoint_path: str):
