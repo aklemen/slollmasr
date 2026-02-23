@@ -80,8 +80,6 @@ else
   while [[ ! -f \"\${IS_RANK_0_DONE}\" ]]; do sleep 2; done
 fi
 
-export PYTHONPATH=/slollmasr:\${PYTHONPATH:-}
-
 python /opt/NeMo/examples/speechlm2/salm_train.py \\
   --config-path=/slollmasr/training/speechlm2 \\
   --config-name=salm_$CONFIG_NAME.yaml

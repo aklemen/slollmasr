@@ -8,7 +8,6 @@ This wrapper skips distributed init for single GPU since it's not needed
 for batch size profiling.
 """
 import sys
-sys.path.insert(0, '/slollmasr')
 
 import runpy
 
