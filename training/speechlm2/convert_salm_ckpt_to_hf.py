@@ -84,7 +84,7 @@ def main():
 
         if args.tags:
             Logger.info(f"Adding tags: {args.tags}")
-            metadata_update(repo_id=repo_id, metadata={"tags": args.tags})
+            metadata_update(repo_id=repo_id, metadata={"tags": args.tags}, overwrite=True)
 
         if args.collection_slug:
             Logger.info(f"Adding to collection: {args.collection_slug}")
