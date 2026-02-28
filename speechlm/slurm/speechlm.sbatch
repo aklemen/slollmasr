@@ -96,7 +96,8 @@ ${EXTRA_EOS_TOKEN_ID:+   --extra_eos_token_id $EXTRA_EOS_TOKEN_ID} \
    --manifest_file_paths ${TEST_MANIFESTS[*]} \
    --results_dir_paths ${RESULT_DIR_PATHS_ARRAY[*]} \
    --evaluation_dir_path $BASE_CONTAINER_RESULTS_PATH \
-   --batch_size $BATCH_SIZE
+   --batch_size $BATCH_SIZE \
+${DO_SAMPLE:+   --do_sample   --top_p 0.9   --temperature 0.8}
 
 echo -e \"\"\"
 # finished at \$(date)
